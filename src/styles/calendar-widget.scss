@@ -1,0 +1,303 @@
+/**
+ * Calendar Widget Styles for Seasons & Stars
+ */
+
+.calendar-widget {
+  .window-content {
+    padding: 8px;
+    background: var(--color-bg);
+  }
+
+  .calendar-widget-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--font-primary);
+  }
+
+  // Error state
+  .error-state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border-light-primary);
+    border-radius: 4px;
+    color: var(--color-text-light-warning);
+
+    i {
+      color: var(--color-text-light-warning);
+    }
+  }
+
+  // Calendar header
+  .calendar-header {
+    border-bottom: 1px solid var(--color-border-light-primary);
+    padding-bottom: 6px;
+
+    .calendar-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 3px;
+      transition: background-color 0.2s;
+      font-weight: 600;
+      color: var(--color-text-light-primary);
+
+      &:hover {
+        background: var(--color-bg-alt);
+      }
+
+      i:first-child {
+        color: var(--color-text-light-heading);
+      }
+
+      i:last-child {
+        margin-left: auto;
+        font-size: 0.8em;
+        opacity: 0.7;
+      }
+    }
+
+    .calendar-setting {
+      font-size: 0.8em;
+      color: var(--color-text-light-secondary);
+      margin-top: 2px;
+      padding-left: 22px;
+    }
+  }
+
+  // Date display
+  .date-display {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border-light-primary);
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--color-bg-option);
+      border-color: var(--color-border-light-secondary);
+    }
+
+    .main-date {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--color-text-light-primary);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .time-display {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+
+      .time {
+        font-family: var(--font-mono);
+        font-size: 1em;
+        color: var(--color-text-light-secondary);
+        background: var(--color-bg);
+        padding: 2px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--color-border-light-tertiary);
+      }
+
+    }
+  }
+
+  // Calendar controls (GM only)
+  .calendar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: var(--color-bg-alt);
+    border-radius: 6px;
+    border: 1px solid var(--color-border-light-primary);
+
+    // Shared control group styles
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      label {
+        font-size: 0.85em;
+        color: var(--color-text-light-secondary);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      button {
+        padding: 8px 12px;
+        font-size: 0.8em;
+        border: 1px solid var(--color-border-light-secondary);
+        background: var(--color-bg);
+        color: var(--color-text-light-primary);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-weight: 500;
+
+        &:hover {
+          background: var(--color-text-light-highlight);
+          color: var(--color-text-dark-primary);
+          border-color: var(--color-text-light-highlight);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        i {
+          font-size: 0.9em;
+        }
+
+        // Time button styles (minutes and hours)
+        &[data-unit="minutes"],
+        &[data-unit="hours"] {
+          background: linear-gradient(135deg, #10b981, #14b8a6);
+          color: white;
+          border-color: #10b981;
+
+          &:hover {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            transform: translateY(-2px);
+          }
+        }
+
+        // Different colors for different date units
+        &[data-unit="days"] {
+          background: linear-gradient(135deg, #4f46e5, #6366f1);
+          color: white;
+          border-color: #4f46e5;
+
+          &:hover {
+            background: linear-gradient(135deg, #3730a3, #4f46e5);
+            transform: translateY(-2px);
+          }
+        }
+
+        &[data-unit="weeks"] {
+          background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+          color: white;
+          border-color: #7c3aed;
+
+          &:hover {
+            background: linear-gradient(135deg, #5b21b6, #7c3aed);
+            transform: translateY(-2px);
+          }
+        }
+
+        &[data-unit="months"] {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          color: white;
+          border-color: #dc2626;
+
+          &:hover {
+            background: linear-gradient(135deg, #991b1b, #dc2626);
+            transform: translateY(-2px);
+          }
+        }
+      }
+
+      // Horizontal layout for time controls
+      &.horizontal {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+
+        label {
+          margin-bottom: 0;
+          flex-shrink: 0;
+        }
+
+        .time-buttons {
+          display: flex;
+          flex-direction: row;
+          gap: 6px;
+          flex-wrap: wrap;
+          flex: 1;
+          
+          button {
+            flex: 1;
+            min-width: 60px;
+            padding: 6px 8px;
+            font-size: 0.75em;
+          }
+        }
+      }
+    }
+
+    .time-advance-section {
+      // Time advance section inherits control-group styles
+    }
+
+    .date-advance-section {
+      // Date advance section inherits control-group styles
+    }
+
+    .bulk-advance-section {
+      // Bulk advance section inherits control-group styles
+    }
+
+
+  }
+
+  // Calendar description
+  .calendar-description {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    font-size: 0.8em;
+    color: var(--color-text-light-secondary);
+    background: var(--color-bg-alt);
+    border-radius: 3px;
+    cursor: help;
+
+    i {
+      color: var(--color-text-light-hint);
+    }
+
+    span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+  }
+}
+
+// Foundry theme compatibility
+.system-dnd5e .calendar-widget,
+.system-pf2e .calendar-widget {
+  .window-content {
+    background: var(--color-warm-grey);
+  }
+
+  .date-display {
+    background: var(--color-light-grey);
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .calendar-widget {
+    // Dark mode adjustments if needed
+  }
+}

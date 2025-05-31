@@ -1,0 +1,210 @@
+/**
+ * Main styles for Seasons & Stars
+ */
+
+// Import widget styles
+@import 'calendar-widget';
+@import 'calendar-mini-widget';
+@import 'calendar-selection-dialog';
+// @import 'time-advance-dialog'; // Temporarily disabled
+
+// Main module styles
+.seasons-stars {
+  // Common styles for all S&S components
+  font-family: var(--font-primary);
+  
+  // Buttons
+  .ss-button {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border-light-secondary);
+    background: var(--color-bg-option);
+    color: var(--color-text-light-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: var(--color-bg-alt);
+      border-color: var(--color-border-light-primary);
+    }
+    
+    &:active {
+      transform: translateY(1px);
+    }
+    
+    &.primary {
+      background: var(--color-text-light-highlight);
+      color: var(--color-text-dark-primary);
+      border-color: var(--color-text-light-highlight);
+      
+      &:hover {
+        background: var(--color-text-light-heading);
+        border-color: var(--color-text-light-heading);
+      }
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      
+      &:hover {
+        background: var(--color-bg-option);
+        transform: none;
+      }
+    }
+  }
+  
+  // Form elements
+  .ss-form-group {
+    margin-bottom: 12px;
+    
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+      color: var(--color-text-light-heading);
+    }
+    
+    .hint {
+      font-size: 0.85em;
+      color: var(--color-text-light-secondary);
+      margin-top: 2px;
+    }
+  }
+  
+  .ss-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border-light-secondary);
+    background: var(--color-bg);
+    color: var(--color-text-light-primary);
+    border-radius: 3px;
+    
+    &:focus {
+      outline: none;
+      border-color: var(--color-text-light-highlight);
+      box-shadow: 0 0 0 2px rgba(var(--color-text-light-highlight-rgb), 0.2);
+    }
+  }
+  
+  .ss-select {
+    @extend .ss-input;
+    cursor: pointer;
+  }
+  
+  // Grid layouts
+  .ss-grid {
+    display: grid;
+    gap: 12px;
+    
+    &.two-column {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    &.three-column {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  
+  // Flex layouts
+  .ss-flex {
+    display: flex;
+    gap: 8px;
+    
+    &.column {
+      flex-direction: column;
+    }
+    
+    &.center {
+      align-items: center;
+      justify-content: center;
+    }
+    
+    &.space-between {
+      justify-content: space-between;
+    }
+  }
+  
+  // Cards
+  .ss-card {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border-light-primary);
+    border-radius: 6px;
+    padding: 12px;
+    
+    .ss-card-header {
+      border-bottom: 1px solid var(--color-border-light-tertiary);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      
+      .ss-card-title {
+        font-weight: 600;
+        color: var(--color-text-light-heading);
+        margin: 0;
+      }
+    }
+    
+    .ss-card-content {
+      color: var(--color-text-light-primary);
+    }
+  }
+  
+  // Status indicators
+  .ss-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: 600;
+    
+    &.success {
+      background: rgba(76, 175, 80, 0.1);
+      color: #4caf50;
+    }
+    
+    &.warning {
+      background: rgba(255, 193, 7, 0.1);
+      color: #ffc107;
+    }
+    
+    &.error {
+      background: rgba(244, 67, 54, 0.1);
+      color: #f44336;
+    }
+    
+    &.info {
+      background: rgba(33, 150, 243, 0.1);
+      color: #2196f3;
+    }
+  }
+  
+  // Icons
+  .ss-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    
+    &.large {
+      width: 24px;
+      height: 24px;
+    }
+    
+    &.small {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Scene controls integration
+.control-tools {
+  .seasons-stars-control {
+    i {
+      font-size: 16px;
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "SEASONS_STARS": {
+    "module_title": "Seasons & Stars",
+    "calendar": {
+      "current_date": "Current Date",
+      "advance_time": "Advance Time",
+      "calendar_selection": "Calendar Selection",
+      "calendar_format": "Calendar Format",
+      "custom": "Custom Calendar",
+      "import": "Import Calendar",
+      "export": "Export Calendar",
+      "months": "Months",
+      "days_per_week": "Days per Week",
+      "leap_year": "Leap Year",
+      "enabled": "Enabled"
+    },
+    "dialog": {
+      "calendar_selection": {
+        "title": "Choose Calendar",
+        "choose_calendar": "Choose a Calendar",
+        "choose_hint": "Select a calendar system to use for date display and time tracking.",
+        "select": "Select Calendar",
+        "cancel": "Cancel",
+        "switch_to": "Switch to {calendar}",
+        "current": "Current",
+        "sample": "Sample",
+        "preview": "Preview",
+        "preview_tooltip": "View calendar details and sample dates",
+        "sample_dates": "Sample Dates",
+        "structure": "Calendar Structure",
+        "no_calendars": "No Calendars Available",
+        "no_calendars_hint": "No calendar files were found. Please ensure calendar data is properly installed."
+      },
+      "calendar_preview": {
+        "title": "Calendar Preview: {calendar}"
+      },
+      "close": "Close"
+    },
+    "settings": {
+      "active_calendar": "Active Calendar",
+      "active_calendar_hint": "Which calendar system to use for date display and calculations",
+      "current_date": "Current Date",
+      "current_date_hint": "The current in-game date (managed automatically)"
+    },
+    "notifications": {
+      "calendar_changed": "Calendar changed to {calendar}"
+    },
+    "warnings": {
+      "no_calendars_available": "No calendars are available for selection"
+    },
+    "errors": {
+      "invalid_calendar": "Invalid calendar format",
+      "failed_load": "Failed to load calendar: {error}",
+      "conversion_failed": "Calendar conversion failed: {error}",
+      "manager_not_ready": "Calendar manager is not ready yet"
+    }
+  }
+}

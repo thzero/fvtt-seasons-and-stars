@@ -1,0 +1,143 @@
+{
+  "id": "vale-reckoning",
+  "translations": {
+    "en": {
+      "label": "The Vale Reckoning",
+      "description": "A fantasy calendar used in northern mountain valleys, where each season breathes myth and memory. Features an 8-month cycle, 6-day week, and sacred festival days.",
+      "setting": "Fantasy"
+    }
+  },
+  
+  "year": {
+    "epoch": 0,
+    "currentYear": 1542,
+    "prefix": "",
+    "suffix": " VR",
+    "startDay": 0
+  },
+  
+  "leapYear": {
+    "rule": "none"
+  },
+  
+  "months": [
+    {
+      "name": "Frostwane",
+      "abbreviation": "Fro",
+      "days": 45,
+      "description": "The dying of winter. A time of silence, hunger, and huddled survival."
+    },
+    {
+      "name": "Thawmarch",
+      "abbreviation": "Tha",
+      "days": 45,
+      "description": "The breaking thaw. Ice splits, rivers churn, and wolves hunt the weak."
+    },
+    {
+      "name": "Greenspire",
+      "abbreviation": "Gre",
+      "days": 45,
+      "description": "First blooms and returning birds. Rains soften the land for planting."
+    },
+    {
+      "name": "Embertide",
+      "abbreviation": "Emb",
+      "days": 45,
+      "description": "The burn months. Smoke, sowing, and the dance of ash over fields."
+    },
+    {
+      "name": "Highsun",
+      "abbreviation": "Hig",
+      "days": 45,
+      "description": "Midyear heat. Dreams burn bright, tempers burn brighter."
+    },
+    {
+      "name": "Harvestwane",
+      "abbreviation": "Har",
+      "days": 45,
+      "description": "Golden dusk. Crops ripen, blades are sharpened, debts are settled."
+    },
+    {
+      "name": "Gravecall",
+      "abbreviation": "Gra",
+      "days": 45,
+      "description": "Long shadows and whispered names. The living and dead walk closest."
+    },
+    {
+      "name": "Deepfrost",
+      "abbreviation": "Dee",
+      "days": 45,
+      "description": "The world stills again. Fires dim, and breath clouds in the chill."
+    }
+  ],
+  
+  "weekdays": [
+    { 
+      "name": "Brightday", 
+      "abbreviation": "Bri",
+      "description": "Auspicious. New journeys, clear skies, and clean starts." 
+    },
+    { 
+      "name": "Graftday", 
+      "abbreviation": "Gra",
+      "description": "Work and toil. Markets bustle, and fields are plowed." 
+    },
+    { 
+      "name": "Stoneday", 
+      "abbreviation": "Sto",
+      "description": "Hearth and holdfast. A day for home, rest, and repairs." 
+    },
+    { 
+      "name": "Bitterday", 
+      "abbreviation": "Bit",
+      "description": "Ill omens and arguments. Avoid risk and stay wary." 
+    },
+    { 
+      "name": "Wyrdday", 
+      "abbreviation": "Wyr",
+      "description": "Mystic alignments. Tales are told, stars watched, and truths divined." 
+    },
+    { 
+      "name": "Graveday", 
+      "abbreviation": "Grv",
+      "description": "Remembrance and endings. The dead are honored, the past weighed." 
+    }
+  ],
+  
+  "intercalary": [
+    {
+      "name": "Hearthmoor",
+      "after": "Frostwane",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "A night of survival rites and shared flame. The long dark wanes."
+    },
+    {
+      "name": "Stormrest",
+      "after": "Greenspire",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "Offerings are left to the storm spirits. Farmers call this the floodwatch."
+    },
+    {
+      "name": "Suncrest",
+      "after": "Highsun",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "The longest day. Madness, passion, and visions flare under the open sky."
+    },
+    {
+      "name": "Ashfall",
+      "after": "Gravecall",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "Ashes of the year are buried or scattered. Old names are sung, and debts burned."
+    }
+  ],
+  
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

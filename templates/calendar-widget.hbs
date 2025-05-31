@@ -1,0 +1,90 @@
+{{!-- Calendar Widget Template --}}
+<div class="calendar-widget-content">
+  {{#if error}}
+    <div class="error-state">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{error}}</span>
+    </div>
+  {{else}}
+    {{!-- Calendar Header --}}
+    <div class="calendar-header">
+      <div class="calendar-title" data-action="openCalendarSelection" title="Click to change calendar">
+        <i class="fas fa-calendar-alt"></i>
+        <span>{{calendar.label}}</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      {{#if calendar.setting}}
+        <div class="calendar-setting">{{calendar.setting}}</div>
+      {{/if}}
+    </div>
+
+    {{!-- Date Display --}}
+    <div class="date-display" data-action="openDetailedView" title="Click for detailed view">
+      <div class="main-date">{{shortDate}}</div>
+      {{#if timeString}}
+        <div class="time-display">
+          <span class="time">{{timeString}}</span>
+        </div>
+      {{/if}}
+    </div>
+
+    {{!-- Calendar Controls --}}
+    {{#if canAdvanceTime}}
+      <div class="calendar-controls">
+        {{#if showTimeControls}}
+          <div class="time-advance-section">
+            <div class="control-group horizontal">
+              <label>Quick Time:</label>
+              <div class="time-buttons">
+                <button data-action="advanceDate" data-amount="15" data-unit="minutes" title="Advance 15 minutes">
+                  <i class="fas fa-clock"></i> 15m
+                </button>
+                <button data-action="advanceDate" data-amount="1" data-unit="hours" title="Advance 1 hour">
+                  <i class="fas fa-clock"></i> 1h
+                </button>
+                <button data-action="advanceDate" data-amount="4" data-unit="hours" title="Advance 4 hours">
+                  <i class="fas fa-clock"></i> 4h
+                </button>
+                <button data-action="advanceDate" data-amount="8" data-unit="hours" title="Advance 8 hours">
+                  <i class="fas fa-clock"></i> 8h
+                </button>
+              </div>
+            </div>
+          </div>
+        {{/if}}
+
+        <div class="date-advance-section">
+          <div class="control-group">
+            <label>Advance Date:</label>
+            <button data-action="advanceDate" data-amount="1" data-unit="days" title="Advance 1 day">
+              <i class="fas fa-plus"></i> 1 Day
+            </button>
+            <button data-action="advanceDate" data-amount="1" data-unit="weeks" title="Advance 1 week">
+              <i class="fas fa-plus"></i> 1 Week
+            </button>
+            <button data-action="advanceDate" data-amount="1" data-unit="months" title="Advance 1 month">
+              <i class="fas fa-plus"></i> 1 Month
+            </button>
+          </div>
+        </div>
+
+        <div class="bulk-advance-section">
+          <div class="control-group">
+            <label>Bulk Advance:</label>
+            <button data-action="openBulkAdvance" title="Open bulk time advancement dialog">
+              <i class="fas fa-fast-forward"></i> Custom
+            </button>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- Additional Info --}}
+    {{#if calendar.description}}
+      <div class="calendar-description" title="{{calendar.description}}">
+        <i class="fas fa-info-circle"></i>
+        <span>{{calendar.description}}</span>
+      </div>
+    {{/if}}
+  {{/if}}
+</div>

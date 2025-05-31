@@ -1,0 +1,18 @@
+{{!-- Calendar Mini Widget Template --}}
+<div class="calendar-mini-content">
+  {{#if error}}
+    <div class="mini-error">{{error}}</div>
+  {{else}}
+    <div class="mini-date">{{shortDate}}</div>
+    {{#if showTimeControls}}
+      <div class="mini-time-controls">
+        <button data-action="advanceTime" data-amount="15" data-unit="minutes" title="Advance 15 minutes">
+          <i class="fas fa-clock"></i> +15m
+        </button>
+        <button data-action="advanceTime" data-amount="1" data-unit="hours" title="Advance 1 hour">
+          <i class="fas fa-clock"></i> +1h
+        </button>
+      </div>
+    {{/if}}
+  {{/if}}
+</div>
