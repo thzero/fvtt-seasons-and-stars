@@ -3,6 +3,7 @@
     "module_title": "Seasons & Stars",
     "calendar": {
       "current_date": "Current Date",
+      "monthly_view": "Monthly Calendar",
       "advance_time": "Advance Time",
       "calendar_selection": "Calendar Selection",
       "calendar_format": "Calendar Format",

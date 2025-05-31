@@ -1,0 +1,99 @@
+{{!-- Calendar Grid Widget Template --}}
+<div class="calendar-grid-content">
+  {{#if error}}
+    <div class="error-state">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{error}}</span>
+    </div>
+  {{else}}
+    {{!-- Calendar Header with Navigation --}}
+    <div class="calendar-grid-header">
+      <div class="navigation-controls">
+        <div class="month-navigation">
+          <button type="button" class="nav-button" data-action="previousMonth" title="Previous Month">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="month-info">
+            <div class="month-name">{{monthName}}</div>
+            {{#if monthDescription}}
+              <div class="month-description" title="{{monthDescription}}">
+                <i class="fas fa-info-circle"></i>
+              </div>
+            {{/if}}
+          </div>
+          <button type="button" class="nav-button" data-action="nextMonth" title="Next Month">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="year-navigation">
+          <button type="button" class="nav-button" data-action="previousYear" title="Previous Year">
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <div class="year-display">{{yearDisplay}}</div>
+          <button type="button" class="nav-button" data-action="nextYear" title="Next Year">
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="today-button" data-action="goToToday" title="Go to current date">
+          <i class="fas fa-crosshairs"></i> Today
+        </button>
+      </div>
+    </div>
+
+    {{!-- Weekday Headers --}}
+    <div class="weekday-headers">
+      {{#each weekdays}}
+        <div class="weekday-header" title="{{description}}">
+          <span class="weekday-name">{{abbreviation}}</span>
+        </div>
+      {{/each}}
+    </div>
+
+    {{!-- Calendar Grid --}}
+    <div class="calendar-grid">
+      {{#each monthData.weeks}}
+        <div class="calendar-week">
+          {{#each this}}
+            {{#if isEmpty}}
+              <div class="calendar-day empty"></div>
+            {{else}}
+              <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}}"
+                   data-action="{{#if isClickable}}selectDate{{/if}}"
+                   data-day="{{day}}"
+                   data-date="{{fullDate}}"
+                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if isClickable}} (Click to set date){{/if}}">
+                <span class="day-number">{{day}}</span>
+              </div>
+            {{/if}}
+          {{/each}}
+        </div>
+      {{/each}}
+    </div>
+
+    {{!-- Calendar Info Footer --}}
+    <div class="calendar-grid-footer">
+      {{#if isGM}}
+        <div class="gm-instructions">
+          <i class="fas fa-crown"></i>
+          <span>Click any date to set the current world time</span>
+        </div>
+      {{else}}
+        <div class="player-instructions">
+          <i class="fas fa-eye"></i>
+          <span>Calendar view (GM can modify dates)</span>
+        </div>
+      {{/if}}
+      
+      {{#if monthData.monthDescription}}
+        <div class="month-description-full">
+          <i class="fas fa-info-circle"></i>
+          <span>{{monthData.monthDescription}}</span>
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>

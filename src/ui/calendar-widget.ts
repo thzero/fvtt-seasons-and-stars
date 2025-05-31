@@ -4,6 +4,7 @@
 
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
+import { CalendarGridWidget } from './calendar-grid-widget';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -119,9 +120,15 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _onOpenDetailedView(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
     
-    // TODO: Open detailed calendar view
-    console.log('Seasons & Stars | Opening detailed view (TODO)');
-    ui.notifications?.info('Detailed calendar view coming soon!');
+    const manager = game.seasonsStars?.manager;
+    if (!manager) {
+      ui.notifications?.error('Calendar manager not available');
+      return;
+    }
+
+    // Open the calendar grid widget with the current date
+    const currentDate = manager.getCurrentDate();
+    CalendarGridWidget.show(currentDate);
   }
 
   /**

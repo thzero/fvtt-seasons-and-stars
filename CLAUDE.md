@@ -22,7 +22,69 @@
 
 ## Recent Development Sessions
 
-### Current Session: UI Positioning & SmallTime Integration Fixes
+### Current Session: Simple Calendar Compatibility Code Removal
+
+**Problem Solved**: Completely removed all Simple Calendar compatibility code from Seasons & Stars module in favor of standalone compatibility bridge approach.
+
+**Major Changes**:
+
+1. **Module Cleanup** (`module.ts`)
+   - Removed ~520 lines of compatibility code (64% reduction)
+   - File size reduced from ~815 lines to 291 lines
+   - Removed 7 major compatibility functions
+   - Removed `simpleCalendarCompat` setting registration
+   - Removed all fake module registration logic
+
+2. **Type Definitions Cleanup** (`foundry-extensions.d.ts`)
+   - Removed `SimpleCalendarCompatAPI` interface
+   - Removed SimpleCalendar window type declarations
+   - Cleaned up module type definitions
+
+3. **Functions Removed**:
+   - `setupEarlySimpleCalendarCompatibility()`
+   - `setupSimpleCalendarCompatibility()` (320+ lines)
+   - `getOrdinalSuffix()`
+   - `getCurrentSeasonIcon()`
+   - `addVeryEarlyModuleRegistration()`
+   - `addSafeModuleRegistration()`
+   - `removeSimpleCalendarCompatibility()`
+
+### Previous Session: SmallTime Integration API Compatibility Fix
+
+**Problem Solved**: Fixed `TypeError: Cannot read properties of undefined (reading 'monthName')` error when SmallTime tries to access Simple Calendar API data from Seasons & Stars compatibility layer.
+
+**Root Cause**: SmallTime expects specific properties in the `display` object returned by `SimpleCalendar.api.timestampToDate()`, but our compatibility layer had incomplete data validation and missing properties.
+
+**Key Fixes** (Now Moved to Standalone Bridge):
+
+1. **Month Name Validation** (`module.ts:415`)
+   ```typescript
+   // Added proper range validation for month indexing
+   const monthName = (ssDate.month >= 1 && ssDate.month <= activeCalendar.months.length) ? 
+     activeCalendar.months[ssDate.month - 1]?.name || '' : '';
+   ```
+
+2. **Complete Display Object Properties**
+   - Added missing `month` property (string representation)
+   - Added `daySuffix` with ordinal suffix generation (1st, 2nd, 3rd, etc.)
+   - Added `yearPrefix` and `yearPostfix` from calendar configuration
+   - Enhanced error handling with debug logging
+
+3. **Ordinal Suffix Helper Function**
+   ```typescript
+   function getOrdinalSuffix(day: number): string {
+     if (day >= 11 && day <= 13) return 'th';
+     const lastDigit = day % 10;
+     switch (lastDigit) {
+       case 1: return 'st';
+       case 2: return 'nd'; 
+       case 3: return 'rd';
+       default: return 'th';
+     }
+   }
+   ```
+
+### Previous Session: UI Positioning & SmallTime Integration Fixes
 
 **Problem Solved**: Fixed "jarring" mini widget positioning that would jump between different UI locations.
 
@@ -203,6 +265,40 @@ game.seasonsStars = {
   getCurrentDate: () => manager.getCurrentDate(),
   advanceTime: (amount, unit) => manager.advanceTime(amount, unit),
   // Additional API methods
+};
+```
+
+### Simple Calendar Compatibility Layer
+For seamless integration with modules expecting Simple Calendar API:
+
+```typescript
+// Complete compatibility layer with all expected properties
+const compatAPI = {
+  timestampToDate: (timestamp: number) => ({
+    // Core date properties
+    year: ssDate.year,
+    month: ssDate.month - 1, // 0-based for SC compatibility
+    day: ssDate.day - 1,     // 0-based for SC compatibility
+    
+    // Display formatting - critical for SmallTime integration
+    display: {
+      monthName: validatedMonthName,    // Validated month lookup
+      month: ssDate.month.toString(),   // String representation  
+      day: ssDate.day.toString(),
+      year: ssDate.year.toString(),
+      daySuffix: getOrdinalSuffix(ssDate.day),     // 1st, 2nd, 3rd
+      yearPrefix: calendar.year?.prefix || '',     // From calendar def
+      yearPostfix: calendar.year?.suffix || '',    // From calendar def
+      date: fullDateString,
+      time: timeString,
+      weekday: weekdayName
+    },
+    
+    // Time calculations for weather modules
+    sunrise: calculatedSunrise,
+    sunset: calculatedSunset,
+    weekdays: weekdayArray
+  })
 };
 ```
 

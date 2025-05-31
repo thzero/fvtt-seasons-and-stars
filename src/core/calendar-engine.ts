@@ -308,7 +308,7 @@ export class CalendarEngine {
   /**
    * Calculate weekday for a given date
    */
-  private calculateWeekday(year: number, month: number, day: number): number {
+  calculateWeekday(year: number, month: number, day: number): number {
     const totalDays = this.dateToDays({ year, month, day, weekday: 0 });
     const weekdayCount = this.calendar.weekdays.length;
     const startDay = this.calendar.year.startDay;
@@ -349,7 +349,7 @@ export class CalendarEngine {
   /**
    * Get length of a specific month in a specific year
    */
-  private getMonthLength(month: number, year: number): number {
+  getMonthLength(month: number, year: number): number {
     const monthLengths = this.getMonthLengths(year);
     return monthLengths[month - 1] || 0;
   }

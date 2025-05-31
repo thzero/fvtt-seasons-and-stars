@@ -50,7 +50,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     },
     position: {
       width: 600,
-      height: 500
+      height: 600
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,

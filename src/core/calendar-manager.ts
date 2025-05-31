@@ -320,6 +320,17 @@ export class CalendarManager {
   }
 
   /**
+   * Set current date using active calendar
+   */
+  async setCurrentDate(date: any): Promise<void> {
+    if (!this.timeConverter) {
+      throw new Error('No active calendar set');
+    }
+    
+    await this.timeConverter.setCurrentDate(date);
+  }
+
+  /**
    * Get debug information
    */
   getDebugInfo(): any {
