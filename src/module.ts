@@ -70,6 +70,9 @@ Hooks.once('ready', async () => {
   // Setup Simple Calendar compatibility if enabled
   if (game.settings?.get('seasons-and-stars', 'simpleCalendarCompat')) {
     setupSimpleCalendarCompatibility();
+    
+    // Now it's safe to add fake module registration to satisfy module checks
+    addSafeModuleRegistration();
   }
 
   // Register UI component hooks
@@ -98,10 +101,28 @@ function setupEarlySimpleCalendarCompatibility(): void {
 
   // Create a minimal SimpleCalendar object to satisfy early checks
   const earlyCompatAPI = {
-    // Minimal APIs that might be checked during init
+    // Essential APIs that Simple Weather checks during init
     timestamp: () => game.time?.worldTime || 0,
-    timestampToDate: (timestamp: number) => ({ year: 2023, month: 0, day: 0 }), // Placeholder
-    getCurrentDate: () => ({ year: 2023, month: 0, day: 0 }), // Placeholder
+    timestampToDate: (timestamp: number) => {
+      // Simple Weather expects a DateData object with sunset property
+      const dayStart = Math.floor(timestamp / 86400) * 86400;
+      return { 
+        year: 2023, 
+        month: 0, 
+        day: 0,
+        sunset: dayStart + (18 * 3600) // 6 PM sunset timestamp 
+      };
+    },
+    getCurrentDate: () => ({ 
+      year: 2023, 
+      month: 0, 
+      day: 0,
+      sunset: Math.floor((game.time?.worldTime || 0) / 86400) * 86400 + (18 * 3600)
+    }),
+    // Simple Weather needs this for sidebar buttons
+    addSidebarButton: (name: string, icon: string, tooltip: string, isToggle: boolean, callback: Function) => {
+      console.log('Seasons & Stars | Early addSidebarButton called, will be handled by full compatibility layer');
+    }
   };
 
   // Expose early compatibility - ONLY the API, no fake module registration
@@ -648,12 +669,48 @@ function getCurrentSeasonIcon(month: number): string {
 }
 
 /**
+ * Add safe module registration after Foundry is fully ready
+ */
+function addSafeModuleRegistration(): void {
+  try {
+    if (game.modules && !game.modules.get('foundryvtt-simple-calendar')) {
+      // Create a fake module entry for Simple Calendar
+      const fakeSimpleCalendar = {
+        id: 'foundryvtt-simple-calendar',
+        title: 'Simple Calendar (Seasons & Stars Compatibility)',
+        active: true,
+        data: {
+          id: 'foundryvtt-simple-calendar',
+          title: 'Simple Calendar (Seasons & Stars Compatibility)',
+          version: '2.4.18', // Exact version Simple Weather expects
+          compatibility: { minimum: '11', verified: '13' }
+        },
+        version: '2.4.18' // Simple Weather checks module.version directly
+      };
+
+      // Add to modules collection - this is now safe since Foundry is fully loaded
+      game.modules.set('foundryvtt-simple-calendar', fakeSimpleCalendar as any);
+      console.log('Seasons & Stars | Safe fake Simple Calendar module registered for compatibility');
+    }
+  } catch (error) {
+    console.warn('Seasons & Stars | Could not register fake Simple Calendar module (this is safe to ignore):', error);
+    // Continue without fake module registration - compatibility layer will still work
+  }
+}
+
+/**
  * Remove Simple Calendar compatibility layer
  */
 function removeSimpleCalendarCompatibility(): void {
   if ((window as any).SimpleCalendar) {
     delete (window as any).SimpleCalendar;
     console.log('Seasons & Stars | Simple Calendar compatibility layer removed');
+  }
+  
+  // Also remove fake module if we added it
+  if (game.modules && game.modules.get('foundryvtt-simple-calendar')?.data?.title?.includes('Seasons & Stars Compatibility')) {
+    game.modules.delete('foundryvtt-simple-calendar');
+    console.log('Seasons & Stars | Fake Simple Calendar module removed');
   }
 }
 
