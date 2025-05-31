@@ -4,11 +4,11 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
-import type { Calendar } from '../types/calendar';
+import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   private selectedCalendarId: string | null = null;
-  private calendars: Map<string, Calendar>;
+  private calendars: Map<string, SeasonsStarsCalendar>;
   private currentCalendarId: string;
 
   constructor(calendars: any, currentCalendarId: string) {

@@ -45,7 +45,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       previousYear: CalendarGridWidget.prototype._onPreviousYear,
       nextYear: CalendarGridWidget.prototype._onNextYear,
       selectDate: CalendarGridWidget.prototype._onSelectDate,
-      goToToday: CalendarGridWidget.prototype._onGoToToday
+      goToToday: CalendarGridWidget.prototype._onGoToToday,
+      setYear: CalendarGridWidget.prototype._onSetYear
     }
   };
 
@@ -294,6 +295,59 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const currentDate = manager.getCurrentDate();
     this.viewDate = { ...currentDate };
     this.render();
+  }
+
+  /**
+   * Set year via input dialog
+   */
+  async _onSetYear(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    
+    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    if (!engine) return;
+
+    // Create a simple input dialog
+    const currentYear = this.viewDate.year;
+    const newYear = await new Promise<number | null>((resolve) => {
+      new Dialog({
+        title: "Set Year",
+        content: `
+          <form>
+            <div class="form-group">
+              <label>Enter Year:</label>
+              <input type="number" name="year" value="${currentYear}" min="1" max="99999" step="1" autofocus />
+            </div>
+          </form>
+        `,
+        buttons: {
+          ok: {
+            icon: '<i class="fas fa-check"></i>',
+            label: "Set Year",
+            callback: (html: JQuery) => {
+              const yearInput = html.find('input[name="year"]').val() as string;
+              const year = parseInt(yearInput);
+              if (!isNaN(year) && year > 0) {
+                resolve(year);
+              } else {
+                ui.notifications?.error("Please enter a valid year");
+                resolve(null);
+              }
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancel",
+            callback: () => resolve(null)
+          }
+        },
+        default: "ok"
+      }).render(true);
+    });
+
+    if (newYear !== null) {
+      this.viewDate = { ...this.viewDate, year: newYear };
+      this.render();
+    }
   }
 
   /**

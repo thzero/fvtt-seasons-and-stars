@@ -98,6 +98,25 @@
       color: var(--color-text-primary);
       min-width: 80px;
       text-align: center;
+      
+      &.clickable {
+        background: var(--color-button-bg);
+        border: 1px solid var(--color-border-light);
+        border-radius: 3px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: var(--color-button-bg-hover);
+          border-color: var(--color-border-primary);
+          color: var(--color-text-selection);
+        }
+        
+        &:active {
+          background: var(--color-button-bg-active);
+        }
+      }
     }
 
     .header-actions {

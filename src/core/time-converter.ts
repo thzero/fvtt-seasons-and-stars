@@ -34,6 +34,47 @@ export class TimeConverter {
     // Initialize with current world time
     if (game.time?.worldTime !== undefined) {
       this.lastKnownTime = game.time.worldTime;
+      
+      // Check if this is a new world (worldTime = 0) and we're using Gregorian calendar
+      if (this.lastKnownTime === 0 && this.engine.getCalendar().id === 'gregorian') {
+        // Set to current real-world date for Gregorian calendar
+        this.initializeWithRealWorldDate();
+      } else {
+        this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+      }
+    }
+  }
+
+  /**
+   * Initialize Gregorian calendar with current real-world date
+   */
+  private async initializeWithRealWorldDate(): Promise<void> {
+    const now = new Date();
+    const realWorldDate = {
+      year: now.getFullYear(),
+      month: now.getMonth() + 1, // JavaScript months are 0-indexed
+      day: now.getDate(),
+      weekday: 0, // Will be calculated by the engine
+      time: {
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds()
+      }
+    };
+    
+    console.log('Seasons & Stars | Initializing Gregorian calendar with current date:', realWorldDate);
+    
+    // Only set if user is GM (GMs control world time)
+    if (game.user?.isGM) {
+      try {
+        await this.setCurrentDate(realWorldDate);
+      } catch (error) {
+        console.warn('Seasons & Stars | Could not initialize with real-world date:', error);
+        // Fallback to default behavior
+        this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+      }
+    } else {
+      // For players, just use the default conversion
       this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
     }
   }

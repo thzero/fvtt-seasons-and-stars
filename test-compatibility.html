@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Simple Calendar Compatibility Layer</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { padding: 10px; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; }
+        .success { background-color: #d4edda !important; color: #155724; }
+        .error { background-color: #f8d7da !important; color: #721c24; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Simple Calendar Compatibility Layer Test</h1>
+    <p>This tests the key API functions that weather modules and other integrations depend on.</p>
+    
+    <div class="test-section">
+        <h2>1. Basic API Presence Check</h2>
+        <button onclick="testAPIPresence()">Test SimpleCalendar API Presence</button>
+        <div id="api-presence-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Current Date/Time Functions</h2>
+        <button onclick="testCurrentDateTime()">Test currentDateTime()</button>
+        <button onclick="testCurrentDateTimeDisplay()">Test currentDateTimeDisplay()</button>
+        <div id="datetime-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Timestamp Conversion (Critical for Weather Modules)</h2>
+        <button onclick="testTimestampConversion()">Test timestampToDate()</button>
+        <div id="timestamp-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Calendar Data Access</h2>
+        <button onclick="testCalendarData()">Test Calendar Data Functions</button>
+        <div id="calendar-data-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Date Change Functions</h2>
+        <button onclick="testDateChange()">Test changeDate() / setDate()</button>
+        <div id="date-change-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>6. Hook System</h2>
+        <button onclick="testHookSystem()">Test Hook Mapping</button>
+        <div id="hook-result" class="result"></div>
+    </div>
+
+    <script>
+        // Mock Seasons & Stars for testing
+        const mockSeasonsStars = {
+            api: {
+                getCurrentDate: () => ({
+                    year: 2024,
+                    month: 12,
+                    day: 25,
+                    weekday: 3,
+                    time: { hour: 14, minute: 30, second: 0 }
+                }),
+                formatDate: (date) => `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`
+            },
+            manager: {
+                getCurrentDate: () => ({
+                    toObject: () => ({
+                        year: 2024,
+                        month: 12,
+                        day: 25,
+                        weekday: 3,
+                        time: { hour: 14, minute: 30, second: 0 }
+                    })
+                }),
+                getActiveCalendar: () => ({
+                    months: [
+                        { name: 'January' }, { name: 'February' }, { name: 'March' },
+                        { name: 'April' }, { name: 'May' }, { name: 'June' },
+                        { name: 'July' }, { name: 'August' }, { name: 'September' },
+                        { name: 'October' }, { name: 'November' }, { name: 'December' }
+                    ],
+                    weekdays: [
+                        { name: 'Sunday' }, { name: 'Monday' }, { name: 'Tuesday' },
+                        { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' },
+                        { name: 'Saturday' }
+                    ],
+                    year: { prefix: '', suffix: ' CE' }
+                }),
+                getActiveEngine: () => ({
+                    worldTimeToDate: (timestamp) => ({
+                        year: 2024,
+                        month: 12,
+                        day: 25,
+                        weekday: 3,
+                        time: { hour: Math.floor(timestamp / 3600) % 24, minute: 0, second: 0 }
+                    }),
+                    dateToWorldTime: (date) => date.year * 365 * 24 * 3600 + date.month * 30 * 24 * 3600 + date.day * 24 * 3600
+                }),
+                setCurrentDate: async (date) => {
+                    console.log('Mock setCurrentDate called with:', date);
+                    return Promise.resolve();
+                }
+            }
+        };
+
+        // Set up mock
+        window.game = { 
+            seasonsStars: mockSeasonsStars,
+            time: { worldTime: 1735138200 }
+        };
+
+        // Simulate the compatibility layer setup
+        function setupSimpleCalendarCompatibility() {
+            if (window.SimpleCalendar) return;
+
+            const compatAPI = {
+                currentDateTime: () => {
+                    const currentDate = window.game.seasonsStars.manager.getCurrentDate();
+                    if (!currentDate) return null;
+                    
+                    const dateObj = currentDate.toObject();
+                    return {
+                        year: dateObj.year,
+                        month: dateObj.month - 1,
+                        day: dateObj.day - 1,
+                        hour: dateObj.time?.hour || 0,
+                        minute: dateObj.time?.minute || 0,
+                        second: dateObj.time?.second || 0,
+                        weekday: dateObj.weekday
+                    };
+                },
+
+                currentDateTimeDisplay: () => {
+                    const currentDate = window.game.seasonsStars.manager.getCurrentDate();
+                    if (!currentDate) return null;
+                    
+                    const calendar = window.game.seasonsStars.manager.getActiveCalendar();
+                    if (!calendar) return null;
+                    
+                    const dateObj = currentDate.toObject();
+                    const monthName = calendar.months[dateObj.month - 1]?.name || '';
+                    const weekdayName = calendar.weekdays[dateObj.weekday]?.name || '';
+                    
+                    return {
+                        date: `${dateObj.year}-${dateObj.month.toString().padStart(2, '0')}-${dateObj.day.toString().padStart(2, '0')}`,
+                        time: dateObj.time ? `${dateObj.time.hour.toString().padStart(2, '0')}:${dateObj.time.minute.toString().padStart(2, '0')}:${dateObj.time.second.toString().padStart(2, '0')}` : '00:00:00',
+                        monthName,
+                        day: dateObj.day.toString(),
+                        dayName: weekdayName,
+                        year: dateObj.year.toString(),
+                        yearName: `${calendar.year?.prefix || ''}${dateObj.year}${calendar.year?.suffix || ''}`,
+                        yearPostfix: calendar.year?.suffix || '',
+                        yearPrefix: calendar.year?.prefix || '',
+                        weekdayName
+                    };
+                },
+
+                timestampToDate: (timestamp) => {
+                    const engine = window.game.seasonsStars.manager.getActiveEngine();
+                    if (!engine) return null;
+                    
+                    const dateObj = engine.worldTimeToDate(timestamp);
+                    const calendar = window.game.seasonsStars.manager.getActiveCalendar();
+                    if (!calendar) return null;
+                    
+                    const monthName = calendar.months[dateObj.month - 1]?.name || '';
+                    const weekdayName = calendar.weekdays[dateObj.weekday]?.name || '';
+                    
+                    function getOrdinalSuffix(day) {
+                        if (day >= 11 && day <= 13) return 'th';
+                        const lastDigit = day % 10;
+                        switch (lastDigit) {
+                            case 1: return 'st';
+                            case 2: return 'nd';
+                            case 3: return 'rd';
+                            default: return 'th';
+                        }
+                    }
+                    
+                    return {
+                        year: dateObj.year,
+                        month: dateObj.month - 1,
+                        day: dateObj.day - 1,
+                        hour: dateObj.time?.hour || 0,
+                        minute: dateObj.time?.minute || 0,
+                        second: dateObj.time?.second || 0,
+                        weekday: dateObj.weekday,
+                        
+                        display: {
+                            monthName,
+                            month: dateObj.month.toString(),
+                            day: dateObj.day.toString(),
+                            year: dateObj.year.toString(),
+                            daySuffix: getOrdinalSuffix(dateObj.day),
+                            yearPrefix: calendar.year?.prefix || '',
+                            yearPostfix: calendar.year?.suffix || '',
+                            date: `${dateObj.year}-${dateObj.month.toString().padStart(2, '0')}-${dateObj.day.toString().padStart(2, '0')}`,
+                            time: dateObj.time ? `${dateObj.time.hour.toString().padStart(2, '0')}:${dateObj.time.minute.toString().padStart(2, '0')}:${dateObj.time.second.toString().padStart(2, '0')}` : '00:00:00',
+                            weekday: weekdayName
+                        }
+                    };
+                },
+
+                changeDate: async (date) => {
+                    try {
+                        const ssDate = {
+                            year: date.year,
+                            month: (date.month || 0) + 1,
+                            day: (date.day || 0) + 1,
+                            weekday: date.weekday || 0,
+                            time: {
+                                hour: date.hour || 0,
+                                minute: date.minute || 0,
+                                second: date.second || 0
+                            }
+                        };
+                        
+                        await window.game.seasonsStars.manager.setCurrentDate(ssDate);
+                        return true;
+                    } catch (error) {
+                        console.warn('SC Compatibility - changeDate failed:', error);
+                        return false;
+                    }
+                },
+
+                getCurrentCalendar: () => window.game.seasonsStars.manager.getActiveCalendar(),
+                getAllMonths: () => window.game.seasonsStars.manager.getActiveCalendar()?.months || [],
+                getAllWeekdays: () => window.game.seasonsStars.manager.getActiveCalendar()?.weekdays || [],
+
+                // Placeholder functions
+                addNote: async () => { console.warn('Notes system not yet implemented'); return false; },
+                getNotes: () => { console.warn('Notes system not yet implemented'); return []; }
+            };
+
+            window.SimpleCalendar = {
+                api: compatAPI,
+                Hooks: {
+                    DateTimeChange: 'seasons-stars:dateChanged',
+                    Ready: 'seasons-stars:ready'
+                },
+                VERSION: '2.0.0-seasons-stars-compat',
+                TITLE: 'Seasons & Stars (SC Compatibility)',
+                _isSeasonsStarsCompatibility: true
+            };
+        }
+
+        // Initialize compatibility layer
+        setupSimpleCalendarCompatibility();
+
+        function testAPIPresence() {
+            const result = document.getElementById('api-presence-result');
+            
+            const checks = [
+                { name: 'SimpleCalendar exists', test: () => !!window.SimpleCalendar },
+                { name: 'SimpleCalendar.api exists', test: () => !!window.SimpleCalendar?.api },
+                { name: 'currentDateTime function', test: () => typeof window.SimpleCalendar?.api?.currentDateTime === 'function' },
+                { name: 'timestampToDate function', test: () => typeof window.SimpleCalendar?.api?.timestampToDate === 'function' },
+                { name: 'changeDate function', test: () => typeof window.SimpleCalendar?.api?.changeDate === 'function' },
+                { name: 'Hook mappings', test: () => !!window.SimpleCalendar?.Hooks },
+                { name: 'Compatibility marker', test: () => window.SimpleCalendar?._isSeasonsStarsCompatibility === true }
+            ];
+            
+            const results = checks.map(check => ({
+                name: check.name,
+                passed: check.test()
+            }));
+            
+            const allPassed = results.every(r => r.passed);
+            
+            result.className = `result ${allPassed ? 'success' : 'error'}`;
+            result.innerHTML = `
+                <strong>API Presence Test: ${allPassed ? 'PASSED' : 'FAILED'}</strong><br>
+                ${results.map(r => `${r.passed ? '✅' : '❌'} ${r.name}`).join('<br>')}
+                <br><br>
+                <strong>SimpleCalendar object:</strong>
+                <pre>${JSON.stringify(window.SimpleCalendar, null, 2)}</pre>
+            `;
+        }
+
+        function testCurrentDateTime() {
+            const result = document.getElementById('datetime-result');
+            
+            try {
+                const currentDT = window.SimpleCalendar.api.currentDateTime();
+                const displayDT = window.SimpleCalendar.api.currentDateTimeDisplay();
+                
+                result.className = 'result success';
+                result.innerHTML = `
+                    <strong>Current Date/Time Test: PASSED</strong><br><br>
+                    <strong>currentDateTime():</strong>
+                    <pre>${JSON.stringify(currentDT, null, 2)}</pre>
+                    <strong>currentDateTimeDisplay():</strong>
+                    <pre>${JSON.stringify(displayDT, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<strong>Current Date/Time Test: FAILED</strong><br>Error: ${error.message}`;
+            }
+        }
+
+        function testTimestampConversion() {
+            const result = document.getElementById('timestamp-result');
+            
+            try {
+                const testTimestamp = 1735138200; // Sample timestamp
+                const converted = window.SimpleCalendar.api.timestampToDate(testTimestamp);
+                
+                // Check for critical properties that weather modules need
+                const hasDisplay = !!converted.display;
+                const hasMonthName = !!converted.display?.monthName;
+                const hasDaySuffix = !!converted.display?.daySuffix;
+                
+                const criticalTest = hasDisplay && hasMonthName && hasDaySuffix;
+                
+                result.className = `result ${criticalTest ? 'success' : 'error'}`;
+                result.innerHTML = `
+                    <strong>Timestamp Conversion Test: ${criticalTest ? 'PASSED' : 'FAILED'}</strong><br><br>
+                    <strong>Input timestamp:</strong> ${testTimestamp}<br>
+                    <strong>Converted result:</strong>
+                    <pre>${JSON.stringify(converted, null, 2)}</pre>
+                    <br><strong>Critical checks for weather module compatibility:</strong><br>
+                    ${hasDisplay ? '✅' : '❌'} Has display object<br>
+                    ${hasMonthName ? '✅' : '❌'} Has monthName<br>
+                    ${hasDaySuffix ? '✅' : '❌'} Has daySuffix (1st, 2nd, 3rd, etc.)
+                `;
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<strong>Timestamp Conversion Test: FAILED</strong><br>Error: ${error.message}`;
+            }
+        }
+
+        function testCalendarData() {
+            const result = document.getElementById('calendar-data-result');
+            
+            try {
+                const calendar = window.SimpleCalendar.api.getCurrentCalendar();
+                const months = window.SimpleCalendar.api.getAllMonths();
+                const weekdays = window.SimpleCalendar.api.getAllWeekdays();
+                
+                const hasData = calendar && months.length > 0 && weekdays.length > 0;
+                
+                result.className = `result ${hasData ? 'success' : 'error'}`;
+                result.innerHTML = `
+                    <strong>Calendar Data Test: ${hasData ? 'PASSED' : 'FAILED'}</strong><br><br>
+                    <strong>Current Calendar:</strong> ${calendar ? 'Found' : 'Missing'}<br>
+                    <strong>Months:</strong> ${months.length} found<br>
+                    <strong>Weekdays:</strong> ${weekdays.length} found<br><br>
+                    <strong>Sample month names:</strong> ${months.slice(0, 3).map(m => m.name).join(', ')}<br>
+                    <strong>Sample weekday names:</strong> ${weekdays.slice(0, 3).map(w => w.name).join(', ')}
+                `;
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<strong>Calendar Data Test: FAILED</strong><br>Error: ${error.message}`;
+            }
+        }
+
+        function testDateChange() {
+            const result = document.getElementById('date-change-result');
+            
+            try {
+                // Test date change (this would actually change world time in real usage)
+                const testDate = {
+                    year: 2024,
+                    month: 11,  // 0-based (December)
+                    day: 24,    // 0-based (25th)
+                    hour: 10,
+                    minute: 30,
+                    second: 0
+                };
+                
+                window.SimpleCalendar.api.changeDate(testDate).then(success => {
+                    result.className = `result ${success ? 'success' : 'error'}`;
+                    result.innerHTML = `
+                        <strong>Date Change Test: ${success ? 'PASSED' : 'FAILED'}</strong><br><br>
+                        <strong>Test date:</strong> ${JSON.stringify(testDate, null, 2)}<br>
+                        <strong>Change result:</strong> ${success ? 'Success' : 'Failed'}<br>
+                        <em>Note: In real usage, this would update Foundry's world time</em>
+                    `;
+                });
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `<strong>Date Change Test: FAILED</strong><br>Error: ${error.message}`;
+            }
+        }
+
+        function testHookSystem() {
+            const result = document.getElementById('hook-result');
+            
+            const hooks = window.SimpleCalendar.Hooks;
+            const hasDateTimeChange = hooks.DateTimeChange === 'seasons-stars:dateChanged';
+            const hasReady = hooks.Ready === 'seasons-stars:ready';
+            
+            result.className = `result ${hasDateTimeChange && hasReady ? 'success' : 'error'}`;
+            result.innerHTML = `
+                <strong>Hook System Test: ${hasDateTimeChange && hasReady ? 'PASSED' : 'FAILED'}</strong><br><br>
+                <strong>Hook mappings:</strong><br>
+                ${hasDateTimeChange ? '✅' : '❌'} DateTimeChange → ${hooks.DateTimeChange}<br>
+                ${hasReady ? '✅' : '❌'} Ready → ${hooks.Ready}<br><br>
+                <em>Weather modules can now listen to these hooks for date changes</em>
+            `;
+        }
+    </script>
+</body>
+</html>
