@@ -9,6 +9,7 @@ import type { CalendarDate as ICalendarDate } from '../types/calendar';
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   private updateInterval: number | null = null;
   private static activeInstance: CalendarWidget | null = null;
+  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-widget',
@@ -96,6 +97,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Register this as the active instance
     CalendarWidget.activeInstance = this;
+    
+    // Render any sidebar buttons from integrations
+    this.renderSidebarButtons();
     
     // Start auto-update after rendering
     this.startAutoUpdate();
@@ -310,5 +314,66 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     if (CalendarWidget.activeInstance?.rendered) {
       CalendarWidget.activeInstance.close();
     }
+  }
+
+  /**
+   * Get the current widget instance
+   */
+  static getInstance(): CalendarWidget | null {
+    return CalendarWidget.activeInstance;
+  }
+
+  /**
+   * Add a sidebar button for integration with other modules (like Simple Weather)
+   */
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    // Store the button
+    this.sidebarButtons.push({ name, icon, tooltip, callback });
+    
+    // If rendered, add the button to the DOM
+    if (this.rendered && this.element) {
+      this.renderSidebarButtons();
+    }
+  }
+
+  /**
+   * Render sidebar buttons into the widget
+   */
+  private renderSidebarButtons(): void {
+    if (!this.element) return;
+    
+    // Find or create sidebar button container
+    let buttonContainer = this.element.querySelector('.sidebar-buttons');
+    
+    if (!buttonContainer) {
+      // Create container after the main content
+      const content = this.element.querySelector('.window-content');
+      if (content) {
+        buttonContainer = document.createElement('div');
+        buttonContainer.className = 'sidebar-buttons';
+        content.appendChild(buttonContainer);
+      }
+    }
+    
+    if (!buttonContainer) return;
+    
+    // Clear existing buttons
+    buttonContainer.innerHTML = '';
+    
+    // Add each sidebar button
+    this.sidebarButtons.forEach(button => {
+      const buttonElement = document.createElement('button');
+      buttonElement.type = 'button';
+      buttonElement.className = 'sidebar-button';
+      buttonElement.title = button.tooltip;
+      buttonElement.innerHTML = `<i class="${button.icon}"></i> ${button.name}`;
+      
+      buttonElement.addEventListener('click', (event) => {
+        event.preventDefault();
+        button.callback();
+      });
+      
+      buttonContainer.appendChild(buttonElement);
+    });
   }
 }

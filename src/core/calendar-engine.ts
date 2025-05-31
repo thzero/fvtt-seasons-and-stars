@@ -136,6 +136,74 @@ export class CalendarEngine {
   }
 
   /**
+   * Add hours to a calendar date
+   */
+  addHours(date: CalendarDate, hours: number): CalendarDate {
+    const currentTime = date.time || { hour: 0, minute: 0, second: 0 };
+    const totalHours = currentTime.hour + hours;
+    
+    const hoursPerDay = this.calendar.time.hoursInDay;
+    let extraDays = Math.floor(totalHours / hoursPerDay);
+    let newHour = totalHours % hoursPerDay;
+    
+    // Handle negative hours
+    if (newHour < 0) {
+      newHour += hoursPerDay;
+      extraDays -= 1;
+    }
+    
+    let result: CalendarDate = {
+      ...date,
+      time: {
+        hour: newHour,
+        minute: currentTime.minute,
+        second: currentTime.second
+      }
+    };
+    
+    // Add extra days if needed
+    if (extraDays !== 0) {
+      result = this.addDays(result, extraDays);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Add minutes to a calendar date
+   */
+  addMinutes(date: CalendarDate, minutes: number): CalendarDate {
+    const currentTime = date.time || { hour: 0, minute: 0, second: 0 };
+    const totalMinutes = currentTime.minute + minutes;
+    
+    const minutesPerHour = this.calendar.time.minutesInHour;
+    let extraHours = Math.floor(totalMinutes / minutesPerHour);
+    let newMinute = totalMinutes % minutesPerHour;
+    
+    // Handle negative minutes
+    if (newMinute < 0) {
+      newMinute += minutesPerHour;
+      extraHours -= 1;
+    }
+    
+    let result: CalendarDate = {
+      ...date,
+      time: {
+        hour: currentTime.hour,
+        minute: newMinute,
+        second: currentTime.second
+      }
+    };
+    
+    // Add extra hours if needed
+    if (extraHours !== 0) {
+      result = this.addHours(result, extraHours);
+    }
+    
+    return result;
+  }
+
+  /**
    * Convert days since epoch to calendar date
    */
   private daysToDate(totalDays: number): CalendarDate {

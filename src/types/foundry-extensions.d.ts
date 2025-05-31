@@ -89,12 +89,33 @@ export interface SeasonsStarsAPI {
 }
 
 export interface SimpleCalendarCompatAPI {
+  // Core time functions
+  timestamp(): number;
+  timestampToDate(timestamp: number): any;
+  timestampPlusInterval(timestamp: number, interval: any): number;
   getCurrentDate(): any;
+  
+  // Date manipulation
   advanceDays(days: number): Promise<void>;
   formatDateTime(date: any, format?: string): string;
   dateToTimestamp(date: any): number;
-  timestampToDate(timestamp: number): any;
   addMonths(date: any, months: number): any;
   addYears(date: any, years: number): any;
   setTime(time: number): Promise<void>;
+  
+  // Simple Weather specific APIs
+  addSidebarButton(name: string, icon: string, tooltip: string, isToggle: boolean, callback: Function): void;
+  
+  // Note management APIs (optional)
+  getNotesForDay(year: number, month: number, day: number): any[];
+  addNote(title: string, content: string, startDate: any, endDate: any, allDay: boolean): Promise<any>;
+  removeNote(noteId: string): Promise<void>;
+  
+  // SmallTime integration APIs
+  clockStatus(): { started: boolean };
+  startClock(): void;
+  stopClock(): void;
+  showCalendar(): void;
+  getAllMoons(): any[];
+  getAllSeasons(): any[];
 }

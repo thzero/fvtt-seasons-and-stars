@@ -31,6 +31,14 @@ Hooks.once('init', async () => {
   // Initialize calendar manager
   calendarManager = new CalendarManager();
   
+  // Set up Simple Calendar compatibility early if enabled
+  // This needs to happen before Simple Weather checks for it
+  // Note: We default to enabled since settings might not be ready yet
+  const compatEnabled = game.settings?.get('seasons-and-stars', 'simpleCalendarCompat') ?? true;
+  if (compatEnabled) {
+    setupEarlySimpleCalendarCompatibility();
+  }
+  
   console.log('Seasons & Stars | Module initialized');
 });
 
@@ -71,6 +79,57 @@ Hooks.once('ready', async () => {
   
   console.log('Seasons & Stars | Module ready');
 });
+
+/**
+ * Early Simple Calendar compatibility setup for modules that check during init
+ */
+function setupEarlySimpleCalendarCompatibility(): void {
+  if ((window as any).SimpleCalendar) {
+    console.log('Seasons & Stars | Simple Calendar already exists, skipping early compatibility setup');
+    return;
+  }
+
+  // Create a minimal SimpleCalendar object to satisfy early checks
+  const earlyCompatAPI = {
+    // Minimal APIs that might be checked during init
+    timestamp: () => game.time?.worldTime || 0,
+    timestampToDate: (timestamp: number) => ({ year: 2023, month: 0, day: 0 }), // Placeholder
+    getCurrentDate: () => ({ year: 2023, month: 0, day: 0 }), // Placeholder
+  };
+
+  // Expose early compatibility
+  (window as any).SimpleCalendar = {
+    api: earlyCompatAPI,
+    Hooks: {
+      Init: 'simple-calendar-init',
+      DateTimeChange: 'simple-calendar-date-time-change',
+      ClockStartStop: 'simple-calendar-clock-start-stop'
+    }
+  };
+
+  // Also make it appear that Simple Calendar module is installed and active
+  // This tricks modules that check game.modules.get('foundryvtt-simple-calendar')?.active
+  if (game.modules && !game.modules.get('foundryvtt-simple-calendar')) {
+    // Create a fake module entry for Simple Calendar
+    const fakeSimpleCalendar = {
+      id: 'foundryvtt-simple-calendar',
+      title: 'Simple Calendar (Seasons & Stars Compatibility)',
+      active: true,
+      data: {
+        id: 'foundryvtt-simple-calendar',
+        title: 'Simple Calendar (Seasons & Stars Compatibility)',
+        version: '2.4.18', // Version Simple Weather expects
+        compatibility: { minimum: '11', verified: '13' }
+      }
+    };
+
+    // Add to modules collection
+    game.modules.set('foundryvtt-simple-calendar', fakeSimpleCalendar as any);
+  }
+
+  console.log('Seasons & Stars | Early Simple Calendar compatibility layer active');
+  console.log('Seasons & Stars | Simple Calendar module registered as active for compatibility');
+}
 
 /**
  * Register module settings
@@ -279,27 +338,110 @@ function setupAPI(): void {
  * Setup Simple Calendar compatibility layer
  */
 function setupSimpleCalendarCompatibility(): void {
-  if ((window as any).SimpleCalendar) {
-    console.log('Seasons & Stars | Simple Calendar already exists, skipping compatibility layer');
+  // Check if we already have the early compatibility layer
+  const hasEarlyCompat = (window as any).SimpleCalendar && 
+                        (window as any).SimpleCalendar.api && 
+                        typeof (window as any).SimpleCalendar.api.getCurrentDate === 'function';
+
+  if ((window as any).SimpleCalendar && !hasEarlyCompat) {
+    console.log('Seasons & Stars | Real Simple Calendar already exists, skipping compatibility layer');
     return;
   }
 
+  // Store sidebar buttons for Simple Weather integration
+  const sidebarButtons: Array<{name: string, icon: string, callback: Function}> = [];
+
   const compatAPI: SimpleCalendarCompatAPI = {
-    getCurrentDate: () => {
-      const currentDate = calendarManager.getCurrentDate();
+    // Core time functions required by Simple Weather
+    timestamp: (): number => {
+      return game.time?.worldTime || 0;
+    },
+
+    timestampToDate: (timestamp: number): any => {
+      const ssDate = game.seasonsStars?.api.worldTimeToDate(timestamp);
       
-      if (!currentDate) return null;
+      if (!ssDate) return null;
       
-      // Convert to Simple Calendar format
+      const activeCalendar = calendarManager.getActiveCalendar();
+      const engine = calendarManager.getActiveEngine();
+      
+      if (!activeCalendar || !engine) return null;
+
+      // Calculate sunrise/sunset (6 AM and 6 PM for now)
+      const sunriseHour = 6;
+      const sunsetHour = 18;
+      const dayStart = engine.dateToWorldTime({
+        ...ssDate,
+        time: { hour: 0, minute: 0, second: 0 }
+      });
+      const sunrise = dayStart + (sunriseHour * 3600);
+      const sunset = dayStart + (sunsetHour * 3600);
+
+      // Create weekday names array
+      const weekdays = activeCalendar.weekdays?.map(wd => wd.name) || [];
+      
+      // Convert to Simple Calendar DateData format
       return {
-        year: currentDate.year,
-        month: currentDate.month - 1, // Simple Calendar uses 0-based months
-        day: currentDate.day - 1,     // Simple Calendar uses 0-based days
-        hour: currentDate.time?.hour || 0,
-        minute: currentDate.time?.minute || 0,
-        seconds: currentDate.time?.second || 0,
-        weekday: currentDate.weekday
+        year: ssDate.year,
+        month: ssDate.month - 1, // Simple Calendar uses 0-based months
+        day: ssDate.day - 1,     // Simple Calendar uses 0-based days
+        dayOfTheWeek: ssDate.weekday,
+        hour: ssDate.time?.hour || 0,
+        minute: ssDate.time?.minute || 0,
+        second: ssDate.time?.second || 0,
+        dayOffset: 0, // Not used in S&S
+        sunrise: sunrise,
+        sunset: sunset,
+        display: {
+          date: game.seasonsStars?.api.formatDate(ssDate, { includeTime: false }) || '',
+          time: game.seasonsStars?.api.formatDate(ssDate, { timeOnly: true }) || '',
+          weekday: weekdays[ssDate.weekday] || '',
+          day: ssDate.day.toString(),
+          monthName: activeCalendar.months[ssDate.month - 1]?.name || '',
+          year: ssDate.year.toString()
+        },
+        weekdays: weekdays,
+        showWeekdayHeadings: true, // SmallTime checks this property
+        currentSeason: {
+          icon: getCurrentSeasonIcon(ssDate.month)
+        }
       };
+    },
+
+    timestampPlusInterval: (timestamp: number, interval: any): number => {
+      if (!interval) return timestamp;
+      
+      const engine = calendarManager.getActiveEngine();
+      if (!engine) return timestamp;
+      
+      const currentDate = game.seasonsStars?.api.worldTimeToDate(timestamp);
+      if (!currentDate) return timestamp;
+      
+      let newDate = { ...currentDate };
+      
+      // Add intervals based on provided object
+      if (interval.day) {
+        newDate = engine.addDays(newDate, interval.day);
+      }
+      if (interval.hour) {
+        newDate = engine.addHours(newDate, interval.hour);
+      }
+      if (interval.minute) {
+        newDate = engine.addMinutes(newDate, interval.minute);
+      }
+      if (interval.month) {
+        newDate = engine.addMonths(newDate, interval.month);
+      }
+      if (interval.year) {
+        newDate = engine.addYears(newDate, interval.year);
+      }
+      
+      return game.seasonsStars?.api.dateToWorldTime(newDate) || timestamp;
+    },
+
+    getCurrentDate: (): any => {
+      const currentTimestamp = game.time?.worldTime || 0;
+      return compatAPI.timestampToDate(currentTimestamp);
     },
 
     advanceDays: async (days: number): Promise<void> => {
@@ -314,11 +456,11 @@ function setupSimpleCalendarCompatibility(): void {
         year: date.year,
         month: (date.month || 0) + 1, // Convert from 0-based
         day: (date.day || 0) + 1,     // Convert from 0-based
-        weekday: date.weekday || 0,
+        weekday: date.dayOfTheWeek || date.weekday || 0,
         time: {
           hour: date.hour || 0,
           minute: date.minute || 0,
-          second: date.seconds || 0
+          second: date.second || date.seconds || 0
         }
       };
       
@@ -333,94 +475,75 @@ function setupSimpleCalendarCompatibility(): void {
         year: date.year,
         month: (date.month || 0) + 1,
         day: (date.day || 0) + 1,
-        weekday: date.weekday || 0,
+        weekday: date.dayOfTheWeek || date.weekday || 0,
         time: {
           hour: date.hour || 0,
           minute: date.minute || 0,
-          second: date.seconds || 0
+          second: date.second || date.seconds || 0
         }
       };
       
       return game.seasonsStars?.api.dateToWorldTime(ssDate) || 0;
     },
 
-    timestampToDate: (timestamp: number): any => {
-      const ssDate = game.seasonsStars?.api.worldTimeToDate(timestamp);
+    // Simple Weather specific APIs
+    addSidebarButton: (name: string, icon: string, tooltip: string, isToggle: boolean, callback: Function): void => {
+      sidebarButtons.push({ name, icon, callback });
       
-      if (!ssDate) return null;
-      
-      // Convert to Simple Calendar format
-      return {
-        year: ssDate.year,
-        month: ssDate.month - 1,
-        day: ssDate.day - 1,
-        hour: ssDate.time?.hour || 0,
-        minute: ssDate.time?.minute || 0,
-        seconds: ssDate.time?.second || 0,
-        weekday: ssDate.weekday
-      };
+      // Add button to calendar widget if it exists
+      const widget = CalendarWidget.getInstance();
+      if (widget && widget.rendered) {
+        widget.addSidebarButton(name, icon, tooltip, callback);
+      }
     },
 
-    addMonths: (date: any, months: number): any => {
-      const engine = calendarManager.getActiveEngine();
+    // Note management APIs (basic implementation)
+    getNotesForDay: (year: number, month: number, day: number): any[] => {
+      // Basic implementation - return empty for now
+      // Could be enhanced to integrate with Foundry journal entries
+      return [];
+    },
+
+    addNote: async (title: string, content: string, startDate: any, endDate: any, allDay: boolean): Promise<any> => {
+      // Basic implementation - create a journal entry
+      if (!game.user?.isGM) return null;
       
-      if (!engine || !date) return date;
-      
-      // Convert to S&S format, add months, convert back
-      const ssDate: ICalendarDate = {
-        year: date.year,
-        month: (date.month || 0) + 1,
-        day: (date.day || 0) + 1,
-        weekday: date.weekday || 0,
-        time: {
-          hour: date.hour || 0,
-          minute: date.minute || 0,
-          second: date.seconds || 0
+      const journal = await JournalEntry.create({
+        name: title,
+        content: content,
+        flags: {
+          'seasons-and-stars': {
+            simpleCalendarNote: true,
+            startDate: startDate,
+            endDate: endDate,
+            allDay: allDay
+          }
         }
-      };
+      });
       
-      const newDate = engine.addMonths(ssDate, months);
+      return journal;
+    },
+
+    removeNote: async (noteId: string): Promise<void> => {
+      if (!game.user?.isGM) return;
       
-      return {
-        year: newDate.year,
-        month: newDate.month - 1,
-        day: newDate.day - 1,
-        hour: newDate.time?.hour || 0,
-        minute: newDate.time?.minute || 0,
-        seconds: newDate.time?.second || 0,
-        weekday: newDate.weekday
-      };
+      const journal = game.journal?.get(noteId);
+      if (journal) {
+        await journal.delete();
+      }
+    },
+
+    // Legacy support methods
+    addMonths: (date: any, months: number): any => {
+      const timestamp = compatAPI.dateToTimestamp(date);
+      const newTimestamp = compatAPI.timestampPlusInterval(timestamp, { month: months });
+      return compatAPI.timestampToDate(newTimestamp);
     },
 
     addYears: (date: any, years: number): any => {
-      const engine = calendarManager.getActiveEngine();
-      
-      if (!engine || !date) return date;
-      
-      // Convert to S&S format, add years, convert back
-      const ssDate: ICalendarDate = {
-        year: date.year,
-        month: (date.month || 0) + 1,
-        day: (date.day || 0) + 1,
-        weekday: date.weekday || 0,
-        time: {
-          hour: date.hour || 0,
-          minute: date.minute || 0,
-          second: date.seconds || 0
-        }
-      };
-      
-      const newDate = engine.addYears(ssDate, years);
-      
-      return {
-        year: newDate.year,
-        month: newDate.month - 1,
-        day: newDate.day - 1,
-        hour: newDate.time?.hour || 0,
-        minute: newDate.time?.minute || 0,
-        seconds: newDate.time?.second || 0,
-        weekday: newDate.weekday
-      };
+      const timestamp = compatAPI.dateToTimestamp(date);
+      const newTimestamp = compatAPI.timestampPlusInterval(timestamp, { year: years });
+      return compatAPI.timestampToDate(newTimestamp);
     },
 
     setTime: async (time: number): Promise<void> => {
@@ -430,13 +553,112 @@ function setupSimpleCalendarCompatibility(): void {
     }
   };
 
-  // Expose Simple Calendar compatibility API
-  (window as any).SimpleCalendar = {
-    api: compatAPI,
-    Hooks: {} // Empty hooks object for compatibility
+  // Hook system for Simple Weather and SmallTime integration
+  const SimpleCalendarHooks = {
+    Init: 'simple-calendar-init',
+    DateTimeChange: 'simple-calendar-date-time-change',
+    ClockStartStop: 'simple-calendar-clock-start-stop'
   };
 
+  // Clock state management for SmallTime integration
+  let clockRunning = false;
+
+  // Additional APIs for SmallTime integration
+  const additionalAPIs = {
+    // Clock control APIs that SmallTime expects
+    clockStatus: () => {
+      return { started: clockRunning };
+    },
+
+    startClock: () => {
+      clockRunning = true;
+      Hooks.callAll(SimpleCalendarHooks.ClockStartStop, { started: true });
+    },
+
+    stopClock: () => {
+      clockRunning = false;
+      Hooks.callAll(SimpleCalendarHooks.ClockStartStop, { started: false });
+    },
+
+    // Calendar display API
+    showCalendar: () => {
+      CalendarSelectionDialog.show();
+    },
+
+    // Additional date APIs that SmallTime might use
+    getAllMoons: () => {
+      // Basic implementation - can be enhanced later
+      return [{ 
+        color: '#ffffff',
+        currentPhase: { icon: 'new' }
+      }];
+    },
+
+    getAllSeasons: () => {
+      // Basic implementation - can be enhanced later  
+      return [
+        { name: 'Spring', icon: 'spring' },
+        { name: 'Summer', icon: 'summer' },
+        { name: 'Fall', icon: 'fall' },
+        { name: 'Winter', icon: 'winter' }
+      ];
+    }
+  };
+
+  // Merge additional APIs with existing compatibility API
+  Object.assign(compatAPI, additionalAPIs);
+
+  // Replace the early compatibility layer with the full one
+  (window as any).SimpleCalendar = {
+    api: compatAPI,
+    Hooks: SimpleCalendarHooks
+  };
+
+  // Set up hook listeners to emit Simple Calendar hooks when our time changes
+  Hooks.on('seasons-stars:dateChanged', () => {
+    const currentDate = compatAPI.getCurrentDate();
+    Hooks.callAll(SimpleCalendarHooks.DateTimeChange, {
+      date: currentDate,
+      moons: compatAPI.getAllMoons(),
+      seasons: compatAPI.getAllSeasons()
+    });
+  });
+
+  // Hook into Foundry's updateWorldTime to emit clock events
+  Hooks.on('updateWorldTime', () => {
+    const currentDate = compatAPI.getCurrentDate();
+    Hooks.callAll(SimpleCalendarHooks.DateTimeChange, {
+      date: currentDate,
+      moons: compatAPI.getAllMoons(),
+      seasons: compatAPI.getAllSeasons()
+    });
+  });
+
+  // Emit the initialization hook that Simple Weather and SmallTime listen for
+  Hooks.callAll(SimpleCalendarHooks.Init);
+
   console.log('Seasons & Stars | Simple Calendar compatibility layer active');
+}
+
+/**
+ * Get season icon based on month (Simple Calendar style)
+ */
+function getCurrentSeasonIcon(month: number): string {
+  // Approximate seasons based on month (Northern Hemisphere)
+  // Spring: March-May (months 3-5)
+  // Summer: June-August (months 6-8)  
+  // Fall: September-November (months 9-11)
+  // Winter: December-February (months 12, 1-2)
+  
+  if (month >= 3 && month <= 5) {
+    return 'spring';
+  } else if (month >= 6 && month <= 8) {
+    return 'summer';
+  } else if (month >= 9 && month <= 11) {
+    return 'fall';
+  } else {
+    return 'winter';
+  }
 }
 
 /**
