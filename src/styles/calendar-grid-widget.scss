@@ -127,7 +127,7 @@
   /* Weekday Headers */
   .weekday-headers {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
     gap: 1px;
     margin-bottom: 4px;
 
@@ -151,7 +151,7 @@
   .calendar-grid {
     .calendar-week {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
       gap: 2px;
       margin-bottom: 2px;
     }

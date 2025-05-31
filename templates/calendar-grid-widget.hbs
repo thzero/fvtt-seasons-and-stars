@@ -45,7 +45,7 @@
     </div>
 
     {{!-- Weekday Headers --}}
-    <div class="weekday-headers">
+    <div class="weekday-headers" style="--weekday-count: {{weekdays.length}};">
       {{#each weekdays}}
         <div class="weekday-header" title="{{description}}">
           <span class="weekday-name">{{abbreviation}}</span>
@@ -54,7 +54,7 @@
     </div>
 
     {{!-- Calendar Grid --}}
-    <div class="calendar-grid">
+    <div class="calendar-grid" style="--weekday-count: {{weekdays.length}};">
       {{#each monthData.weeks}}
         <div class="calendar-week">
           {{#each this}}
