@@ -31,6 +31,15 @@ Hooks.once('init', async () => {
   // Initialize calendar manager
   calendarManager = new CalendarManager();
   
+  console.log('Seasons & Stars | Module initialized');
+});
+
+/**
+ * Early setup during setupGame - before other modules check for Simple Calendar
+ */
+Hooks.once('setupGame', () => {
+  console.log('Seasons & Stars | Early setup during setupGame');
+  
   // Set up Simple Calendar compatibility early if enabled
   // This needs to happen before Simple Weather checks for it
   // Note: We default to enabled since settings might not be ready yet
@@ -38,8 +47,6 @@ Hooks.once('init', async () => {
   if (compatEnabled) {
     setupEarlySimpleCalendarCompatibility();
   }
-  
-  console.log('Seasons & Stars | Module initialized');
 });
 
 /**
@@ -97,7 +104,7 @@ function setupEarlySimpleCalendarCompatibility(): void {
     getCurrentDate: () => ({ year: 2023, month: 0, day: 0 }), // Placeholder
   };
 
-  // Expose early compatibility
+  // Expose early compatibility - ONLY the API, no fake module registration
   (window as any).SimpleCalendar = {
     api: earlyCompatAPI,
     Hooks: {
@@ -107,28 +114,7 @@ function setupEarlySimpleCalendarCompatibility(): void {
     }
   };
 
-  // Also make it appear that Simple Calendar module is installed and active
-  // This tricks modules that check game.modules.get('foundryvtt-simple-calendar')?.active
-  if (game.modules && !game.modules.get('foundryvtt-simple-calendar')) {
-    // Create a fake module entry for Simple Calendar
-    const fakeSimpleCalendar = {
-      id: 'foundryvtt-simple-calendar',
-      title: 'Simple Calendar (Seasons & Stars Compatibility)',
-      active: true,
-      data: {
-        id: 'foundryvtt-simple-calendar',
-        title: 'Simple Calendar (Seasons & Stars Compatibility)',
-        version: '2.4.18', // Version Simple Weather expects
-        compatibility: { minimum: '11', verified: '13' }
-      }
-    };
-
-    // Add to modules collection
-    game.modules.set('foundryvtt-simple-calendar', fakeSimpleCalendar as any);
-  }
-
   console.log('Seasons & Stars | Early Simple Calendar compatibility layer active');
-  console.log('Seasons & Stars | Simple Calendar module registered as active for compatibility');
 }
 
 /**
