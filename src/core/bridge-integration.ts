@@ -5,7 +5,7 @@
  * with S&S without requiring external calendar system knowledge in the core.
  */
 
-import type { CalendarDate, Calendar } from '../types/calendar';
+import type { CalendarDate, SeasonsStarsCalendar } from '../types/calendar';
 import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
@@ -20,7 +20,7 @@ export interface SeasonsStarsAPI {
   formatDate(date: CalendarDate, options?: any): string;
   
   // Calendar management
-  getActiveCalendar(): Calendar;
+  getActiveCalendar(): SeasonsStarsCalendar;
   setActiveCalendar(calendarId: string): Promise<void>;
   getAvailableCalendars(): string[];
   
@@ -36,6 +36,28 @@ export interface SeasonsStarsAPI {
   // Enhanced features (basic implementations available)
   getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay;
   getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
+  
+  // Notes API - Phase 2 addition
+  notes: SeasonsStarsNotesAPI;
+}
+
+export interface SeasonsStarsNotesAPI {
+  // Simple Calendar API compatibility
+  addNote(title: string, content: string, startDate: any, endDate?: any, allDay?: boolean, playerVisible?: boolean): Promise<any>;
+  removeNote(noteId: string): Promise<void>;
+  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[];
+  
+  // Enhanced notes functionality
+  createNote(data: CreateNoteData): Promise<JournalEntry>;
+  updateNote(noteId: string, data: UpdateNoteData): Promise<JournalEntry>;
+  deleteNote(noteId: string): Promise<void>;
+  getNote(noteId: string): Promise<JournalEntry | null>;
+  getNotesForDate(date: CalendarDate, calendarId?: string): Promise<JournalEntry[]>;
+  getNotesForDateRange(start: CalendarDate, end: CalendarDate, calendarId?: string): Promise<JournalEntry[]>;
+  
+  // Module integration
+  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): any;
 }
 
 export interface SeasonsStarsWidgets {
@@ -95,6 +117,30 @@ export interface SeasonInfo {
   name: string;
   icon: string;
   description?: string;
+}
+
+// Notes system data types
+export interface CreateNoteData {
+  title: string;
+  content: string;
+  startDate: CalendarDate;
+  endDate?: CalendarDate;
+  allDay: boolean;
+  calendarId?: string;
+  category?: string;
+  tags?: string[];
+  playerVisible: boolean;
+}
+
+export interface UpdateNoteData {
+  title?: string;
+  content?: string;
+  startDate?: CalendarDate;
+  endDate?: CalendarDate;
+  allDay?: boolean;
+  category?: string;
+  tags?: string[];
+  playerVisible?: boolean;
 }
 
 export enum WidgetPreference {
@@ -192,25 +238,49 @@ export class SeasonsStarsIntegration {
   getFeatureVersion(feature: string): string | null {
     const version = this.version;
     
-    // Map features to version requirements
-    const featureMap: Record<string, string> = {
-      'basic-api': '1.0.0',
-      'widget-system': '1.1.0',
-      'sidebar-buttons': '1.2.0',
-      'mini-widget': '1.2.0',
-      'time-advancement': '1.2.0',
-      'multiple-calendars': '1.3.0',
-      'grid-widget': '1.3.0',
-      'bridge-interface': '2.0.0'
-    };
-    
-    const requiredVersion = featureMap[feature];
-    if (!requiredVersion) {
-      return null;
+    // Use capability detection instead of version comparison for better compatibility
+    switch (feature) {
+      case 'basic-api':
+        return this.manager ? version : null;
+      
+      case 'widget-system':
+        return (this.widgetManager.main || this.widgetManager.mini) ? version : null;
+      
+      case 'sidebar-buttons':
+        // Check if widgets have addSidebarButton method
+        const mainWidget = this.widgetManager.main?.widget;
+        return (mainWidget && typeof (mainWidget as any).addSidebarButton === 'function') ? version : null;
+      
+      case 'mini-widget':
+        return this.widgetManager.mini ? version : null;
+      
+      case 'time-advancement':
+        return (this.manager.advanceDays && this.manager.advanceHours) ? version : null;
+      
+      case 'multiple-calendars':
+        return (this.manager.getAvailableCalendars().length > 1) ? version : null;
+      
+      case 'grid-widget':
+        return this.widgetManager.grid ? version : null;
+      
+      case 'bridge-interface':
+        // This feature is available if we have the integration class
+        return version;
+      
+      case 'notes-system':
+        // Check if notes manager is available
+        return game.seasonsStars?.notes ? version : null;
+      
+      case 'simple-calendar-notes-api':
+        // Check if notes API methods are available
+        const notesManager = game.seasonsStars?.notes;
+        return (notesManager && 
+                typeof notesManager.createNote === 'function' &&
+                typeof notesManager.setNoteModuleData === 'function') ? version : null;
+      
+      default:
+        return null;
     }
-    
-    // Simple version comparison (can be enhanced with semantic versioning)
-    return this.compareVersions(version, requiredVersion) >= 0 ? version : null;
   }
   
   private compareVersions(version1: string, version2: string): number {
@@ -246,27 +316,54 @@ class IntegrationAPI implements SeasonsStarsAPI {
   constructor(private manager: CalendarManager) {}
   
   getCurrentDate(calendarId?: string): CalendarDate {
-    return this.manager.getCurrentDate(calendarId);
+    // The actual manager method doesn't take a calendarId
+    const currentDate = this.manager.getCurrentDate();
+    if (!currentDate) {
+      throw new Error('No active calendar or current date available');
+    }
+    return currentDate;
   }
   
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate {
-    return this.manager.worldTimeToDate(timestamp, calendarId);
+    // Use time converter to convert world time to date
+    const timeConverter = this.manager.getTimeConverter();
+    if (!timeConverter) {
+      throw new Error('No time converter available');
+    }
+    return timeConverter.worldTimeToDate(timestamp);
   }
   
   dateToWorldTime(date: CalendarDate, calendarId?: string): number {
-    return this.manager.dateToWorldTime(date, calendarId);
+    // Use time converter to convert date to world time
+    const timeConverter = this.manager.getTimeConverter();
+    if (!timeConverter) {
+      throw new Error('No time converter available');
+    }
+    return timeConverter.dateToWorldTime(date);
   }
   
   formatDate(date: CalendarDate, options?: any): string {
-    return this.manager.formatDate(date, options);
+    // Use engine to format date
+    const engine = this.manager.getActiveEngine();
+    if (!engine) {
+      throw new Error('No active calendar engine');
+    }
+    return engine.formatDateString(date);
   }
   
-  getActiveCalendar(): Calendar {
-    return this.manager.getActiveCalendar();
+  getActiveCalendar(): SeasonsStarsCalendar {
+    const calendar = this.manager.getActiveCalendar();
+    if (!calendar) {
+      throw new Error('No active calendar');
+    }
+    return calendar;
   }
   
   async setActiveCalendar(calendarId: string): Promise<void> {
-    return this.manager.setActiveCalendar(calendarId);
+    const success = await this.manager.setActiveCalendar(calendarId);
+    if (!success) {
+      throw new Error(`Failed to set active calendar: ${calendarId}`);
+    }
   }
   
   getAvailableCalendars(): string[] {
@@ -274,30 +371,25 @@ class IntegrationAPI implements SeasonsStarsAPI {
   }
   
   async advanceDays(days: number, calendarId?: string): Promise<void> {
-    if (this.manager.advanceDays) {
-      return this.manager.advanceDays(days, calendarId);
-    }
-    throw new Error('Time advancement not supported');
+    return this.manager.advanceDays(days);
   }
   
   async advanceHours(hours: number, calendarId?: string): Promise<void> {
-    if (this.manager.advanceHours) {
-      return this.manager.advanceHours(hours, calendarId);
-    }
-    throw new Error('Time advancement not supported');
+    return this.manager.advanceHours(hours);
   }
   
   async advanceMinutes(minutes: number, calendarId?: string): Promise<void> {
-    if (this.manager.advanceMinutes) {
-      return this.manager.advanceMinutes(minutes, calendarId);
-    }
-    throw new Error('Time advancement not supported');
+    return this.manager.advanceMinutes(minutes);
   }
   
   getMonthNames(calendarId?: string): string[] {
     const calendar = calendarId ? 
       this.manager.getCalendar(calendarId) : 
       this.manager.getActiveCalendar();
+    
+    if (!calendar) {
+      throw new Error('No calendar available');
+    }
     
     return calendar.months.map(month => month.name);
   }
@@ -307,7 +399,11 @@ class IntegrationAPI implements SeasonsStarsAPI {
       this.manager.getCalendar(calendarId) : 
       this.manager.getActiveCalendar();
     
-    return calendar.weekdays || [];
+    if (!calendar) {
+      throw new Error('No calendar available');
+    }
+    
+    return calendar.weekdays.map(weekday => weekday.name);
   }
   
   getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay {
@@ -331,6 +427,10 @@ class IntegrationAPI implements SeasonsStarsAPI {
     } else {
       return { name: 'Winter', icon: 'winter' };
     }
+  }
+  
+  get notes(): SeasonsStarsNotesAPI {
+    return new IntegrationNotesAPI(this.manager);
   }
 }
 
@@ -508,5 +608,261 @@ class IntegrationHookManager implements SeasonsStarsHooks {
   cleanup(): void {
     this.hookCallbacks.clear();
     // Note: We don't remove the Foundry hooks as other parts of S&S may still need them
+  }
+}
+
+/**
+ * Notes API implementation for bridge integration
+ * Provides complete Simple Calendar API compatibility with full notes functionality
+ */
+class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
+  constructor(private manager: CalendarManager) {}
+  
+  // Simple Calendar API compatibility methods
+  async addNote(title: string, content: string, startDate: any, endDate?: any, allDay: boolean = true, playerVisible: boolean = true): Promise<any> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    // Convert Simple Calendar format (0-based) to S&S format (1-based)
+    const convertedStartDate = this.convertSCDateToSS(startDate);
+    const convertedEndDate = endDate ? this.convertSCDateToSS(endDate) : null;
+    
+    const noteData: CreateNoteData = {
+      title,
+      content,
+      startDate: convertedStartDate,
+      endDate: convertedEndDate,
+      allDay,
+      calendarId: this.manager.getActiveCalendar().id,
+      playerVisible
+    };
+    
+    const note = await notesManager.createNote(noteData);
+    
+    // Return Simple Calendar compatible object
+    return this.convertNoteToSCFormat(note);
+  }
+  
+  async removeNote(noteId: string): Promise<void> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    await notesManager.deleteNote(noteId);
+  }
+  
+  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[] {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      return [];
+    }
+    
+    // Convert 0-based SC format to 1-based S&S format
+    const engine = this.manager.getActiveEngine();
+    const ssYear = year;
+    const ssMonth = month + 1;
+    const ssDay = day + 1;
+    const weekday = engine ? engine.calculateWeekday(ssYear, ssMonth, ssDay) : 0;
+    
+    const date: CalendarDate = {
+      year: ssYear,
+      month: ssMonth,
+      day: ssDay,
+      weekday
+    };
+    
+    try {
+      // Get notes synchronously from storage
+      const storage = notesManager.storage;
+      const notes = storage.findNotesByDateSync(date);
+      return notes.map(note => this.convertNoteToSCFormat(note));
+    } catch (error) {
+      console.error('Error retrieving notes for day:', error);
+      return [];
+    }
+  }
+  
+  // Enhanced notes functionality (async versions)
+  async createNote(data: CreateNoteData): Promise<JournalEntry> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    return notesManager.createNote(data);
+  }
+  
+  async updateNote(noteId: string, data: UpdateNoteData): Promise<JournalEntry> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    return notesManager.updateNote(noteId, data);
+  }
+  
+  async deleteNote(noteId: string): Promise<void> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    return notesManager.deleteNote(noteId);
+  }
+  
+  async getNote(noteId: string): Promise<JournalEntry | null> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      return null;
+    }
+    
+    return notesManager.getNote(noteId);
+  }
+  
+  async getNotesForDate(date: CalendarDate, calendarId?: string): Promise<JournalEntry[]> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      return [];
+    }
+    
+    return notesManager.getNotesForDate(date);
+  }
+  
+  async getNotesForDateRange(start: CalendarDate, end: CalendarDate, calendarId?: string): Promise<JournalEntry[]> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      return [];
+    }
+    
+    return notesManager.getNotesForDateRange(start, end);
+  }
+  
+  // Module integration methods
+  async setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void> {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      throw new Error('Notes system not available');
+    }
+    
+    return notesManager.setNoteModuleData(noteId, moduleId, data);
+  }
+  
+  getNoteModuleData(noteId: string, moduleId: string): any {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      return null;
+    }
+    
+    return notesManager.getNoteModuleData(noteId, moduleId);
+  }
+  
+  // Date conversion utilities
+  private convertSCDateToSS(scDate: any): CalendarDate {
+    // Simple Calendar uses 0-based months and days
+    // Seasons & Stars uses 1-based months and days
+    const engine = this.manager.getActiveEngine();
+    const year = scDate.year;
+    const month = (scDate.month || 0) + 1;
+    const day = (scDate.day || 0) + 1;
+    
+    // Calculate weekday using engine
+    const weekday = engine ? engine.calculateWeekday(year, month, day) : 0;
+    
+    return {
+      year,
+      month,
+      day,
+      weekday
+    };
+  }
+  
+  private convertSSDateToSC(ssDate: CalendarDate): any {
+    // Convert 1-based S&S format to 0-based SC format
+    return {
+      year: ssDate.year,
+      month: ssDate.month - 1,
+      day: ssDate.day - 1
+    };
+  }
+  
+  private convertNoteToSCFormat(note: JournalEntry): any {
+    const flags = note.flags?.['seasons-and-stars'];
+    if (!flags?.calendarNote) {
+      throw new Error('Invalid calendar note');
+    }
+    
+    const startDate = flags.startDate;
+    const calendar = this.manager.getActiveCalendar();
+    const engine = this.manager.getActiveEngine();
+    
+    // Get month and weekday names
+    const monthName = (startDate.month >= 1 && startDate.month <= calendar.months.length) ? 
+      calendar.months[startDate.month - 1]?.name || '' : '';
+    
+    // Calculate weekday and get name
+    const weekdayIndex = engine.calculateWeekday(startDate.year, startDate.month, startDate.day);
+    const weekdayName = (weekdayIndex >= 0 && weekdayIndex < calendar.weekdays.length) ?
+      calendar.weekdays[weekdayIndex]?.name || '' : '';
+    
+    // Get ordinal suffix for day
+    const daySuffix = this.getOrdinalSuffix(startDate.day);
+    
+    // Convert to 0-based for SC compatibility
+    const scDate = this.convertSSDateToSC(startDate);
+    
+    return {
+      // Core properties (0-based for SC compatibility)
+      year: scDate.year,
+      month: scDate.month,
+      day: scDate.day,
+      
+      // Display data
+      title: note.name,
+      content: this.extractNoteContent(note),
+      allDay: flags.allDay,
+      
+      // Foundry integration
+      journalEntryId: note.id,
+      
+      // Enhanced display data (matching SmallTime expectations)
+      display: {
+        monthName: monthName,
+        month: startDate.month.toString(),
+        day: startDate.day.toString(),
+        year: startDate.year.toString(),
+        daySuffix: daySuffix,
+        yearPrefix: calendar.year?.prefix || '',
+        yearPostfix: calendar.year?.suffix || '',
+        date: `${monthName} ${startDate.day}, ${startDate.year}`,
+        time: '', // Notes don't have specific times
+        weekday: weekdayName
+      },
+      
+      // Additional metadata
+      startDate: startDate,
+      endDate: flags.endDate,
+      author: note.author?.name || '',
+      playerVisible: note.ownership?.default === CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+    };
+  }
+  
+  private extractNoteContent(note: JournalEntry): string {
+    // Extract content from the first text page
+    const textPage = note.pages?.find(page => page.type === 'text');
+    return textPage?.text?.content || '';
+  }
+  
+  private getOrdinalSuffix(day: number): string {
+    if (day >= 11 && day <= 13) return 'th';
+    const lastDigit = day % 10;
+    switch (lastDigit) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
   }
 }

@@ -79,6 +79,32 @@ export class NoteStorage {
   }
 
   /**
+   * Find notes by specific date (synchronous version for API compatibility)
+   */
+  findNotesByDateSync(date: ICalendarDate): JournalEntry[] {
+    if (!this.indexBuilt) {
+      this.initialize();
+    }
+
+    const dateKey = this.getDateKey(date);
+    const noteIds = this.dateIndex.get(dateKey) || new Set();
+    
+    const notes: JournalEntry[] = [];
+    for (const noteId of noteIds) {
+      const note = this.getFromCache(noteId) || game.journal?.get(noteId);
+      if (note && this.isCalendarNote(note)) {
+        notes.push(note);
+        // Add to cache if retrieved from game
+        if (!this.noteCache.has(noteId)) {
+          this.addToCache(noteId, note);
+        }
+      }
+    }
+
+    return this.sortNotesByCreation(notes);
+  }
+
+  /**
    * Find notes by date range (optimized for ranges)
    */
   async findNotesByDateRange(start: ICalendarDate, end: ICalendarDate): Promise<JournalEntry[]> {

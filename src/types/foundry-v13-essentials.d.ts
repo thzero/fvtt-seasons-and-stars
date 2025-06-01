@@ -33,10 +33,12 @@ interface Game {
   modules: Map<string, Module>;
   user?: User;
   users: Collection<User>;
+  journal: Collection<JournalEntry>;
   
   // Season & Stars specific integration point
   seasonsStars?: {
     manager?: any;
+    notes?: any;
     integration?: any;
   };
 }
@@ -62,6 +64,31 @@ interface User {
   id: string;
   name: string;
   isGM: boolean;
+}
+
+interface JournalEntry {
+  id: string;
+  name: string;
+  pages: Collection<JournalEntryPage>;
+  ownership: Record<string, number>;
+  flags: Record<string, any>;
+  author?: User;
+  
+  static create(data: any): Promise<JournalEntry>;
+  update(data: any): Promise<JournalEntry>;
+  delete(): Promise<void>;
+  createEmbeddedDocuments(type: string, data: any[]): Promise<any[]>;
+  setFlag(scope: string, key: string, value: any): Promise<void>;
+  getFlag(scope: string, key: string): any;
+}
+
+interface JournalEntryPage {
+  id: string;
+  name: string;
+  type: string;
+  text?: {
+    content: string;
+  };
 }
 
 interface Module {
@@ -287,6 +314,21 @@ declare class Collection<T> extends Map<string, T> {
   find(predicate: (value: T) => boolean): T | undefined;
   filter(predicate: (value: T) => boolean): T[];
   map<U>(transform: (value: T) => U): U[];
+}
+
+// =============================================================================
+// FOUNDRY CONSTANTS
+// =============================================================================
+
+declare global {
+  const CONST: {
+    DOCUMENT_OWNERSHIP_LEVELS: {
+      NONE: 0;
+      LIMITED: 1;
+      OBSERVER: 2;
+      OWNER: 3;
+    };
+  };
 }
 
 // =============================================================================

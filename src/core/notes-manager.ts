@@ -419,4 +419,42 @@ export class NotesManager {
   getUserEditableNotes(): JournalEntry[] {
     return notePermissions.getEditableNotes(game.user!);
   }
+
+  /**
+   * Set module-specific data in note flags (for Simple Weather etc.)
+   */
+  async setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void> {
+    const journal = game.journal?.get(noteId);
+    if (!journal) {
+      throw new Error(`Note ${noteId} not found`);
+    }
+
+    // Check permissions
+    if (!notePermissions.canEditNote(game.user!, journal)) {
+      throw new Error('Insufficient permissions to edit note');
+    }
+
+    // Set the module flag
+    await journal.setFlag(moduleId, 'data', data);
+    
+    // Update modification timestamp
+    await journal.setFlag('seasons-and-stars', 'modified', Date.now());
+  }
+
+  /**
+   * Get module-specific data from note flags
+   */
+  getNoteModuleData(noteId: string, moduleId: string): any {
+    const journal = game.journal?.get(noteId);
+    if (!journal) {
+      return null;
+    }
+
+    // Check permissions
+    if (!notePermissions.canViewNote(game.user!, journal)) {
+      return null;
+    }
+
+    return journal.getFlag(moduleId, 'data');
+  }
 }

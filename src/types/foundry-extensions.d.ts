@@ -18,7 +18,7 @@ declare global {
     seasonsStars?: {
       api: SeasonsStarsAPI;
       manager: any; // CalendarManager - avoiding circular import
-      notes: any; // NotesManager - avoiding circular import
+      notes: NotesManagerInterface; // NotesManager interface
       integration: SeasonsStarsIntegration | null;
     };
   }
@@ -40,6 +40,21 @@ export interface SeasonsStarsAPI {
   advanceTime(amount: number, unit: string): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
+}
+
+// Notes Manager interface for type safety
+export interface NotesManagerInterface {
+  createNote(data: any): Promise<JournalEntry>;
+  updateNote(noteId: string, data: any): Promise<JournalEntry>;
+  deleteNote(noteId: string): Promise<void>;
+  getNote(noteId: string): Promise<JournalEntry | null>;
+  getNotesForDate(date: CalendarDate): Promise<JournalEntry[]>;
+  getNotesForDateRange(start: CalendarDate, end: CalendarDate): Promise<JournalEntry[]>;
+  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): any;
+  storage: {
+    findNotesByDateSync(date: CalendarDate): JournalEntry[];
+  };
 }
 
 
