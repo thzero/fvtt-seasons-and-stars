@@ -25,17 +25,17 @@ export interface SeasonsStarsAPI {
   getAvailableCalendars(): string[];
   
   // Time advancement (GM only)
-  advanceDays?(days: number, calendarId?: string): Promise<void>;
-  advanceHours?(hours: number, calendarId?: string): Promise<void>;
-  advanceMinutes?(minutes: number, calendarId?: string): Promise<void>;
+  advanceDays(days: number, calendarId?: string): Promise<void>;
+  advanceHours(hours: number, calendarId?: string): Promise<void>;
+  advanceMinutes(minutes: number, calendarId?: string): Promise<void>;
   
   // Calendar metadata
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
   
-  // Optional advanced features
-  getSunriseSunset?(date: CalendarDate, calendarId?: string): TimeOfDay;
-  getSeasonInfo?(date: CalendarDate, calendarId?: string): SeasonInfo;
+  // Enhanced features (basic implementations available)
+  getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay;
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
 }
 
 export interface SeasonsStarsWidgets {

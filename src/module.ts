@@ -254,6 +254,74 @@ function setupAPI(): void {
 
     loadCalendar: (data: any): void => {
       calendarManager.loadCalendar(data);
+    },
+
+    // Calendar metadata methods (required for compatibility bridge)
+    getMonthNames: (calendarId?: string): string[] => {
+      const calendar = calendarId ? 
+        calendarManager.getCalendar(calendarId) : 
+        calendarManager.getActiveCalendar();
+      
+      if (!calendar?.months) {
+        console.warn(`S&S API: No months found for calendar: ${calendarId || 'active'}`);
+        return [];
+      }
+      return calendar.months.map(month => month.name);
+    },
+
+    getWeekdayNames: (calendarId?: string): string[] => {
+      const calendar = calendarId ? 
+        calendarManager.getCalendar(calendarId) : 
+        calendarManager.getActiveCalendar();
+      
+      if (!calendar?.weekdays) {
+        console.warn(`S&S API: No weekdays found for calendar: ${calendarId || 'active'}`);
+        return [];
+      }
+      return calendar.weekdays.map(day => day.name);
+    },
+
+    // Optional enhanced features (basic implementations)
+    getSunriseSunset: (date: ICalendarDate, calendarId?: string): { sunrise: number; sunset: number } => {
+      // Basic implementation - can be enhanced with calendar-specific data later
+      // For now, return reasonable defaults (6 AM sunrise, 6 PM sunset)
+      return { sunrise: 6, sunset: 18 };
+    },
+
+    getSeasonInfo: (date: ICalendarDate, calendarId?: string): { name: string; icon: string } => {
+      const calendar = calendarId ? 
+        calendarManager.getCalendar(calendarId) : 
+        calendarManager.getActiveCalendar();
+      
+      if (!calendar?.seasons || calendar.seasons.length === 0) {
+        console.warn(`S&S API: No seasons found for calendar: ${calendarId || 'active'}`);
+        return { name: 'Unknown', icon: 'none' };
+      }
+      
+      // Basic season detection - find season containing this date
+      // This is a simple implementation that can be enhanced later
+      const currentSeason = calendar.seasons.find(season => {
+        // Simple logic: match by rough month ranges
+        // This could be enhanced with proper calendar-aware season calculation
+        if (season.startMonth && season.endMonth) {
+          return date.month >= season.startMonth && date.month <= season.endMonth;
+        }
+        return false;
+      });
+      
+      if (currentSeason) {
+        return { 
+          name: currentSeason.name, 
+          icon: currentSeason.icon || currentSeason.name.toLowerCase() 
+        };
+      }
+      
+      // Fallback: use first season or default
+      const fallbackSeason = calendar.seasons[0];
+      return { 
+        name: fallbackSeason?.name || 'Unknown', 
+        icon: fallbackSeason?.icon || fallbackSeason?.name?.toLowerCase() || 'none' 
+      };
     }
   };
 
