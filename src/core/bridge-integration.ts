@@ -10,6 +10,7 @@ import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
+import { CalendarDate as CalendarDateClass } from './calendar-date';
 
 // Core integration interface types
 export interface SeasonsStarsAPI {
@@ -248,14 +249,14 @@ export class SeasonsStarsIntegration {
       
       case 'sidebar-buttons':
         // Check if widgets have addSidebarButton method
-        const mainWidget = this.widgetManager.main?.widget;
-        return (mainWidget && typeof (mainWidget as any).addSidebarButton === 'function') ? version : null;
+        const mainWidget = this.widgetManager.main;
+        return (mainWidget && typeof mainWidget.addSidebarButton === 'function') ? version : null;
       
       case 'mini-widget':
         return this.widgetManager.mini ? version : null;
       
       case 'time-advancement':
-        return (this.manager.advanceDays && this.manager.advanceHours) ? version : null;
+        return (typeof this.manager.advanceDays === 'function' && typeof this.manager.advanceHours === 'function') ? version : null;
       
       case 'multiple-calendars':
         return (this.manager.getAvailableCalendars().length > 1) ? version : null;
@@ -325,30 +326,31 @@ class IntegrationAPI implements SeasonsStarsAPI {
   }
   
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate {
-    // Use time converter to convert world time to date
-    const timeConverter = this.manager.getTimeConverter();
-    if (!timeConverter) {
-      throw new Error('No time converter available');
-    }
-    return timeConverter.worldTimeToDate(timestamp);
-  }
-  
-  dateToWorldTime(date: CalendarDate, calendarId?: string): number {
-    // Use time converter to convert date to world time
-    const timeConverter = this.manager.getTimeConverter();
-    if (!timeConverter) {
-      throw new Error('No time converter available');
-    }
-    return timeConverter.dateToWorldTime(date);
-  }
-  
-  formatDate(date: CalendarDate, options?: any): string {
-    // Use engine to format date
+    // Use engine to convert world time to date
     const engine = this.manager.getActiveEngine();
     if (!engine) {
       throw new Error('No active calendar engine');
     }
-    return engine.formatDateString(date);
+    return engine.worldTimeToDate(timestamp);
+  }
+  
+  dateToWorldTime(date: CalendarDate, calendarId?: string): number {
+    // Use engine to convert date to world time
+    const engine = this.manager.getActiveEngine();
+    if (!engine) {
+      throw new Error('No active calendar engine');
+    }
+    return engine.dateToWorldTime(date);
+  }
+  
+  formatDate(date: CalendarDate, options?: any): string {
+    // Use CalendarDate class to format date
+    const calendar = this.manager.getActiveCalendar();
+    if (!calendar) {
+      throw new Error('No active calendar');
+    }
+    const calendarDate = new CalendarDateClass(date, calendar);
+    return calendarDate.format(options || {});
   }
   
   getActiveCalendar(): SeasonsStarsCalendar {
@@ -627,7 +629,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     
     // Convert Simple Calendar format (0-based) to S&S format (1-based)
     const convertedStartDate = this.convertSCDateToSS(startDate);
-    const convertedEndDate = endDate ? this.convertSCDateToSS(endDate) : null;
+    const convertedEndDate = endDate ? this.convertSCDateToSS(endDate) : undefined;
     
     const noteData: CreateNoteData = {
       title,
@@ -635,7 +637,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       startDate: convertedStartDate,
       endDate: convertedEndDate,
       allDay,
-      calendarId: this.manager.getActiveCalendar().id,
+      calendarId: this.manager.getActiveCalendar()?.id || 'default',
       playerVisible
     };
     
@@ -797,6 +799,10 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     const startDate = flags.startDate;
     const calendar = this.manager.getActiveCalendar();
     const engine = this.manager.getActiveEngine();
+    
+    if (!calendar || !engine) {
+      throw new Error('No active calendar or engine available');
+    }
     
     // Get month and weekday names
     const monthName = (startDate.month >= 1 && startDate.month <= calendar.months.length) ? 

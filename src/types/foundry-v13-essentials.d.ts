@@ -19,6 +19,23 @@ declare global {
   const canvas: Canvas;
   const renderTemplate: (path: string, data?: any) => Promise<string>;
   
+  // Foundry global namespace
+  const foundry: FoundryNamespace;
+  
+  // Global performance API
+  interface Performance {
+    memory?: {
+      usedJSHeapSize: number;
+      totalJSHeapSize: number;
+      jsHeapSizeLimit: number;
+    };
+  }
+  
+  // Make Foundry types available globally
+  type JournalEntry = FoundryJournalEntry;
+  type User = FoundryUser;
+  type Calendar = FoundryCalendar;
+  
   // jQuery globals provided by @types/jquery
 }
 
@@ -31,9 +48,9 @@ interface Game {
   i18n: Localization;
   settings: ClientSettings;
   modules: Map<string, Module>;
-  user?: User;
-  users: Collection<User>;
-  journal: Collection<JournalEntry>;
+  user?: FoundryUser;
+  users: Collection<FoundryUser>;
+  journal: Collection<FoundryJournalEntry>;
   
   // Season & Stars specific integration point
   seasonsStars?: {
@@ -60,26 +77,28 @@ interface ClientSettings {
   register(module: string, setting: string, config: any): void;
 }
 
-interface User {
+interface FoundryUser {
   id: string;
   name: string;
   isGM: boolean;
 }
 
-interface JournalEntry {
+interface FoundryJournalEntry {
   id: string;
   name: string;
   pages: Collection<JournalEntryPage>;
   ownership: Record<string, number>;
   flags: Record<string, any>;
-  author?: User;
+  author?: FoundryUser;
+  folder?: string;
   
-  static create(data: any): Promise<JournalEntry>;
-  update(data: any): Promise<JournalEntry>;
+  static create(data: any): Promise<FoundryJournalEntry>;
+  update(data: any): Promise<FoundryJournalEntry>;
   delete(): Promise<void>;
   createEmbeddedDocuments(type: string, data: any[]): Promise<any[]>;
   setFlag(scope: string, key: string, value: any): Promise<void>;
   getFlag(scope: string, key: string): any;
+  unsetFlag(scope: string, key: string): Promise<void>;
 }
 
 interface JournalEntryPage {
@@ -155,6 +174,13 @@ declare class Dialog {
   render(force?: boolean): this;
 }
 
+// Legacy Application class for scene controls
+declare class Application {
+  constructor(options?: any);
+  render(force?: boolean): this;
+  close(): Promise<void>;
+}
+
 // =============================================================================
 // APPLICATION V2 FRAMEWORK
 // =============================================================================
@@ -173,6 +199,7 @@ declare class ApplicationV2<RenderContext = Record<string, unknown>, Configurati
   // Element and DOM access
   readonly element: HTMLElement | null;
   readonly window: ApplicationV2.ApplicationWindow | null;
+  readonly rendered: boolean;
   
   // Position management
   setPosition(position?: Partial<ApplicationV2.Position>): void;
@@ -326,6 +353,69 @@ namespace DialogV2 {
 }
 
 // =============================================================================
+// CALENDAR SYSTEM TYPES
+// =============================================================================
+
+/**
+ * Calendar interface for Seasons & Stars calendar definitions
+ */
+interface FoundryCalendar {
+  id: string;
+  name: string;
+  description?: string;
+  year?: {
+    prefix?: string;
+    suffix?: string;
+  };
+  months: CalendarMonth[];
+  weekdays: CalendarWeekday[];
+  moons?: CalendarMoon[];
+  seasons?: CalendarSeason[];
+}
+
+interface CalendarMonth {
+  name: string;
+  description?: string;
+  days: number;
+  intercalary?: boolean;
+}
+
+interface CalendarWeekday {
+  name: string;
+  description?: string;
+  abbreviation?: string;
+}
+
+interface CalendarMoon {
+  name: string;
+  cycleLength: number;
+  phases: CalendarMoonPhase[];
+}
+
+interface CalendarMoonPhase {
+  name: string;
+  icon?: string;
+  description?: string;
+}
+
+interface CalendarSeason {
+  name: string;
+  description?: string;
+  startMonth: number;
+  startDay: number;
+  color?: string;
+}
+
+/**
+ * Date interface used by Seasons & Stars
+ */
+interface CalendarDate {
+  year: number;
+  month: number;  // 1-based
+  day: number;    // 1-based
+}
+
+// =============================================================================
 // UTILITY TYPES
 // =============================================================================
 
@@ -352,6 +442,25 @@ declare global {
       OBSERVER: 2;
       OWNER: 3;
     };
+  };
+}
+
+// =============================================================================
+// FOUNDRY NAMESPACE
+// =============================================================================
+
+interface FoundryNamespace {
+  applications: {
+    api: {
+      ApplicationV2: typeof ApplicationV2;
+      HandlebarsApplicationMixin: <T extends new (...args: any[]) => ApplicationV2>(Base: T) => T & {
+        new (...args: any[]): ApplicationV2 & HandlebarsApplicationMixin;
+      };
+    };
+  };
+  utils: {
+    deepClone<T>(obj: T): T;
+    mergeObject<T, U>(original: T, other: U, options?: any): T & U;
   };
 }
 
