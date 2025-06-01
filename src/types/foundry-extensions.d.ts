@@ -18,6 +18,7 @@ declare global {
     seasonsStars?: {
       api: SeasonsStarsAPI;
       manager: any; // CalendarManager - avoiding circular import
+      notes: any; // NotesManager - avoiding circular import
       integration: SeasonsStarsIntegration | null;
     };
   }
@@ -26,6 +27,7 @@ declare global {
     SeasonsStars?: {
       api: SeasonsStarsAPI;
       manager: any;
+      notes: any;
       integration: typeof SeasonsStarsIntegration;
     };
   }

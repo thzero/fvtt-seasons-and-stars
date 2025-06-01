@@ -7,6 +7,7 @@
 import './styles/seasons-and-stars.scss';
 
 import { CalendarManager } from './core/calendar-manager';
+import { NotesManager } from './core/notes-manager';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
 import { CalendarWidget } from './ui/calendar-widget';
@@ -18,8 +19,9 @@ import { SeasonsStarsIntegration } from './core/bridge-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type { CalendarDate as ICalendarDate, DateFormatOptions } from './types/calendar';
 
-// Module instance
+// Module instances
 let calendarManager: CalendarManager;
+let notesManager: NotesManager;
 
 /**
  * Module initialization
@@ -30,8 +32,9 @@ Hooks.once('init', async () => {
   // Register module settings
   registerSettings();
   
-  // Initialize calendar manager
+  // Initialize managers
   calendarManager = new CalendarManager();
+  notesManager = new NotesManager();
   
   
   console.log('Seasons & Stars | Module initialized');
@@ -61,6 +64,9 @@ Hooks.once('ready', async () => {
   
   // Complete calendar manager initialization (read settings and set active calendar)
   await calendarManager.completeInitialization();
+  
+  // Initialize notes manager
+  await notesManager.initialize();
   
   // Expose API
   setupAPI();
@@ -103,6 +109,34 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: true
+  });
+
+  // Notes system settings
+  game.settings.register('seasons-and-stars', 'allowPlayerNotes', {
+    name: 'Allow Player Notes',
+    hint: 'Allow players to create calendar notes',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register('seasons-and-stars', 'defaultPlayerVisible', {
+    name: 'Default Player Visibility',
+    hint: 'Make new notes visible to players by default',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register('seasons-and-stars', 'defaultPlayerEditable', {
+    name: 'Default Player Editable',
+    hint: 'Make new notes editable by players by default',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false
   });
 }
 
@@ -330,6 +364,7 @@ function setupAPI(): void {
     game.seasonsStars = {
       api,
       manager: calendarManager,
+      notes: notesManager,
       integration: SeasonsStarsIntegration.detect()
     };
   }
@@ -338,6 +373,7 @@ function setupAPI(): void {
   (window as any).SeasonsStars = {
     api,
     manager: calendarManager,
+    notes: notesManager,
     integration: SeasonsStarsIntegration,
     CalendarWidget,
     CalendarMiniWidget,
