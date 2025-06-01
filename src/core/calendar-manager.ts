@@ -8,6 +8,7 @@ import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
+import { Logger } from './logger';
 
 export class CalendarManager {
   private calendars: Map<string, SeasonsStarsCalendar> = new Map();
@@ -19,7 +20,7 @@ export class CalendarManager {
    * Initialize the calendar manager
    */
   async initialize(): Promise<void> {
-    console.log('Seasons & Stars | Initializing Calendar Manager');
+    Logger.info('Initializing Calendar Manager');
     
     // Load built-in calendars
     await this.loadBuiltInCalendars();
@@ -32,7 +33,7 @@ export class CalendarManager {
    * Complete initialization after settings are registered
    */
   async completeInitialization(): Promise<void> {
-    console.log('Seasons & Stars | Completing Calendar Manager initialization');
+    Logger.info('Completing Calendar Manager initialization');
     
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
@@ -47,7 +48,7 @@ export class CalendarManager {
       }
     }
     
-    console.log(`Seasons & Stars | Loaded ${this.calendars.size} calendars`);
+    Logger.info(`Loaded ${this.calendars.size} calendars`);
   }
 
   /**
@@ -65,10 +66,10 @@ export class CalendarManager {
           const calendarData = await response.json();
           this.loadCalendar(calendarData);
         } else {
-          console.warn(`Seasons & Stars | Could not load built-in calendar: ${calendarId}`);
+          Logger.warn(`Could not load built-in calendar: ${calendarId}`);
         }
       } catch (error) {
-        console.error(`Seasons & Stars | Error loading calendar ${calendarId}:`, error);
+        Logger.error(`Error loading calendar ${calendarId}`, error as Error);
       }
     }
   }
@@ -81,13 +82,13 @@ export class CalendarManager {
     const validation = CalendarValidator.validate(calendarData);
     
     if (!validation.isValid) {
-      console.error(`Seasons & Stars | Invalid calendar data for ${calendarData.id}:`, validation.errors);
+      Logger.error(`Invalid calendar data for ${calendarData.id}: ${validation.errors.join(', ')}`);
       return false;
     }
 
     // Warn about potential issues
     if (validation.warnings.length > 0) {
-      console.warn(`Seasons & Stars | Calendar warnings for ${calendarData.id}:`, validation.warnings);
+      Logger.warn(`Calendar warnings for ${calendarData.id}: ${validation.warnings.join(', ')}`);
     }
 
     // Store the calendar
@@ -98,7 +99,7 @@ export class CalendarManager {
     this.engines.set(calendarData.id, engine);
     
     const label = CalendarLocalization.getCalendarLabel(calendarData);
-    console.log(`Seasons & Stars | Loaded calendar: ${label} (${calendarData.id})`);
+    Logger.info(`Loaded calendar: ${label} (${calendarData.id})`);
     return true;
   }
 
@@ -107,7 +108,7 @@ export class CalendarManager {
    */
   async setActiveCalendar(calendarId: string): Promise<boolean> {
     if (!this.calendars.has(calendarId)) {
-      console.error(`Seasons & Stars | Calendar not found: ${calendarId}`);
+      Logger.error(`Calendar not found: ${calendarId}`);
       return false;
     }
 
@@ -133,7 +134,7 @@ export class CalendarManager {
       calendar: this.calendars.get(calendarId)
     });
 
-    console.log(`Seasons & Stars | Active calendar set to: ${calendarId}`);
+    Logger.info(`Active calendar set to: ${calendarId}`);
     return true;
   }
 
@@ -191,7 +192,7 @@ export class CalendarManager {
       
       return this.loadCalendar(calendarData);
     } catch (error) {
-      console.error('Seasons & Stars | Error importing calendar:', error);
+      Logger.error('Error importing calendar', error as Error);
       ui.notifications?.error(`Failed to import calendar: ${(error as Error).message}`);
       return false;
     }
@@ -204,14 +205,14 @@ export class CalendarManager {
     const calendar = this.calendars.get(calendarId);
     
     if (!calendar) {
-      console.error(`Seasons & Stars | Calendar not found for export: ${calendarId}`);
+      Logger.error(`Calendar not found for export: ${calendarId}`);
       return null;
     }
 
     try {
       return JSON.stringify(calendar, null, 2);
     } catch (error) {
-      console.error('Seasons & Stars | Error exporting calendar:', error);
+      Logger.error('Error exporting calendar', error as Error);
       return null;
     }
   }
@@ -223,25 +224,25 @@ export class CalendarManager {
     const builtInCalendars = ['gregorian', 'vale-reckoning'];
     
     if (builtInCalendars.includes(calendarId)) {
-      console.warn(`Seasons & Stars | Cannot remove built-in calendar: ${calendarId}`);
+      Logger.warn(`Cannot remove built-in calendar: ${calendarId}`);
       return false;
     }
 
     if (!this.calendars.has(calendarId)) {
-      console.warn(`Seasons & Stars | Calendar not found: ${calendarId}`);
+      Logger.warn(`Calendar not found: ${calendarId}`);
       return false;
     }
 
     // Don't remove if it's the active calendar
     if (this.activeCalendarId === calendarId) {
-      console.warn(`Seasons & Stars | Cannot remove active calendar: ${calendarId}`);
+      Logger.warn(`Cannot remove active calendar: ${calendarId}`);
       return false;
     }
 
     this.calendars.delete(calendarId);
     this.engines.delete(calendarId);
     
-    console.log(`Seasons & Stars | Removed calendar: ${calendarId}`);
+    Logger.info(`Removed calendar: ${calendarId}`);
     return true;
   }
 

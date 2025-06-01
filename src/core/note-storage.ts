@@ -4,6 +4,7 @@
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import { NotePerformanceOptimizer } from './note-performance-optimizer';
+import { Logger } from './logger';
 
 /**
  * High-performance storage system with date-based indexing
@@ -31,7 +32,7 @@ export class NoteStorage {
     // Start performance monitoring
     this.performanceOptimizer.startMonitoring();
     
-    console.log('Seasons & Stars | Note storage initialized with performance optimization');
+    Logger.info('Note storage initialized with performance optimization');
   }
 
   /**
@@ -162,10 +163,10 @@ export class NoteStorage {
    * Rebuild the date index (call when notes are created/updated outside storage)
    */
   rebuildIndex(): void {
-    console.log('Seasons & Stars | Rebuilding note storage index');
+    Logger.debug('Rebuilding note storage index');
     this.dateIndex.clear();
     this.buildDateIndex();
-    console.log(`Seasons & Stars | Index rebuilt with ${this.dateIndex.size} date entries`);
+    Logger.debug(`Index rebuilt with ${this.dateIndex.size} date entries`);
   }
 
   /**
@@ -173,7 +174,7 @@ export class NoteStorage {
    */
   clearCache(): void {
     this.noteCache.clear();
-    console.log('Seasons & Stars | Note cache cleared');
+    Logger.debug('Note cache cleared');
   }
 
   /**
@@ -202,11 +203,11 @@ export class NoteStorage {
    */
   async optimizeForLargeCollections(): Promise<void> {
     if (!this.performanceOptimizer) {
-      console.warn('Seasons & Stars | Performance optimizer not initialized');
+      Logger.warn('Performance optimizer not initialized');
       return;
     }
 
-    console.log('Seasons & Stars | Optimizing storage for large collections...');
+    Logger.info('Optimizing storage for large collections...');
     
     // Clear cache and rebuild index
     this.clearCache();
@@ -219,7 +220,7 @@ export class NoteStorage {
       enablePagination: true
     });
     
-    console.log('Seasons & Stars | Storage optimization completed');
+    Logger.info('Storage optimization completed');
   }
 
   /**
@@ -229,7 +230,7 @@ export class NoteStorage {
     this.dateIndex.clear();
     
     if (!game.journal) {
-      console.warn('Seasons & Stars | Game journal not available for indexing');
+      Logger.warn('Game journal not available for indexing');
       return;
     }
 
@@ -243,7 +244,7 @@ export class NoteStorage {
       }
     });
 
-    console.log(`Seasons & Stars | Built date index for ${indexedCount} calendar notes`);
+    Logger.debug(`Built date index for ${indexedCount} calendar notes`);
   }
 
   /**

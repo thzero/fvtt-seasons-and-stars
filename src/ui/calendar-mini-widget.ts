@@ -3,6 +3,7 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
+import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -193,13 +194,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if button already exists
     const existingButton = this.sidebarButtons.find(btn => btn.name === name);
     if (existingButton) {
-      console.log(`Seasons & Stars | Button "${name}" already exists in mini widget`);
+      Logger.debug(`Button "${name}" already exists in mini widget`);
       return;
     }
 
     // Add to buttons array
     this.sidebarButtons.push({ name, icon, tooltip, callback });
-    console.log(`Seasons & Stars | Added sidebar button "${name}" to mini widget`);
+    Logger.debug(`Added sidebar button "${name}" to mini widget`);
 
     // If widget is rendered, add button to DOM immediately
     if (this.rendered && this.element) {
@@ -214,7 +215,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const index = this.sidebarButtons.findIndex(btn => btn.name === name);
     if (index !== -1) {
       this.sidebarButtons.splice(index, 1);
-      console.log(`Seasons & Stars | Removed sidebar button "${name}" from mini widget`);
+      Logger.debug(`Removed sidebar button "${name}" from mini widget`);
       
       // Remove from DOM if rendered
       if (this.rendered && this.element) {
@@ -284,7 +285,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       try {
         callback();
       } catch (error) {
-        console.error(`Error in mini widget sidebar button "${name}":`, error);
+        Logger.error(`Error in mini widget sidebar button "${name}"`, error as Error);
       }
     });
 
@@ -297,7 +298,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     });
 
     headerArea.appendChild(button);
-    console.log(`Seasons & Stars | Rendered sidebar button "${name}" in mini widget DOM`);
+    Logger.debug(`Rendered sidebar button "${name}" in mini widget DOM`);
   }
 
   /**
@@ -332,7 +333,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
-    console.log(`Seasons & Stars | Mini widget advancing time: ${amount} ${unit}`);
+    Logger.info(`Mini widget advancing time: ${amount} ${unit}`);
 
     try {
       switch (unit) {
@@ -343,12 +344,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           await manager.advanceHours(amount);
           break;
         default:
-          console.warn(`Unknown time unit: ${unit}`);
+          Logger.warn(`Unknown time unit: ${unit}`);
           return;
       }
       
     } catch (error) {
-      console.error('Seasons & Stars | Error advancing time:', error);
+      Logger.error('Error advancing time', error as Error);
       ui.notifications?.error('Failed to advance time');
     }
   }
@@ -398,15 +399,15 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       
       if (smallTimeElement && this.element && this.rendered) {
         // Both elements exist and we're rendered, proceed with positioning
-        console.log('Seasons & Stars | Auto-positioning mini widget relative to SmallTime (attempt', attempts + 1, ')');
+        Logger.debug(`Auto-positioning mini widget relative to SmallTime (attempt ${attempts + 1})`);
         this.positionRelativeToSmallTime('above'); // Default to above instead of below
       } else if (attempts < maxAttempts) {
         // Retry after a short delay
-        console.log('Seasons & Stars | Retrying positioning (attempt', attempts + 1, 'of', maxAttempts, ')');
+        Logger.debug(`Retrying positioning (attempt ${attempts + 1} of ${maxAttempts})`);
         setTimeout(() => attemptPositioning(attempts + 1), 100);
       } else {
         // SmallTime not found - use smart standalone positioning
-        console.log('Seasons & Stars | SmallTime not found, using standalone positioning');
+        Logger.debug('SmallTime not found, using standalone positioning');
         this.positionStandalone();
       }
     };
@@ -440,10 +441,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         left: window.innerWidth - 240   // Typical player list left edge
       };
       
-      console.log('Seasons & Stars | Player list not found, using typical location:', position);
+      Logger.debug('Player list not found, using typical location', position);
 
     } catch (error) {
-      console.log('Seasons & Stars | Error in standalone positioning, using fallback:', error);
+      Logger.warn('Error in standalone positioning, using fallback', error);
     }
 
     // Apply the fixed position as last resort
@@ -476,7 +477,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       try {
         const element = document.querySelector(selector) as HTMLElement;
         if (element) {
-          console.log('Seasons & Stars | Found SmallTime using selector:', selector);
+          Logger.debug(`Found SmallTime using selector: ${selector}`);
           // If we found timeDisplay, get its parent form/container
           if (selector === '#timeDisplay' || selector === '#slideContainer') {
             const container = element.closest('form') || element.closest('.form') || element.parentElement;
@@ -490,7 +491,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
-    console.log('Seasons & Stars | SmallTime not found with any selector');
+    Logger.debug('SmallTime not found with any selector');
     return null;
   }
 
@@ -500,13 +501,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private positionRelativeToSmallTime(position: 'above' | 'below' | 'beside' = 'below'): void {
     const smallTimeElement = this.findSmallTimeElement();
     if (!smallTimeElement || !this.element) {
-      console.log('Seasons & Stars | SmallTime not found, using standalone positioning');
+      Logger.debug('SmallTime not found, using standalone positioning');
       // Use smart standalone positioning instead of basic fallback
       this.positionStandalone();
       return;
     }
 
-    console.log('Seasons & Stars | Found SmallTime, positioning mini widget', position);
+    Logger.debug(`Found SmallTime, positioning mini widget ${position}`);
 
     // Wait for the mini widget to be properly rendered before getting dimensions
     requestAnimationFrame(() => {
@@ -515,8 +516,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
       const estimatedMiniHeight = 32; // Match the CSS height (24px) + padding (4px + 4px)
       
-      console.log('Seasons & Stars | SmallTime rect:', smallTimeRect);
-      console.log('Seasons & Stars | Using estimated mini height:', estimatedMiniHeight);
+      Logger.debug('SmallTime rect', smallTimeRect);
+      Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
       
       let newPosition: { top: number; left: number };
 
@@ -550,7 +551,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           break;
       }
 
-      console.log('Seasons & Stars | Positioning mini widget at:', newPosition);
+      Logger.debug('Positioning mini widget at', newPosition);
 
       // Apply positioning directly via CSS (more reliable than setPosition for frameless windows)
       if (this.element) {
@@ -562,12 +563,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         // Try to match SmallTime's actual background color
         this.matchSmallTimeBackground(smallTimeElement);
         
-        console.log('Seasons & Stars | Applied CSS positioning directly');
+        Logger.debug('Applied CSS positioning directly');
         
         // Verify final position
         setTimeout(() => {
           const finalRect = this.element.getBoundingClientRect();
-          console.log('Seasons & Stars | Final position:', finalRect);
+          Logger.debug('Final position', finalRect);
         }, 100);
       }
     });
@@ -592,7 +593,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           const background = computedStyle.backgroundColor;
           const backgroundImage = computedStyle.backgroundImage;
           
-          console.log('Seasons & Stars | SmallTime background:', background, backgroundImage);
+          Logger.debug('SmallTime background', { background, backgroundImage });
           
           if (background && background !== 'rgba(0, 0, 0, 0)') {
             miniContent.style.background = background;
@@ -603,7 +604,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         }
       }
     } catch (error) {
-      console.log('Seasons & Stars | Could not match SmallTime background:', error);
+      Logger.debug('Could not match SmallTime background', error);
     }
   }
 
@@ -735,10 +736,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         this.element.classList.add('docked-mode');
         this.element.classList.remove('standalone-mode', 'above-smalltime', 'below-smalltime', 'beside-smalltime');
         
-        console.log('Seasons & Stars | Mini widget docked above player list (SmallTime style)');
+        Logger.debug('Mini widget docked above player list (SmallTime style)');
       }
     } catch (error) {
-      console.log('Seasons & Stars | Error docking to player list, using fallback positioning:', error);
+      Logger.warn('Error docking to player list, using fallback positioning', error);
       this.positionStandalone();
     }
   }

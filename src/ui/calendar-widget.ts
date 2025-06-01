@@ -5,6 +5,7 @@
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarGridWidget } from './calendar-grid-widget';
+import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -142,7 +143,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
-    console.log(`Seasons & Stars | Advancing date: ${amount} ${unit}`);
+    Logger.info(`Advancing date: ${amount} ${unit}`);
 
     try {
       switch (unit) {
@@ -165,7 +166,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
           await manager.advanceYears(amount);
           break;
         default:
-          console.warn(`Unknown date unit: ${unit}`);
+          Logger.warn(`Unknown date unit: ${unit}`);
           return;
       }
 
@@ -177,7 +178,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
       
     } catch (error) {
-      console.error('Seasons & Stars | Error advancing date:', error);
+      Logger.error('Error advancing date', error as Error);
       ui.notifications?.error('Failed to advance date');
     }
   }
@@ -200,7 +201,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     
     const buttonName = target.dataset.buttonName;
     if (!buttonName) {
-      console.warn('Sidebar button clicked without button name');
+      Logger.warn('Sidebar button clicked without button name');
       return;
     }
     
@@ -210,10 +211,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       try {
         button.callback();
       } catch (error) {
-        console.error(`Error executing sidebar button "${buttonName}" callback:`, error);
+        Logger.error(`Error executing sidebar button "${buttonName}" callback`, error as Error);
       }
     } else {
-      console.warn(`Sidebar button "${buttonName}" not found or has invalid callback`);
+      Logger.warn(`Sidebar button "${buttonName}" not found or has invalid callback`);
     }
   }
 
@@ -361,7 +362,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if button already exists
     const existingButton = this.sidebarButtons.find(btn => btn.name === name);
     if (existingButton) {
-      console.log(`Seasons & Stars | Button "${name}" already exists in widget`);
+      Logger.debug(`Button "${name}" already exists in widget`);
       return;
     }
     

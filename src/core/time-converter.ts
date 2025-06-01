@@ -5,6 +5,7 @@
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';
+import { Logger } from './logger';
 
 export class TimeConverter {
   private engine: CalendarEngine;
@@ -62,14 +63,14 @@ export class TimeConverter {
       }
     };
     
-    console.log('Seasons & Stars | Initializing Gregorian calendar with current date:', realWorldDate);
+    Logger.info('Initializing Gregorian calendar with current date:', realWorldDate);
     
     // Only set if user is GM (GMs control world time)
     if (game.user?.isGM) {
       try {
         await this.setCurrentDate(realWorldDate);
       } catch (error) {
-        console.warn('Seasons & Stars | Could not initialize with real-world date:', error);
+        Logger.warn('Could not initialize with real-world date:', error);
         // Fallback to default behavior
         this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
       }

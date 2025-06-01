@@ -4,6 +4,7 @@
 
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
+import { Logger } from '../core/logger';
 
 export class SeasonsStarsSceneControls {
   
@@ -101,6 +102,6 @@ export class SeasonsStarsSceneControls {
       }
     });
 
-    console.log('Seasons & Stars | Macro functions registered');
+    Logger.info('Macro functions registered');
   }
 }

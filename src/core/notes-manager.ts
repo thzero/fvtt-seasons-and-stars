@@ -8,6 +8,7 @@ import { NoteStorage } from './note-storage';
 import { notePermissions } from './note-permissions';
 import { NoteRecurrence, type RecurringPattern } from './note-recurring';
 import { NoteSearch, type NoteSearchCriteria, type NoteSearchResult } from './note-search';
+import { Logger } from './logger';
 
 export interface CreateNoteData {
   title: string;
@@ -72,7 +73,7 @@ export class NotesManager {
   async initialize(): Promise<void> {
     if (this.initialized) return;
     
-    console.log('Seasons & Stars | Initializing Notes Manager');
+    Logger.info('Initializing Notes Manager');
     
     // Initialize storage system
     this.storage.initialize();
@@ -83,12 +84,12 @@ export class NotesManager {
     // Check if we have a large collection and optimize accordingly
     const noteCount = this.getAllCalendarNotes().length;
     if (noteCount > 500) {
-      console.log(`Seasons & Stars | Large note collection detected (${noteCount} notes) - applying optimizations`);
+      Logger.info(`Large note collection detected (${noteCount} notes) - applying optimizations`);
       await this.storage.optimizeForLargeCollections();
     }
     
     this.initialized = true;
-    console.log('Seasons & Stars | Notes Manager initialized');
+    Logger.info('Notes Manager initialized');
   }
 
   /**
@@ -151,7 +152,7 @@ export class NotesManager {
     // Emit hook for note creation
     Hooks.callAll('seasons-stars:noteCreated', journal);
 
-    console.log(`Seasons & Stars | Created note: ${data.title}${data.recurring ? ' (recurring)' : ''}`);
+    Logger.info(`Created note: ${data.title}${data.recurring ? ' (recurring)' : ''}`);
     return journal;
   }
 
@@ -217,7 +218,7 @@ export class NotesManager {
     // Emit hook for note update
     Hooks.callAll('seasons-stars:noteUpdated', journal);
 
-    console.log(`Seasons & Stars | Updated note: ${journal.name}`);
+    Logger.info(`Updated note: ${journal.name}`);
     return journal;
   }
 
@@ -244,7 +245,7 @@ export class NotesManager {
     // Emit hook for note deletion
     Hooks.callAll('seasons-stars:noteDeleted', noteId);
 
-    console.log(`Seasons & Stars | Deleted note: ${journal.name}`);
+    Logger.info(`Deleted note: ${journal.name}`);
   }
 
   /**
@@ -347,7 +348,7 @@ export class NotesManager {
     }
 
     this.notesFolderId = folder.id;
-    console.log('Seasons & Stars | Created Calendar Notes folder');
+    Logger.info('Created Calendar Notes folder');
     return folder;
   }
 
@@ -592,7 +593,7 @@ export class NotesManager {
   ): Promise<void> {
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) {
-      console.warn('Seasons & Stars | No calendar engine available for recurring note generation');
+      Logger.warn('No calendar engine available for recurring note generation');
       return;
     }
 
@@ -617,7 +618,7 @@ export class NotesManager {
       engine
     );
 
-    console.log(`Seasons & Stars | Generating ${occurrences.length} recurring occurrences`);
+    Logger.info(`Generating ${occurrences.length} recurring occurrences`);
 
     // Create notes for each occurrence (except exceptions)
     for (const occurrence of occurrences) {
@@ -716,7 +717,7 @@ export class NotesManager {
     // Delete the parent note
     await this.deleteNote(parentNoteId);
     
-    console.log(`Seasons & Stars | Deleted recurring note and ${occurrences.length} occurrences`);
+    Logger.info(`Deleted recurring note and ${occurrences.length} occurrences`);
   }
 
   /**
@@ -750,7 +751,7 @@ export class NotesManager {
     const startDate = parentNote.flags['seasons-and-stars'].startDate;
     await this.generateRecurringOccurrences(parentNote, newPattern, startDate);
     
-    console.log(`Seasons & Stars | Updated recurring pattern and regenerated occurrences`);
+    Logger.info('Updated recurring pattern and regenerated occurrences');
   }
 
   /**
@@ -811,14 +812,14 @@ export class NotesManager {
    * Optimize the notes system for better performance
    */
   async optimizePerformance(): Promise<void> {
-    console.log('Seasons & Stars | Starting notes system optimization...');
+    Logger.info('Starting notes system optimization...');
     
     await this.storage.optimizeForLargeCollections();
     
     // Clean up any orphaned data
     await this.cleanupOrphanedData();
     
-    console.log('Seasons & Stars | Notes system optimization completed');
+    Logger.info('Notes system optimization completed');
   }
 
   /**
@@ -835,7 +836,7 @@ export class NotesManager {
       if (flags?.recurringParentId) {
         const parent = game.journal?.get(flags.recurringParentId);
         if (!parent) {
-          console.warn(`Seasons & Stars | Found orphaned recurring note: ${note.id}`);
+          Logger.warn(`Found orphaned recurring note: ${note.id}`);
           // Could optionally clean up or convert to standalone note
           orphanedCount++;
         }
@@ -843,7 +844,7 @@ export class NotesManager {
     }
     
     if (orphanedCount > 0) {
-      console.log(`Seasons & Stars | Found ${orphanedCount} orphaned notes during cleanup`);
+      Logger.info(`Found ${orphanedCount} orphaned notes during cleanup`);
     }
   }
 }

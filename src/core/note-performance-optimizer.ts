@@ -4,6 +4,7 @@
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import type { NoteSearchCriteria, NoteSearchResult } from './note-search';
+import { Logger } from './logger';
 
 export interface PerformanceMetrics {
   indexBuildTime: number;
@@ -94,7 +95,7 @@ export class NotePerformanceOptimizer {
       }
     }, 30000);
     
-    console.log('Seasons & Stars | Performance monitoring started');
+    Logger.info('Performance monitoring started');
   }
   
   /**
@@ -102,7 +103,7 @@ export class NotePerformanceOptimizer {
    */
   stopMonitoring(): void {
     this.isMonitoring = false;
-    console.log('Seasons & Stars | Performance monitoring stopped');
+    Logger.info('Performance monitoring stopped');
   }
   
   /**
@@ -178,7 +179,7 @@ export class NotePerformanceOptimizer {
       ]);
       
     } catch (error) {
-      console.warn('Seasons & Stars | Search timeout or error:', error);
+      Logger.warn('Search timeout or error:', error);
       // Return partial results
       notes = [];
     }
@@ -208,7 +209,7 @@ export class NotePerformanceOptimizer {
    * Memory pressure relief - clean up caches and rebuild indexes
    */
   relieveMemoryPressure(): void {
-    console.log('Seasons & Stars | Relieving memory pressure...');
+    Logger.info('Relieving memory pressure...');
     
     // Clear cache partially (keep most recent 50%)
     this.clearOldCacheEntries(0.5);
@@ -218,7 +219,7 @@ export class NotePerformanceOptimizer {
       global.gc();
     }
     
-    console.log('Seasons & Stars | Memory pressure relief completed');
+    Logger.info('Memory pressure relief completed');
   }
   
   /**
@@ -306,7 +307,7 @@ export class NotePerformanceOptimizer {
     
     // Early termination if too many notes
     if (allNotes.length > this.config.indexRebuildThreshold) {
-      console.warn(`Seasons & Stars | Large collection (${allNotes.length} notes) - consider date filtering`);
+      Logger.warn(`Large collection (${allNotes.length} notes) - consider date filtering`);
     }
     
     return this.applyAdditionalFilters(allNotes, criteria);
@@ -531,7 +532,7 @@ export class NotePerformanceOptimizer {
   
   private checkMemoryPressure(): void {
     if (this.metrics.memoryUsage > this.config.memoryWarningThreshold) {
-      console.warn(`Seasons & Stars | High memory usage: ${this.metrics.memoryUsage.toFixed(1)}MB`);
+      Logger.warn(`High memory usage: ${this.metrics.memoryUsage.toFixed(1)}MB`);
       this.relieveMemoryPressure();
     }
   }

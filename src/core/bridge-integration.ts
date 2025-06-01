@@ -11,6 +11,7 @@ import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { CalendarDate as CalendarDateClass } from './calendar-date';
+import { Logger } from './logger';
 
 // Core integration interface types
 export interface SeasonsStarsAPI {
@@ -487,7 +488,7 @@ class IntegrationWidgetManager implements SeasonsStarsWidgets {
       try {
         callback(this);
       } catch (error) {
-        console.error('Widget change callback error:', error);
+        Logger.error('Widget change callback error', error instanceof Error ? error : new Error(String(error)));
       }
     }
   }
@@ -601,7 +602,7 @@ class IntegrationHookManager implements SeasonsStarsHooks {
         try {
           callback(data);
         } catch (error) {
-          console.error(`Hook callback error for ${hookName}:`, error);
+          Logger.error(`Hook callback error for ${hookName}`, error instanceof Error ? error : new Error(String(error)));
         }
       }
     }
@@ -682,7 +683,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       const notes = storage.findNotesByDateSync(date);
       return notes.map(note => this.convertNoteToSCFormat(note));
     } catch (error) {
-      console.error('Error retrieving notes for day:', error);
+      Logger.error('Error retrieving notes for day', error instanceof Error ? error : new Error(String(error)));
       return [];
     }
   }

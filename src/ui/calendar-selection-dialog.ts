@@ -4,6 +4,7 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
+import { Logger } from '../core/logger';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -14,21 +15,21 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   constructor(calendars: any, currentCalendarId: string) {
     super();
     
-    console.log('CalendarSelectionDialog constructor - calendars type:', typeof calendars, 'is Map:', calendars instanceof Map, 'calendars:', calendars);
+    Logger.debug('CalendarSelectionDialog constructor', { type: typeof calendars, isMap: calendars instanceof Map, calendars });
     
     // Convert array to Map if needed
     if (Array.isArray(calendars)) {
-      console.log('Converting array to Map');
+      Logger.debug('Converting array to Map');
       this.calendars = new Map();
       calendars.forEach((calendar, index) => {
         const id = calendar.id || String(index);
         this.calendars.set(id, calendar);
       });
-      console.log('Converted calendars Map:', this.calendars);
+      Logger.debug('Converted calendars Map', this.calendars);
     } else if (calendars instanceof Map) {
       this.calendars = calendars;
     } else {
-      console.error('Unsupported calendars type:', typeof calendars, calendars);
+      Logger.error('Unsupported calendars type', new Error(`Type: ${typeof calendars}`));
       this.calendars = new Map();
     }
     
@@ -101,8 +102,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
 
-    console.log('Attaching part listeners for:', partId, 'element:', htmlElement);
-    console.log('Scrollable elements:', htmlElement.querySelectorAll('.calendar-selection-grid'));
+    Logger.debug('Attaching part listeners', { partId, element: htmlElement });
+    Logger.debug('Scrollable elements', htmlElement.querySelectorAll('.calendar-selection-grid'));
 
     // Add action buttons to window and update button state after rendering
     this.addActionButtons($(htmlElement));
@@ -111,8 +112,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // Debug: Check if scrolling is working
     const scrollableGrid = htmlElement.querySelector('.calendar-selection-grid');
     if (scrollableGrid) {
-      console.log('Found scrollable grid, overflow style:', getComputedStyle(scrollableGrid).overflow);
-      console.log('Grid height vs scrollHeight:', scrollableGrid.clientHeight, 'vs', scrollableGrid.scrollHeight);
+      const style = getComputedStyle(scrollableGrid);
+      Logger.debug('Found scrollable grid', { 
+        overflow: style.overflow, 
+        clientHeight: scrollableGrid.clientHeight, 
+        scrollHeight: scrollableGrid.scrollHeight 
+      });
     }
   }
 
@@ -234,19 +239,19 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     if (dayOffset === 1) {
       // Use current world time for default sample
       const currentTime = game.time?.worldTime || 0;
-      console.log('Using current world time for sample:', currentTime, 'seconds');
+      Logger.debug(`Using current world time for sample: ${currentTime} seconds`);
       const secondsPerDay = 86400; // 24 * 60 * 60
       totalDays = Math.floor(currentTime / secondsPerDay);
-      console.log('Converted to total days:', totalDays);
+      Logger.debug(`Converted to total days: ${totalDays}`);
     } else {
       // Use offset for other samples
       totalDays = dayOffset;
-      console.log('Using offset days for sample:', totalDays);
+      Logger.debug(`Using offset days for sample: ${totalDays}`);
     }
     
     const year = 1000 + Math.floor(totalDays / 365);
     const dayInYear = totalDays % 365;
-    console.log('Calculated year and day in year:', year, dayInYear);
+    Logger.debug('Calculated year and day in year', { year, dayInYear });
     
     let remainingDays = dayInYear;
     let monthIndex = 0;
@@ -295,16 +300,16 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Instance action handler for calendar card selection
    */
   async _onSelectCalendar(event: Event, target: HTMLElement): Promise<void> {
-    console.log('Calendar card clicked', { event, target, this: this });
+    Logger.debug('Calendar card clicked', { event, target });
     
     const calendarId = target.getAttribute('data-calendar-id');
-    console.log('Found calendar ID for selection:', calendarId);
+    Logger.debug(`Found calendar ID for selection: ${calendarId}`);
     
     if (calendarId) {
-      console.log('Calling selectCalendarCard with ID:', calendarId);
+      Logger.debug(`Calling selectCalendarCard with ID: ${calendarId}`);
       this.selectCalendarCard(calendarId);
     } else {
-      console.warn('Selection action failed - no calendar ID found');
+      Logger.warn('Selection action failed - no calendar ID found');
     }
   }
 
@@ -312,18 +317,18 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Instance action handler for calendar preview
    */
   async _onPreviewCalendar(event: Event, target: HTMLElement): Promise<void> {
-    console.log('Preview button clicked', { event, target, this: this });
-    console.log('this.calendars type:', typeof this.calendars, 'is Map:', this.calendars instanceof Map, 'this.calendars:', this.calendars);
+    Logger.debug('Preview button clicked', { event, target });
+    Logger.debug('Calendars data', { type: typeof this.calendars, isMap: this.calendars instanceof Map, calendars: this.calendars });
     event.stopPropagation();
     
     const calendarId = target.closest('[data-calendar-id]')?.getAttribute('data-calendar-id');
-    console.log('Found calendar ID:', calendarId);
+    Logger.debug(`Found calendar ID: ${calendarId}`);
     
     if (calendarId) {
-      console.log('Calling showPreview with ID:', calendarId);
+      Logger.debug(`Calling showPreview with ID: ${calendarId}`);
       this.showPreview(calendarId);
     } else {
-      console.warn('Preview action failed - no calendar ID found');
+      Logger.warn('Preview action failed - no calendar ID found');
     }
   }
 
@@ -331,7 +336,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Instance action handler for choosing calendar
    */
   async _onChooseCalendar(event: Event, target: HTMLElement): Promise<void> {
-    console.log('Choose calendar clicked', { event, target, this: this });
+    Logger.debug('Choose calendar clicked', { event, target });
     await this.selectCalendar();
     this.close();
   }
@@ -340,7 +345,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Instance action handler for cancel
    */
   async _onCancel(event: Event, target: HTMLElement): Promise<void> {
-    console.log('Cancel clicked', { event, target, this: this });
+    Logger.debug('Cancel clicked', { event, target });
     this.close();
   }
 
@@ -354,7 +359,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     }
 
     const calendars = game.seasonsStars.manager.getAllCalendars();
-    console.log('CalendarSelectionDialog.show() - calendars from manager:', typeof calendars, 'is Map:', calendars instanceof Map, 'calendars:', calendars);
+    Logger.debug('CalendarSelectionDialog.show() - calendars from manager', { type: typeof calendars, isMap: calendars instanceof Map, calendars });
     const currentCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
     
     if (calendars.size === 0) {

@@ -3,6 +3,7 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
+import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -200,7 +201,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           }
         }
       } catch (error) {
-        console.warn('Seasons & Stars | Error loading notes for calendar:', error);
+        Logger.warn('Error loading notes for calendar', error);
       }
     }
 
@@ -401,7 +402,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       this.render();
       
     } catch (error) {
-      console.error('Failed to set date:', error);
+      Logger.error('Failed to set date', error as Error);
       ui.notifications?.error('Failed to set date');
     }
   }
@@ -522,7 +523,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       Hooks.callAll('seasons-stars:noteCreated', note);
       
     } catch (error) {
-      console.error('Failed to create note:', error);
+      Logger.error('Failed to create note', error as Error);
       ui.notifications?.error('Failed to create note');
     }
   }
@@ -1002,13 +1003,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Check if button already exists
     const existingButton = this.sidebarButtons.find(btn => btn.name === name);
     if (existingButton) {
-      console.log(`Seasons & Stars | Button "${name}" already exists in grid widget`);
+      Logger.debug(`Button "${name}" already exists in grid widget`);
       return;
     }
 
     // Add to buttons array
     this.sidebarButtons.push({ name, icon, tooltip, callback });
-    console.log(`Seasons & Stars | Added sidebar button "${name}" to grid widget`);
+    Logger.debug(`Added sidebar button "${name}" to grid widget`);
 
     // If widget is rendered, add button to DOM immediately
     if (this.rendered && this.element) {
@@ -1040,7 +1041,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         windowControls.style.cssText = 'display: flex; align-items: center; margin-left: auto;';
         windowHeader.appendChild(windowControls);
       } else {
-        console.warn('No window header found for grid widget sidebar button');
+        Logger.warn('No window header found for grid widget sidebar button');
         return;
       }
     }
@@ -1070,7 +1071,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       try {
         callback();
       } catch (error) {
-        console.error(`Error in grid widget sidebar button "${name}":`, error);
+        Logger.error(`Error in grid widget sidebar button "${name}"`, error as Error);
       }
     });
 
@@ -1083,7 +1084,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     });
 
     windowControls.appendChild(button);
-    console.log(`Seasons & Stars | Rendered sidebar button "${name}" in grid widget header`);
+    Logger.debug(`Rendered sidebar button "${name}" in grid widget header`);
   }
 
   /**
