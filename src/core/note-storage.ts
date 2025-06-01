@@ -145,8 +145,12 @@ export class NoteStorage {
       const note = this.getFromCache(noteId) || game.journal?.get(noteId);
       if (note && this.isCalendarNote(note)) {
         // Double-check date range for notes that span multiple days
-        const noteFlags = note.flags?.['seasons-and-stars'];
-        if (noteFlags?.startDate && this.isDateInRange(noteFlags.startDate, start, end)) {
+        // Try S&S flags first, then bridge flags
+        const ssFlags = note.flags?.['seasons-and-stars'];
+        const bridgeFlags = note.flags?.['foundryvtt-simple-calendar-compat'];
+        const startDate = ssFlags?.startDate || bridgeFlags?.startDate;
+        
+        if (startDate && this.isDateInRange(startDate, start, end)) {
           notes.push(note);
           // Add to cache if retrieved from game
           if (!this.noteCache.has(noteId)) {
@@ -237,10 +241,16 @@ export class NoteStorage {
     let indexedCount = 0;
     
     game.journal.forEach(journal => {
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (this.isCalendarNote(journal) && flags?.dateKey) {
-        this.addToDateIndex(flags.dateKey, journal.id);
-        indexedCount++;
+      if (this.isCalendarNote(journal)) {
+        // Try to get dateKey from S&S flags first, then bridge flags
+        const ssFlags = journal.flags?.['seasons-and-stars'];
+        const bridgeFlags = journal.flags?.['foundryvtt-simple-calendar-compat'];
+        const dateKey = ssFlags?.dateKey || bridgeFlags?.dateKey;
+        
+        if (dateKey) {
+          this.addToDateIndex(dateKey, journal.id);
+          indexedCount++;
+        }
       }
     });
 
@@ -308,8 +318,15 @@ export class NoteStorage {
    * Check if a journal entry is a calendar note
    */
   private isCalendarNote(journal: JournalEntry): boolean {
-    const flags = journal.flags?.['seasons-and-stars'];
-    return flags?.calendarNote === true;
+    // Check for native S&S flags
+    const ssFlags = journal.flags?.['seasons-and-stars'];
+    if (ssFlags?.calendarNote === true) {
+      return true;
+    }
+    
+    // Check for bridge flags (Simple Calendar compatibility)
+    const bridgeFlags = journal.flags?.['foundryvtt-simple-calendar-compat'];
+    return bridgeFlags?.isCalendarNote === true;
   }
 
   /**
@@ -333,9 +350,16 @@ export class NoteStorage {
    */
   private sortNotesByCreation(notes: JournalEntry[]): JournalEntry[] {
     return notes.sort((a, b) => {
-      const aFlags = a.flags?.['seasons-and-stars'];
-      const bFlags = b.flags?.['seasons-and-stars'];
-      return (aFlags?.created || 0) - (bFlags?.created || 0);
+      // Try S&S flags first, then bridge flags
+      const aSSFlags = a.flags?.['seasons-and-stars'];
+      const aBridgeFlags = a.flags?.['foundryvtt-simple-calendar-compat'];
+      const bSSFlags = b.flags?.['seasons-and-stars'];
+      const bBridgeFlags = b.flags?.['foundryvtt-simple-calendar-compat'];
+      
+      const aCreated = aSSFlags?.created || aBridgeFlags?.created || 0;
+      const bCreated = bSSFlags?.created || bBridgeFlags?.created || 0;
+      
+      return aCreated - bCreated;
     });
   }
 
@@ -344,18 +368,24 @@ export class NoteStorage {
    */
   private sortNotesByDate(notes: JournalEntry[]): JournalEntry[] {
     return notes.sort((a, b) => {
-      const aFlags = a.flags?.['seasons-and-stars'];
-      const bFlags = b.flags?.['seasons-and-stars'];
+      // Try S&S flags first, then bridge flags
+      const aSSFlags = a.flags?.['seasons-and-stars'];
+      const aBridgeFlags = a.flags?.['foundryvtt-simple-calendar-compat'];
+      const bSSFlags = b.flags?.['seasons-and-stars'];
+      const bBridgeFlags = b.flags?.['foundryvtt-simple-calendar-compat'];
       
-      const aDate = aFlags?.startDate;
-      const bDate = bFlags?.startDate;
+      const aDate = aSSFlags?.startDate || aBridgeFlags?.startDate;
+      const bDate = bSSFlags?.startDate || bBridgeFlags?.startDate;
       
       if (aDate && bDate) {
         const comparison = this.compareDates(aDate, bDate);
         if (comparison !== 0) return comparison;
       }
       
-      return (aFlags?.created || 0) - (bFlags?.created || 0);
+      const aCreated = aSSFlags?.created || aBridgeFlags?.created || 0;
+      const bCreated = bSSFlags?.created || bBridgeFlags?.created || 0;
+      
+      return aCreated - bCreated;
     });
   }
 }

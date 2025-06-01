@@ -335,5 +335,13 @@ export class NoteCategories {
   }
 }
 
-// Global instance
-export const noteCategories = new NoteCategories();
+// Global instance - initialized manually in module.ts after settings are registered
+export let noteCategories: NoteCategories;
+
+/**
+ * Initialize the global noteCategories instance
+ * Called from module.ts after settings are registered
+ */
+export function initializeNoteCategories(): void {
+  noteCategories = new NoteCategories();
+}

@@ -61,7 +61,7 @@ export interface CalendarNoteFlags {
 export class NotesManager {
   private initialized: boolean = false;
   private notesFolderId: string | null = null;
-  private storage: NoteStorage;
+  public storage: NoteStorage;
 
   constructor() {
     this.storage = new NoteStorage();

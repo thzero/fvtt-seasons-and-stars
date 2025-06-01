@@ -9,7 +9,7 @@ import './styles/seasons-and-stars.scss';
 import { Logger } from './core/logger';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
-import { noteCategories } from './core/note-categories';
+import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
 import { CalendarWidget } from './ui/calendar-widget';
@@ -33,6 +33,9 @@ Hooks.once('init', async () => {
   
   // Register module settings
   registerSettings();
+  
+  // Initialize note categories after settings are available
+  initializeNoteCategories();
   
   // Initialize managers
   calendarManager = new CalendarManager();
@@ -775,7 +778,7 @@ function setupAPI(): void {
       api,
       manager: calendarManager,
       notes: notesManager,
-      categories: noteCategories,
+      categories: noteCategories, // Will be available by this point since ready runs after init
       integration: SeasonsStarsIntegration.detect()
     };
   }
