@@ -70,20 +70,4 @@ declare global {
   }
 }
 
-export interface SeasonsStarsAPI {
-  getCurrentDate(calendarId?: string): CalendarDate | null;
-  advanceDays(days: number, calendarId?: string): Promise<void>;
-  advanceHours(hours: number, calendarId?: string): Promise<void>;
-  advanceMinutes(minutes: number, calendarId?: string): Promise<void>;
-  advanceWeeks(weeks: number, calendarId?: string): Promise<void>;
-  advanceMonths(months: number, calendarId?: string): Promise<void>;
-  advanceYears(years: number, calendarId?: string): Promise<void>;
-  formatDate(date: CalendarDate, options?: DateFormatOptions): string;
-  dateToWorldTime(date: CalendarDate, calendarId?: string): number;
-  worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
-  getActiveCalendar(): SeasonsStarsCalendar | null;
-  setActiveCalendar(calendarId: string): Promise<void>;
-  getAvailableCalendars(): string[];
-  loadCalendar(data: SeasonsStarsCalendar): void;
-}
 

@@ -98,13 +98,7 @@ export class SeasonsStarsSceneControls {
       advanceYears: async (years: number) => {
         const manager = game.seasonsStars?.manager;
         if (manager) await manager.advanceYears(years);
-      },
-      
-      // Time advancement dialog - temporarily disabled
-      // showTimeAdvanceDialog: async () => {
-      //   const { TimeAdvanceDialog } = await import('./time-advance-dialog');
-      //   TimeAdvanceDialog.show();
-      // }
+      }
     });
 
     console.log('Seasons & Stars | Macro functions registered');

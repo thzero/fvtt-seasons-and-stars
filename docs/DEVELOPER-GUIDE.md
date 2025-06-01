@@ -6,7 +6,7 @@ Complete API reference and integration guide for module developers working with 
 
 - [Getting Started](#getting-started)
 - [Core API](#core-api)
-- [Simple Calendar Compatibility](#simple-calendar-compatibility)
+- [Bridge Integration](#bridge-integration)
 - [Hook System](#hook-system)
 - [Calendar Data Structures](#calendar-data-structures)
 - [Integration Examples](#integration-examples)
@@ -178,90 +178,75 @@ console.log('Available calendars:', calendars);
 // Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
 ```
 
-## 🔄 Simple Calendar Compatibility
+## 🔄 Bridge Integration
 
-Seasons & Stars provides automatic compatibility with Simple Calendar API for seamless module migration.
+Seasons & Stars provides **generic integration APIs** designed for calendar bridges and third-party integrations. Simple Calendar compatibility is handled by the **Simple Calendar Compatibility Bridge** module.
 
-### Compatibility Detection
+### Integration Interface
+
+Seasons & Stars exposes its integration interface via `game.seasonsStars.integration`:
+
 ```javascript
-// Check if compatibility layer is active
-const isCompatLayer = window.SimpleCalendar?._isSeasonsStarsCompatibility;
-
-if (window.SimpleCalendar && !isCompatLayer) {
-  // Real Simple Calendar is present
-  console.log('Using Simple Calendar');
-} else if (window.SimpleCalendar && isCompatLayer) {
-  // Seasons & Stars compatibility layer
-  console.log('Using Seasons & Stars compatibility');
-} else {
-  // No calendar system
-  console.log('No calendar system available');
+// Check for integration interface availability
+if (game.seasonsStars?.integration?.isAvailable) {
+  const integration = game.seasonsStars.integration;
+  
+  console.log('S&S Integration available:', integration.version);
+  console.log('API methods:', Object.keys(integration.api));
+  console.log('Available widgets:', Object.keys(integration.widgets));
 }
 ```
 
-### Compatible API Functions
+### Integration API
 
-#### `SimpleCalendar.api.currentDateTime()`
-Get current date in Simple Calendar format (0-based months/days).
+The integration interface provides clean access to all S&S functionality:
 
 ```javascript
+const integration = game.seasonsStars.integration;
+
+// Core calendar operations
+const currentDate = integration.api.getCurrentDate();
+const formattedDate = integration.api.formatDate(currentDate);
+await integration.api.advanceDays(1);
+
+// Widget management
+integration.widgets.main?.addSidebarButton('weather', 'fas fa-cloud', 'Weather', () => {
+  console.log('Weather button clicked');
+});
+
+// Hook system
+integration.hooks.onDateChanged((event) => {
+  console.log('Date changed:', event.newDate);
+});
+```
+
+### For Simple Calendar Compatibility
+
+**Use the Simple Calendar Compatibility Bridge module** for automatic Simple Calendar API compatibility:
+
+1. Install **Seasons & Stars** (this module)
+2. Install **Simple Calendar Compatibility Bridge**
+3. Existing Simple Calendar integrations work automatically
+
+The bridge provides the complete Simple Calendar API surface:
+
+```javascript
+// These work automatically with the bridge installed:
 const current = SimpleCalendar.api.currentDateTime();
-// Returns: { year: 2024, month: 11, day: 24, hour: 14, minute: 30, second: 0, weekday: 3 }
-```
-
-#### `SimpleCalendar.api.timestampToDate(timestamp)`
-Critical function for weather modules - includes full display formatting.
-
-```javascript
 const dateInfo = SimpleCalendar.api.timestampToDate(game.time.worldTime);
+await SimpleCalendar.api.changeDate(newDate);
 
-// Access formatted display data
+// Access formatted display data for weather modules
 console.log(`Today is ${dateInfo.display.monthName} ${dateInfo.display.day}${dateInfo.display.daySuffix}`);
-// Output: "Today is December 25th"
-
-// Full display object includes:
-// - monthName: "December"
-// - day: "25", daySuffix: "th"
-// - year: "2024", yearPrefix: "", yearPostfix: " CE"
-// - date: "2024-12-25", time: "14:30:00"
-// - weekday: "Wednesday"
 ```
 
-#### `SimpleCalendar.api.changeDate(date)`
-Change the current date using Simple Calendar format.
+### Why Use the Bridge Pattern?
 
-```javascript
-const newDate = {
-  year: 2024,
-  month: 11,  // 0-based (December)
-  day: 30,    // 0-based (31st)
-  hour: 9,
-  minute: 0
-};
-
-const success = await SimpleCalendar.api.changeDate(newDate);
-if (success) {
-  console.log('Date changed successfully');
-}
-```
-
-### Calendar Data Access
-```javascript
-// Get calendar structure
-const months = SimpleCalendar.api.getAllMonths();
-const weekdays = SimpleCalendar.api.getAllWeekdays();
-const currentCalendar = SimpleCalendar.api.getCurrentCalendar();
-
-console.log('Month names:', months.map(m => m.name));
-console.log('Weekday names:', weekdays.map(w => w.name));
-```
-
-### Notes System Compatibility
-```javascript
-// Placeholder functions (Phase 2 implementation)
-const notes = SimpleCalendar.api.getNotes(); // Returns []
-const success = await SimpleCalendar.api.addNote(noteData); // Returns false + warning
-```
+- **Clean Separation**: S&S focuses on calendar functionality, bridge handles compatibility
+- **Zero SC Knowledge**: S&S has no Simple Calendar-specific code
+- **Robust Error Handling**: Bridge provides comprehensive fallbacks
+- **Format Translation**: Bridge handles all 0-based ↔ 1-based conversions
+- **CSS/DOM Authority**: Bridge adds required Simple Calendar classes and structure
 
 ## 🪝 Hook System
 
@@ -321,15 +306,24 @@ Hooks.on('seasons-stars:ready', (data) => {
 
 ### Simple Calendar Hook Compatibility
 
-#### Mapped Hooks
+**Use the Simple Calendar Compatibility Bridge** for automatic hook translation:
+
 ```javascript
-// These hooks are automatically mapped for compatibility:
+// With the bridge installed, these work automatically:
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, (data) => {
-  // Equivalent to 'seasons-stars:dateChanged'
+  // Bridge translates from 'seasons-stars:dateChanged'
+  console.log('SC-compatible date change:', data);
 });
 
 Hooks.on(SimpleCalendar.Hooks.Ready, (data) => {
-  // Equivalent to 'seasons-stars:ready'
+  // Bridge translates from 'seasons-stars:ready'
+  console.log('SC-compatible ready event:', data);
+});
+
+// Direct S&S hooks (recommended for new integrations):
+Hooks.on('seasons-stars:dateChanged', (data) => {
+  // Native S&S hook with clean data structure
+  console.log('Native S&S date change:', data);
 });
 ```
 
