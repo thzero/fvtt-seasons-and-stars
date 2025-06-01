@@ -1,5 +1,8 @@
 /**
- * Foundry VTT Type Extensions for Seasons & Stars
+ * Seasons & Stars Specific Type Extensions
+ * 
+ * These extend the base Foundry types with module-specific functionality.
+ * Core Foundry types are provided by foundry-v13-essentials.d.ts
  */
 
 import type { 
@@ -9,6 +12,7 @@ import type {
 } from './calendar';
 import type { SeasonsStarsIntegration } from '../core/bridge-integration';
 
+// Extend the Game interface to include S&S specific properties
 declare global {
   interface Game {
     seasonsStars?: {
@@ -16,50 +20,7 @@ declare global {
       manager: any; // CalendarManager - avoiding circular import
       integration: SeasonsStarsIntegration | null;
     };
-    settings?: GameSettings;
-    time?: GameTime;
-    user?: User;
-    i18n?: {
-      lang: string;
-    };
   }
-
-  interface GameSettings {
-    get(namespace: string, key: string): any;
-    set(namespace: string, key: string, value: any): Promise<any>;
-    register(namespace: string, key: string, data: any): void;
-  }
-
-  interface GameTime {
-    worldTime: number;
-    advance(seconds: number): Promise<void>;
-  }
-
-  interface User {
-    isGM: boolean;
-  }
-
-  interface NotificationManager {
-    warn(message: string): void;
-    error(message: string): void;
-  }
-
-  interface UI {
-    notifications?: NotificationManager;
-  }
-
-  const ui: UI;
-
-  const game: Game;
-
-  interface HookManager {
-    once(event: string, callback: Function): void;
-    on(event: string, callback: Function): number;
-    off(event: string, hookId: number): void;
-    callAll(event: string, ...args: any[]): void;
-  }
-
-  const Hooks: HookManager;
 
   interface Window {
     SeasonsStars?: {
@@ -68,6 +29,15 @@ declare global {
       integration: typeof SeasonsStarsIntegration;
     };
   }
+}
+
+// S&S API interface used by the module
+export interface SeasonsStarsAPI {
+  getCurrentDate(): CalendarDate | null;
+  setCurrentDate(date: CalendarDate): Promise<boolean>;
+  advanceTime(amount: number, unit: string): Promise<void>;
+  getActiveCalendar(): SeasonsStarsCalendar | null;
+  formatDate(date: CalendarDate, options?: DateFormatOptions): string;
 }
 
 

@@ -12,7 +12,8 @@
     "strictNullChecks": true,
     "outDir": "./dist",
     "baseUrl": ".",
-    "types": ["fvtt-types"]
+    "types": ["jquery"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*", "src/types/**/*.d.ts"],
   "exclude": ["node_modules"]
