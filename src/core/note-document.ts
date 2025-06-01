@@ -43,7 +43,7 @@ export class CalendarNote {
     const pages = this.journal.pages;
     if (pages.size === 0) return '';
     
-    const firstPage = pages.contents[0];
+    const firstPage = pages.values().next().value;
     return firstPage?.text?.content || '';
   }
 
@@ -166,10 +166,12 @@ export class CalendarNote {
       }]);
     } else {
       // Update existing page
-      const firstPage = pages.contents[0];
-      await firstPage.update({
-        'text.content': content
-      });
+      const firstPage = pages.values().next().value;
+      if (firstPage?.update) {
+        await firstPage.update({
+          'text.content': content
+        });
+      }
     }
 
     // Update modified timestamp

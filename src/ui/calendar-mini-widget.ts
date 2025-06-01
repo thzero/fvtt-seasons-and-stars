@@ -21,8 +21,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       resizable: false
     },
     position: {
-      width: 'auto',
-      height: 'auto',
+      width: 'auto' as const,
+      height: 'auto' as const,
       top: -1000,  // Start off-screen to minimize flash
       left: -1000
     },
@@ -33,6 +33,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
   static PARTS = {
     main: {
+      id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs'
     }
   };
@@ -122,7 +123,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle closing the widget
    */
-  async close(options: any = {}): Promise<void> {
+  async close(options: any = {}): Promise<this> {
     // Clear active instance if this is it
     if (CalendarMiniWidget.activeInstance === this) {
       CalendarMiniWidget.activeInstance = null;
@@ -527,8 +528,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             top: smallTimeRect.top - estimatedMiniHeight - 8,
             left: smallTimeRect.left
           };
-          this.element.classList.add('above-smalltime');
-          this.element.classList.remove('below-smalltime', 'beside-smalltime');
+          this.element?.classList.add('above-smalltime');
+          this.element?.classList.remove('below-smalltime', 'beside-smalltime');
           break;
           
         case 'beside':
@@ -536,8 +537,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             top: smallTimeRect.top,
             left: smallTimeRect.right + 8
           };
-          this.element.classList.add('beside-smalltime');
-          this.element.classList.remove('above-smalltime', 'below-smalltime');
+          this.element?.classList.add('beside-smalltime');
+          this.element?.classList.remove('above-smalltime', 'below-smalltime');
           break;
           
         case 'below':
@@ -546,8 +547,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             top: smallTimeRect.bottom + 8,
             left: smallTimeRect.left
           };
-          this.element.classList.add('below-smalltime');
-          this.element.classList.remove('above-smalltime', 'beside-smalltime');
+          this.element?.classList.add('below-smalltime');
+          this.element?.classList.remove('above-smalltime', 'beside-smalltime');
           break;
       }
 
@@ -567,7 +568,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         
         // Verify final position
         setTimeout(() => {
-          const finalRect = this.element.getBoundingClientRect();
+          const finalRect = this.element?.getBoundingClientRect();
           Logger.debug('Final position', finalRect);
         }, 100);
       }

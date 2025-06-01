@@ -32,9 +32,23 @@ declare global {
   }
   
   // Make Foundry types available globally
+  const JournalEntry: typeof FoundryJournalEntry;
+  const Folder: typeof FoundryFolder;
+  const Dialog: typeof FoundryDialog;
+  const Application: typeof FoundryApplication;
+  
+  type Folder = FoundryFolder;
+  
   type JournalEntry = FoundryJournalEntry;
   type User = FoundryUser;
   type Calendar = FoundryCalendar;
+  
+  // Global Node.js compatibility
+  interface NodeGlobal {
+    gc?: () => void;
+  }
+  
+  const global: NodeGlobal;
   
   // jQuery globals provided by @types/jquery
 }
@@ -51,12 +65,15 @@ interface Game {
   user?: FoundryUser;
   users: Collection<FoundryUser>;
   journal: Collection<FoundryJournalEntry>;
+  folders?: Collection<FoundryFolder>;
   
   // Season & Stars specific integration point
   seasonsStars?: {
     manager?: any;
     notes?: any;
     integration?: any;
+    api?: any;
+    categories?: any;
   };
 }
 
@@ -83,10 +100,10 @@ interface FoundryUser {
   isGM: boolean;
 }
 
-interface FoundryJournalEntry {
+declare class FoundryJournalEntry {
   id: string;
   name: string;
-  pages: Collection<JournalEntryPage>;
+  pages: FoundryCollection<JournalEntryPage>;
   ownership: Record<string, number>;
   flags: Record<string, any>;
   author?: FoundryUser;
@@ -108,6 +125,28 @@ interface JournalEntryPage {
   text?: {
     content: string;
   };
+  update?(data: any): Promise<JournalEntryPage>;
+}
+
+declare class FoundryFolder {
+  id: string;
+  name: string;
+  type: string;
+  
+  static create(data: any): Promise<FoundryFolder>;
+  getFlag(scope: string, key: string): any;
+}
+
+declare class FoundryDialog {
+  constructor(data: any, options?: any);
+  render(force?: boolean): this;
+  close(): Promise<void>;
+}
+
+declare class FoundryApplication {
+  constructor(options?: any);
+  render(force?: boolean): this;
+  close(): Promise<void>;
 }
 
 interface Module {
@@ -181,6 +220,16 @@ declare class Application {
   close(): Promise<void>;
 }
 
+// Updated Collection with proper iteration methods
+declare class FoundryCollection<T> extends Map<string, T> {
+  get(key: string): T | undefined;
+  set(key: string, value: T): this;
+  find(predicate: (value: T) => boolean): T | undefined;
+  filter(predicate: (value: T) => boolean): T[];
+  map<U>(transform: (value: T) => U): U[];
+  [Symbol.iterator](): IterableIterator<T>;
+}
+
 // =============================================================================
 // APPLICATION V2 FRAMEWORK
 // =============================================================================
@@ -231,15 +280,15 @@ namespace ApplicationV2 {
       resizable?: boolean;
     };
     position?: Partial<Position>;
-    actions?: Record<string, ApplicationAction>;
+    actions?: Record<string, any>;
   }
   
   interface Position {
-    top: number;
-    left: number;
-    width: number | 'auto';
-    height: number | 'auto';
-    scale: number;
+    top?: number;
+    left?: number;
+    width?: number | 'auto';
+    height?: number | 'auto';
+    scale?: number;
   }
   
   interface RenderOptions {
@@ -273,9 +322,12 @@ namespace ApplicationV2 {
   }
   
   interface ApplicationAction {
-    handler: Function;
+    handler?: (event: Event, target: HTMLElement) => Promise<void> | void;
     buttons?: number[];
   }
+  
+  // Allow actions to be direct function references
+  type ApplicationActionValue = ApplicationAction | ((event: Event, target: HTMLElement) => Promise<void> | void);
 }
 
 // =============================================================================
@@ -373,7 +425,34 @@ interface FoundryCalendar {
   seasons?: CalendarSeason[];
 }
 
+// Seasons & Stars specific calendar type
+interface SeasonsStarsCalendar {
+  id: string;
+  name: string;
+  description?: string;
+  translations?: Record<string, any>;
+  leapYear?: {
+    rule: string;
+    month: number;
+  };
+  intercalary?: any[];
+  time?: {
+    hoursInDay: number;
+    minutesInHour: number;
+    secondsInMinute: number;
+  };
+  year?: {
+    prefix?: string;
+    suffix?: string;
+  };
+  months: CalendarMonth[];
+  weekdays: CalendarWeekday[];
+  moons?: CalendarMoon[];
+  seasons?: CalendarSeason[];
+}
+
 interface CalendarMonth {
+  id?: string;
   name: string;
   description?: string;
   days: number;
@@ -381,6 +460,7 @@ interface CalendarMonth {
 }
 
 interface CalendarWeekday {
+  id?: string;
   name: string;
   description?: string;
   abbreviation?: string;
@@ -428,7 +508,11 @@ declare class Collection<T> extends Map<string, T> {
   find(predicate: (value: T) => boolean): T | undefined;
   filter(predicate: (value: T) => boolean): T[];
   map<U>(transform: (value: T) => U): U[];
+  [Symbol.iterator](): IterableIterator<T>;
 }
+
+// Use FoundryCollection for actual Foundry objects
+type Collection<T> = FoundryCollection<T>;
 
 // =============================================================================
 // FOUNDRY CONSTANTS
@@ -443,6 +527,14 @@ declare global {
       OWNER: 3;
     };
   };
+}
+
+// Ownership level type definition
+type OwnershipLevel = 0 | 1 | 2 | 3;
+
+// Export OwnershipLevel globally
+declare global {
+  type OwnershipLevel = 0 | 1 | 2 | 3;
 }
 
 // =============================================================================

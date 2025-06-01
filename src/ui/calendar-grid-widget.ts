@@ -39,7 +39,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     },
     position: {
       width: 400,
-      height: 'auto'
+      height: 'auto' as const
     },
     actions: {
       previousMonth: CalendarGridWidget.prototype._onPreviousMonth,
@@ -55,6 +55,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
   static PARTS = {
     main: {
+      id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-grid-widget.hbs'
     }
   };
@@ -776,14 +777,21 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               }
 
               // Parse recurring pattern if enabled
-              let recurringPattern = undefined;
+              let recurringPattern: any = undefined;
               if (formData.has('isRecurring')) {
                 const frequency = formData.get('frequency') as string;
                 const interval = parseInt(formData.get('interval') as string) || 1;
                 
                 recurringPattern = {
                   frequency: frequency as any,
-                  interval
+                  interval,
+                  endDate: undefined,
+                  weekdays: undefined,
+                  monthDay: undefined,
+                  monthWeek: undefined,
+                  monthWeekday: undefined,
+                  yearMonth: undefined,
+                  yearDay: undefined
                 };
                 
                 // Add end date if specified
@@ -918,7 +926,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle closing the widget
    */
-  async close(options: any = {}): Promise<void> {
+  async close(options: any = {}): Promise<this> {
     // Clear active instance if this is it
     if (CalendarGridWidget.activeInstance === this) {
       CalendarGridWidget.activeInstance = null;

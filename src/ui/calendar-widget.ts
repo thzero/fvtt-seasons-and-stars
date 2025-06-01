@@ -27,7 +27,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     },
     position: {
       width: 280,
-      height: 'auto'
+      height: 'auto' as const
     },
     actions: {
       openCalendarSelection: CalendarWidget.prototype._onOpenCalendarSelection,
@@ -40,6 +40,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
   static PARTS = {
     main: {
+      id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-widget.hbs'
     }
   };
@@ -281,7 +282,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Handle closing the widget
    */
-  async close(options: any = {}): Promise<void> {
+  async close(options: any = {}): Promise<this> {
     this.stopAutoUpdate();
     
     // Clear active instance if this is it

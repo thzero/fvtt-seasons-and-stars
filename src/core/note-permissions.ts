@@ -254,7 +254,7 @@ export class NotePermissions {
     const playerVisible = game.settings?.get('seasons-and-stars', 'defaultPlayerVisible') as boolean;
     const playerEditable = game.settings?.get('seasons-and-stars', 'defaultPlayerEditable') as boolean;
     
-    let defaultLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+    let defaultLevel: OwnershipLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
     
     if (playerEditable) {
       defaultLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
@@ -291,8 +291,8 @@ export class NotePermissions {
     for (const [userId, level] of Object.entries(ownership)) {
       if (userId === 'default') continue;
       
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS);
-      if (!validLevels.includes(level as number)) {
+      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as OwnershipLevel[];
+      if (!validLevels.includes(level as OwnershipLevel)) {
         errors.push(`Invalid ownership level for user ${userId}: ${level}`);
       }
     }

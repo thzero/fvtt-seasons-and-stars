@@ -30,6 +30,7 @@ export interface SeasonsStarsCalendar {
   months: CalendarMonth[];
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[];
+  seasons?: CalendarSeason[];
   
   time: {
     hoursInDay: number;
@@ -39,6 +40,7 @@ export interface SeasonsStarsCalendar {
 }
 
 export interface CalendarMonth {
+  id?: string;
   name: string;
   abbreviation?: string;
   days: number;
@@ -51,6 +53,7 @@ export interface CalendarMonth {
 }
 
 export interface CalendarWeekday {
+  id?: string;
   name: string;
   abbreviation?: string;
   description?: string;
@@ -67,6 +70,21 @@ export interface CalendarIntercalary {
   leapYearOnly: boolean;
   countsForWeekdays: boolean;
   description?: string;
+  translations?: {
+    [languageCode: string]: {
+      description?: string;
+    };
+  };
+}
+
+export interface CalendarSeason {
+  name: string;
+  description?: string;
+  startMonth: number;
+  startDay: number;
+  endMonth?: number;
+  icon?: string;
+  color?: string;
   translations?: {
     [languageCode: string]: {
       description?: string;

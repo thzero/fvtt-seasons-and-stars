@@ -19,7 +19,7 @@ import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
-import type { CalendarDate as ICalendarDate, DateFormatOptions } from './types/calendar';
+import type { CalendarDate as ICalendarDate, DateFormatOptions, SeasonsStarsCalendar } from './types/calendar';
 
 // Module instances
 let calendarManager: CalendarManager;
@@ -727,7 +727,7 @@ function setupAPI(): void {
           calendarManager.getCalendar(calendarId) : 
           calendarManager.getActiveCalendar();
         
-        if (!calendar?.seasons || calendar.seasons.length === 0) {
+        if (!calendar || !(calendar as SeasonsStarsCalendar).seasons || (calendar as SeasonsStarsCalendar).seasons!.length === 0) {
           Logger.warn(`No seasons found for calendar: ${calendarId || 'active'}`);
           const result = { name: 'Unknown', icon: 'none' };
           Logger.api('getSeasonInfo', { date, calendarId }, result);
@@ -736,7 +736,7 @@ function setupAPI(): void {
         
         // Basic season detection - find season containing this date
         // This is a simple implementation that can be enhanced later
-        const currentSeason = calendar.seasons.find(season => {
+        const currentSeason = (calendar as SeasonsStarsCalendar).seasons!.find(season => {
           // Simple logic: match by rough month ranges
           // This could be enhanced with proper calendar-aware season calculation
           if (season.startMonth && season.endMonth) {
@@ -755,7 +755,7 @@ function setupAPI(): void {
         }
         
         // Fallback: use first season or default
-        const fallbackSeason = calendar.seasons[0];
+        const fallbackSeason = (calendar as SeasonsStarsCalendar).seasons![0];
         const result = { 
           name: fallbackSeason?.name || 'Unknown', 
           icon: fallbackSeason?.icon || fallbackSeason?.name?.toLowerCase() || 'none' 

@@ -63,6 +63,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
   static PARTS = {
     main: {
+      id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
       scrollable: ['.calendar-selection-grid']
     }
@@ -148,14 +149,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     this.selectedCalendarId = calendarId;
     
     // Re-render to update UI state
-    this.render({ parts: ['main'] });
+    this.render(true);
   }
 
   /**
    * Update the select button state
    */
   private updateSelectButton(html?: JQuery): void {
-    const $html = html || $(this.element);
+    const $html = html || (this.element ? $(this.element) : $());
     const selectButton = $html.find('#select-calendar');
     const isDifferent = this.selectedCalendarId !== this.currentCalendarId;
     
@@ -232,7 +233,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   /**
    * Generate a sample date for preview
    */
-  private generateSampleDate(calendar: Calendar, dayOffset: number = 1): string {
+  private generateSampleDate(calendar: SeasonsStarsCalendar, dayOffset: number = 1): string {
     // Use current world time if no offset, otherwise use offset from a reasonable base
     let totalDays: number;
     
@@ -272,8 +273,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     const weekday = calendar.weekdays[weekdayIndex];
     
     // Format using calendar's translation
-    const monthLabel = CalendarLocalization.getCalendarTranslation(calendar, `months.${month.id}`, month.name);
-    const weekdayLabel = CalendarLocalization.getCalendarTranslation(calendar, `weekdays.${weekday.id}`, weekday.name);
+    const monthLabel = CalendarLocalization.getCalendarTranslation(calendar, `months.${month.id || month.name}`, month.name);
+    const weekdayLabel = CalendarLocalization.getCalendarTranslation(calendar, `weekdays.${weekday.id || weekday.name}`, weekday.name);
     
     return `${weekdayLabel}, ${monthLabel} ${day}, ${year}`;
   }

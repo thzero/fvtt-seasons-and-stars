@@ -145,7 +145,7 @@ export class NoteSearch {
     
     return notes.filter(note => {
       const title = note.name?.toLowerCase() || '';
-      const content = note.pages.contents[0]?.text?.content?.toLowerCase() || '';
+      const content = note.pages.values().next().value?.text?.content?.toLowerCase() || '';
       const searchText = `${title} ${content}`;
       
       // All search terms must be found

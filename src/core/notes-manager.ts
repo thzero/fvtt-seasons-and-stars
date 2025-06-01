@@ -208,10 +208,12 @@ export class NotesManager {
     if (data.content !== undefined) {
       const pages = journal.pages;
       if (pages.size > 0) {
-        const contentPage = pages.contents[0];
-        await contentPage.update({
-          'text.content': data.content
-        });
+        const contentPage = pages.values().next().value;
+        if (contentPage?.update) {
+          await contentPage.update({
+            'text.content': data.content
+          });
+        }
       }
     }
 
@@ -323,7 +325,7 @@ export class NotesManager {
     // Try to find existing folder
     const existingFolder = game.folders?.find(f => 
       f.type === 'JournalEntry' && 
-      f.getFlag('seasons-and-stars', 'notesFolder') === true
+      (f as any).getFlag?.('seasons-and-stars', 'notesFolder') === true
     );
 
     if (existingFolder) {
@@ -440,44 +442,6 @@ export class NotesManager {
    */
   getUserEditableNotes(): JournalEntry[] {
     return notePermissions.getEditableNotes(game.user!);
-  }
-
-  /**
-   * Set module-specific data in note flags (for Simple Weather etc.)
-   */
-  async setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void> {
-    const journal = game.journal?.get(noteId);
-    if (!journal) {
-      throw new Error(`Note ${noteId} not found`);
-    }
-
-    // Check permissions
-    if (!notePermissions.canEditNote(game.user!, journal)) {
-      throw new Error('Insufficient permissions to edit note');
-    }
-
-    // Set the module flag
-    await journal.setFlag(moduleId, 'data', data);
-    
-    // Update modification timestamp
-    await journal.setFlag('seasons-and-stars', 'modified', Date.now());
-  }
-
-  /**
-   * Get module-specific data from note flags
-   */
-  getNoteModuleData(noteId: string, moduleId: string): any {
-    const journal = game.journal?.get(noteId);
-    if (!journal) {
-      return null;
-    }
-
-    // Check permissions
-    if (!notePermissions.canViewNote(game.user!, journal)) {
-      return null;
-    }
-
-    return journal.getFlag(moduleId, 'data');
   }
 
   /**
@@ -639,7 +603,7 @@ export class NotesManager {
   ): Promise<JournalEntry> {
     const noteFolder = await this.getOrCreateNotesFolder();
     const parentFlags = parentNote.flags['seasons-and-stars'];
-    const parentContent = parentNote.pages.contents[0]?.text?.content || '';
+    const parentContent = parentNote.pages.values().next().value?.text?.content || '';
 
     // Create the occurrence note
     const journal = await JournalEntry.create({

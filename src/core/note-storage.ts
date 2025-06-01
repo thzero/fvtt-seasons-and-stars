@@ -14,7 +14,7 @@ export class NoteStorage {
   private noteCache: Map<string, JournalEntry> = new Map();
   private cacheSize = 100; // Limit cache size to prevent memory issues
   private indexBuilt = false;
-  private performanceOptimizer: NotePerformanceOptimizer;
+  private performanceOptimizer!: NotePerformanceOptimizer;
 
   /**
    * Initialize the storage system

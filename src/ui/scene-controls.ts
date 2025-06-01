@@ -30,13 +30,13 @@ export class SeasonsStarsSceneControls {
     });
 
     // Update button state when widget is shown/hidden
-    Hooks.on('renderApplication', (app: Application) => {
+    Hooks.on('renderApplication', (app: any) => {
       if (app instanceof CalendarWidget) {
         SeasonsStarsSceneControls.updateControlState(true);
       }
     });
 
-    Hooks.on('closeApplication', (app: Application) => {
+    Hooks.on('closeApplication', (app: any) => {
       if (app instanceof CalendarWidget) {
         SeasonsStarsSceneControls.updateControlState(false);
       }

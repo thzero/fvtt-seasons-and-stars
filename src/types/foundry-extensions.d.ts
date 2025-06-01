@@ -40,8 +40,23 @@ export interface SeasonsStarsAPI {
   getCurrentDate(): CalendarDate | null;
   setCurrentDate(date: CalendarDate): Promise<boolean>;
   advanceTime(amount: number, unit: string): Promise<void>;
+  advanceDays(days: number, calendarId?: string): Promise<void>;
+  advanceHours(hours: number, calendarId?: string): Promise<void>;
+  advanceMinutes(minutes: number, calendarId?: string): Promise<void>;
+  advanceWeeks(weeks: number, calendarId?: string): Promise<void>;
+  advanceMonths(months: number, calendarId?: string): Promise<void>;
+  advanceYears(years: number, calendarId?: string): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
+  setActiveCalendar(calendarId: string): Promise<void>;
+  getAvailableCalendars(): string[];
+  loadCalendar(data: any): void;
+  getMonthNames(calendarId?: string): string[];
+  getWeekdayNames(calendarId?: string): string[];
+  getSeasonInfo(date: CalendarDate, calendarId?: string): { name: string; icon: string };
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number };
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
+  dateToWorldTime(date: CalendarDate, calendarId?: string): number;
+  worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
 }
 
 // Notes Manager interface for type safety
