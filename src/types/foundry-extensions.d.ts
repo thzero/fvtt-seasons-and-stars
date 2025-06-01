@@ -7,12 +7,14 @@ import type {
   CalendarDate, 
   DateFormatOptions 
 } from './calendar';
+import type { SeasonsStarsIntegration } from '../core/bridge-integration';
 
 declare global {
   interface Game {
     seasonsStars?: {
       api: SeasonsStarsAPI;
       manager: any; // CalendarManager - avoiding circular import
+      integration: SeasonsStarsIntegration | null;
     };
     settings?: GameSettings;
     time?: GameTime;
@@ -63,6 +65,7 @@ declare global {
     SeasonsStars?: {
       api: SeasonsStarsAPI;
       manager: any;
+      integration: typeof SeasonsStarsIntegration;
     };
   }
 }

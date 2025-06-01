@@ -14,6 +14,7 @@ import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
+import { SeasonsStarsIntegration } from './core/bridge-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type { CalendarDate as ICalendarDate, DateFormatOptions } from './types/calendar';
 
@@ -260,7 +261,8 @@ function setupAPI(): void {
   if (game) {
     game.seasonsStars = {
       api,
-      manager: calendarManager
+      manager: calendarManager,
+      integration: SeasonsStarsIntegration.detect()
     };
   }
 
@@ -268,13 +270,14 @@ function setupAPI(): void {
   (window as any).SeasonsStars = {
     api,
     manager: calendarManager,
+    integration: SeasonsStarsIntegration,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,
     CalendarSelectionDialog
   };
 
-  console.log('Seasons & Stars | API exposed');
+  console.log('Seasons & Stars | API and bridge integration exposed');
   
   // Setup Simple Calendar compatibility layer
   setupSimpleCalendarCompatibility();
