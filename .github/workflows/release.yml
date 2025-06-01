@@ -1,0 +1,25 @@
+# Seasons & Stars Release Workflow
+# Builds and packages the module for FoundryVTT distribution
+
+name: Release Module
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Release Seasons & Stars
+        uses: rayners/foundry-module-actions@v1
+        with:
+          node-version: '18'
+          build-command: 'npm run build'
+          working-directory: 'dist'
+          module-files: 'module.js module.json templates/ calendars/ styles/ languages/'
