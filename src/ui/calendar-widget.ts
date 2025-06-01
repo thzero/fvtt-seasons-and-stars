@@ -358,6 +358,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    * Add a sidebar button for integration with other modules (like Simple Weather)
    */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    // Check if button already exists
+    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
+    if (existingButton) {
+      console.log(`Seasons & Stars | Button "${name}" already exists in widget`);
+      return;
+    }
+    
     // Store the button
     this.sidebarButtons.push({ name, icon, tooltip, callback });
     

@@ -275,9 +275,17 @@ export class CalendarEngine {
   private dateToDays(date: CalendarDate): number {
     let totalDays = 0;
     
-    // Add days for complete years
-    for (let year = this.calendar.year.epoch; year < date.year; year++) {
-      totalDays += this.getYearLength(year);
+    // Handle years before or after epoch
+    if (date.year >= this.calendar.year.epoch) {
+      // Add days for complete years after epoch
+      for (let year = this.calendar.year.epoch; year < date.year; year++) {
+        totalDays += this.getYearLength(year);
+      }
+    } else {
+      // Subtract days for complete years before epoch
+      for (let year = date.year; year < this.calendar.year.epoch; year++) {
+        totalDays -= this.getYearLength(year);
+      }
     }
     
     // Add days for complete months in the target year
@@ -320,7 +328,8 @@ export class CalendarEngine {
    * Get the length of a specific year in days
    */
   private getYearLength(year: number): number {
-    const baseLength = this.calendar.months.reduce((sum, month) => sum + month.days, 0);
+    const monthLengths = this.getMonthLengths(year);
+    const baseLength = monthLengths.reduce((sum, length) => sum + length, 0);
     const intercalaryDays = this.getIntercalaryDays(year);
     
     return baseLength + intercalaryDays.length;
