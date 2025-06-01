@@ -367,4 +367,26 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     }
   }
 
+  /**
+   * Remove a sidebar button by name
+   */
+  removeSidebarButton(name: string): void {
+    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
+    if (index !== -1) {
+      this.sidebarButtons.splice(index, 1);
+      
+      // Re-render to remove the button
+      if (this.rendered) {
+        this.render();
+      }
+    }
+  }
+
+  /**
+   * Check if a sidebar button exists
+   */
+  hasSidebarButton(name: string): boolean {
+    return this.sidebarButtons.some(btn => btn.name === name);
+  }
+
 }

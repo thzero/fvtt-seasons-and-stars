@@ -208,6 +208,33 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Remove a sidebar button by name
+   */
+  removeSidebarButton(name: string): void {
+    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
+    if (index !== -1) {
+      this.sidebarButtons.splice(index, 1);
+      console.log(`Seasons & Stars | Removed sidebar button "${name}" from mini widget`);
+      
+      // Remove from DOM if rendered
+      if (this.rendered && this.element) {
+        const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
+        const buttonElement = this.element.querySelector(`#${buttonId}`);
+        if (buttonElement) {
+          buttonElement.remove();
+        }
+      }
+    }
+  }
+
+  /**
+   * Check if a sidebar button exists
+   */
+  hasSidebarButton(name: string): boolean {
+    return this.sidebarButtons.some(btn => btn.name === name);
+  }
+
+  /**
    * Render a sidebar button in the mini widget DOM
    */
   private renderSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
