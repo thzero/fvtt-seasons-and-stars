@@ -32,7 +32,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       openCalendarSelection: CalendarWidget.prototype._onOpenCalendarSelection,
       openDetailedView: CalendarWidget.prototype._onOpenDetailedView,
       advanceDate: CalendarWidget.prototype._onAdvanceDate,
-      openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance
+      openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance,
+      clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton
     }
   };
 
@@ -85,7 +86,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
-      showTimeControls: !hasSmallTime // Only show time controls if SmallTime is not available
+      showTimeControls: !hasSmallTime, // Only show time controls if SmallTime is not available
+      sidebarButtons: this.sidebarButtons // Include sidebar buttons for template
     });
   }
 
@@ -98,9 +100,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Register this as the active instance
     CalendarWidget.activeInstance = this;
-    
-    // Render any sidebar buttons from integrations
-    this.renderSidebarButtons();
     
     // Start auto-update after rendering
     this.startAutoUpdate();
@@ -191,6 +190,31 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     
     // Show placeholder for now - will implement proper dialog later
     ui.notifications?.info('Bulk time advancement coming soon!');
+  }
+
+  /**
+   * Handle sidebar button clicks
+   */
+  async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    
+    const buttonName = target.dataset.buttonName;
+    if (!buttonName) {
+      console.warn('Sidebar button clicked without button name');
+      return;
+    }
+    
+    // Find the button in our array and execute its callback
+    const button = this.sidebarButtons.find(btn => btn.name === buttonName);
+    if (button && typeof button.callback === 'function') {
+      try {
+        button.callback();
+      } catch (error) {
+        console.error(`Error executing sidebar button "${buttonName}" callback:`, error);
+      }
+    } else {
+      console.warn(`Sidebar button "${buttonName}" not found or has invalid callback`);
+    }
   }
 
   /**
@@ -337,50 +361,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Store the button
     this.sidebarButtons.push({ name, icon, tooltip, callback });
     
-    // If rendered, add the button to the DOM
-    if (this.rendered && this.element) {
-      this.renderSidebarButtons();
+    // If rendered, re-render to include the new button
+    if (this.rendered) {
+      this.render();
     }
   }
 
-  /**
-   * Render sidebar buttons into the widget
-   */
-  private renderSidebarButtons(): void {
-    if (!this.element) return;
-    
-    // Find or create sidebar button container
-    let buttonContainer = this.element.querySelector('.sidebar-buttons');
-    
-    if (!buttonContainer) {
-      // Create container after the main content
-      const content = this.element.querySelector('.window-content');
-      if (content) {
-        buttonContainer = document.createElement('div');
-        buttonContainer.className = 'sidebar-buttons';
-        content.appendChild(buttonContainer);
-      }
-    }
-    
-    if (!buttonContainer) return;
-    
-    // Clear existing buttons
-    buttonContainer.innerHTML = '';
-    
-    // Add each sidebar button
-    this.sidebarButtons.forEach(button => {
-      const buttonElement = document.createElement('button');
-      buttonElement.type = 'button';
-      buttonElement.className = 'sidebar-button';
-      buttonElement.title = button.tooltip;
-      buttonElement.innerHTML = `<i class="${button.icon}"></i> ${button.name}`;
-      
-      buttonElement.addEventListener('click', (event) => {
-        event.preventDefault();
-        button.callback();
-      });
-      
-      buttonContainer.appendChild(buttonElement);
-    });
-  }
 }
