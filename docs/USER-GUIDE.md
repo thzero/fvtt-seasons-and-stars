@@ -15,10 +15,20 @@ A comprehensive guide to using Seasons & Stars for calendar and time management 
 ## 🚀 Getting Started
 
 ### Installation
+
+#### Option 1: Foundry Module Browser (Recommended)
 1. Open Foundry VTT and navigate to **Add-on Modules**
 2. Search for "Seasons & Stars" in the module browser
 3. Click **Install** and enable the module in your world
 4. Refresh your browser and the calendar will be available
+
+#### Option 2: Manual Installation via Manifest URL
+If the module is not yet available in the browser (during initial release):
+1. Open Foundry VTT and navigate to **Add-on Modules**
+2. Click **Install Module** at the bottom
+3. Paste this manifest URL: `https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json`
+4. Click **Install** and enable the module in your world
+5. Refresh your browser and the calendar will be available
 
 ### First Launch
 When you first enable Seasons & Stars:

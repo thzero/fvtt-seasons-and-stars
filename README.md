@@ -22,9 +22,16 @@ A modern calendar and timekeeping module for Foundry VTT v13+ with clean integra
 ## 🚀 Quick Start
 
 ### Installation
+
+**Option 1: Foundry Module Browser**
 1. Install from Foundry VTT module browser: "Seasons & Stars"
 2. Enable the module in your world
 3. Configure your preferred calendar in module settings
+
+**Option 2: Manual Installation (Pre-Registry)**
+1. In Foundry VTT, go to Add-on Modules → Install Module
+2. Use manifest URL: `https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json`
+3. Enable the module in your world
 
 ### Basic Usage
 - **Open Calendar**: Click the calendar button in scene controls
@@ -42,9 +49,9 @@ A modern calendar and timekeeping module for Foundry VTT v13+ with clean integra
 ## 🎯 Who Should Use This
 
 ### **Beta Testers**
-- Users seeking a modern calendar solution for Foundry v13+
 - Module developers wanting to integrate calendar functionality
 - GMs who need reliable timekeeping with clean UI
+- Communities wanting to test cutting-edge calendar features
 
 ### **Migration Candidates**
 - Users seeking a modern calendar solution for Foundry v13+
@@ -58,7 +65,7 @@ Seasons & Stars provides **clean integration APIs** for calendar-aware modules:
 ```javascript
 // Direct API access
 const currentDate = game.seasonsStars.api.getCurrentDate();
-const worldTime = game.seasonsStars.api.dateToWorldTime(someDate);
+const worldTime = game.seasonsStars.api.dateToWorldTime(currentDate);
 const formatted = game.seasonsStars.api.formatDate(currentDate);
 
 // Hook integration for module updates
@@ -94,8 +101,8 @@ See the [Developer Guide](./docs/DEVELOPER-GUIDE.md) for complete API reference.
 
 ### Build from Source
 ```bash
-git clone https://github.com/your-username/seasons-and-stars
-cd seasons-and-stars
+git clone https://github.com/rayners/fvtt-seasons-and-stars
+cd fvtt-seasons-and-stars
 npm install
 npm run build
 ```
@@ -125,8 +132,8 @@ See the complete [Roadmap](./docs/ROADMAP.md) for detailed timelines.
 
 ## 🐛 Support & Feedback
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/seasons-and-stars/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/seasons-and-stars/discussions)
+- **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues)
+- **Documentation**: [Complete Guides](https://docs.rayners.dev/seasons-and-stars)
 - **Discord**: [Foundry VTT Community](https://discord.gg/foundryvtt) - `#modules` channel
 
 ---

@@ -85,6 +85,18 @@ Review your modules for calendar dependencies:
 3. **Enable S&S**: Activate Seasons & Stars in your world
 4. **Test Basic Functions**: Verify calendar appears and works
 
+#### Step 1.5: Install Simple Calendar Compatibility Bridge (If Needed)
+**Required if you use:**
+- Weather modules (Simple Weather, etc.)
+- Other modules that depend on Simple Calendar API
+- Custom modules that call `window.SimpleCalendar` methods
+
+**Installation:**
+1. **Install Bridge Module**: Search for "Simple Calendar Compatibility Bridge" in Foundry module browser
+2. **Enable Bridge**: Activate the compatibility bridge in your world
+3. **Verify Compatibility**: Check that dependent modules continue working
+4. **Important**: Do NOT run both the bridge and Simple Calendar together
+
 #### Step 2: Configure Calendar System
 1. **Select Calendar**: Choose matching calendar type (Gregorian → Gregorian, Harptos → Vale Reckoning)
 2. **Set Current Date**: Use grid view to set correct current date
