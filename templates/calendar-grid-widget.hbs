@@ -61,18 +61,19 @@
             {{#if isEmpty}}
               <div class="calendar-day empty"></div>
             {{else}}
-              <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes{{/if}}"
+              <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes {{categoryClass}}{{/if}}"
                    data-action="{{#if isClickable}}selectDate{{/if}}"
                    data-day="{{day}}"
                    data-date="{{fullDate}}"
-                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteCount}} note(s){{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                   data-category="{{primaryCategory}}"
+                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteCount}} note(s) ({{primaryCategory}}){{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                 <span class="day-number">{{day}}</span>
                 {{#if hasNotes}}
-                  <span class="note-indicator" title="{{noteCount}} note(s)" data-note-count="{{noteCount}}">
+                  <span class="note-indicator" title="{{noteCount}} note(s) ({{primaryCategory}})" data-note-count="{{noteCount}}">
                     {{#if noteMultiple}}
-                      <span class="note-count">{{noteCount}}</span>
+                      <span class="note-count {{categoryClass}}">{{noteCount}}</span>
                     {{else}}
-                      <i class="fas fa-sticky-note"></i>
+                      <i class="fas fa-sticky-note {{categoryClass}}"></i>
                     {{/if}}
                   </span>
                 {{/if}}

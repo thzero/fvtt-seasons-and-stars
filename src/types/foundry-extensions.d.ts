@@ -11,6 +11,7 @@ import type {
   DateFormatOptions 
 } from './calendar';
 import type { SeasonsStarsIntegration } from '../core/bridge-integration';
+import type { NoteCategories } from '../core/note-categories';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -19,6 +20,7 @@ declare global {
       api: SeasonsStarsAPI;
       manager: any; // CalendarManager - avoiding circular import
       notes: NotesManagerInterface; // NotesManager interface
+      categories: NoteCategories; // Note categories management
       integration: SeasonsStarsIntegration | null;
     };
   }

@@ -137,9 +137,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       time: { hour: 0, minute: 0, second: 0 }
     };
 
-    // Get notes for this month for note indicators
+    // Get notes for this month for note indicators with category information
     const notesManager = game.seasonsStars?.notes;
-    const monthNotes = new Map<string, number>(); // dateKey -> noteCount
+    const categories = game.seasonsStars?.categories;
+    const monthNotes = new Map<string, { count: number; primaryCategory: string; categories: Set<string> }>(); // dateKey -> note data
     
     if (notesManager) {
       // Get all notes for the month
@@ -173,7 +174,29 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           const notes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
           if (notes.length > 0) {
             const dateKey = this.formatDateKey(dayDate);
-            monthNotes.set(dateKey, notes.length);
+            const dayCategories = new Set<string>();
+            
+            // Gather categories from all notes for this day
+            notes.forEach(note => {
+              const category = note.flags?.['seasons-and-stars']?.category || 'general';
+              dayCategories.add(category);
+            });
+            
+            // Determine primary category (most common, or first if tied)
+            const categoryCount = new Map<string, number>();
+            notes.forEach(note => {
+              const category = note.flags?.['seasons-and-stars']?.category || 'general';
+              categoryCount.set(category, (categoryCount.get(category) || 0) + 1);
+            });
+            
+            const primaryCategory = Array.from(categoryCount.entries())
+              .sort((a, b) => b[1] - a[1])[0]?.[0] || 'general';
+            
+            monthNotes.set(dateKey, {
+              count: notes.length,
+              primaryCategory,
+              categories: dayCategories
+            });
           }
         }
       } catch (error) {
@@ -204,8 +227,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const isToday = this.isSameDate(dayDate, currentDate);
       const isViewDate = this.isSameDate(dayDate, viewDate);
       const dateKey = this.formatDateKey(dayDate);
-      const noteCount = monthNotes.get(dateKey) || 0;
+      const noteData = monthNotes.get(dateKey);
+      const noteCount = noteData?.count || 0;
       const hasNotes = noteCount > 0;
+      
+      // Determine category class for styling
+      let categoryClass = '';
+      if (hasNotes && noteData) {
+        if (noteData.categories.size > 1) {
+          categoryClass = 'category-mixed';
+        } else {
+          categoryClass = `category-${noteData.primaryCategory}`;
+        }
+      }
 
       currentWeek.push({
         day: day,
@@ -218,6 +252,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         hasNotes: hasNotes,
         noteCount: noteCount,
         noteMultiple: noteCount > 1,
+        categoryClass: categoryClass,
+        primaryCategory: noteData?.primaryCategory || 'general',
         canCreateNote: this.canCreateNote()
       });
 
@@ -492,40 +528,161 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Show note creation dialog
+   * Show note creation dialog with enhanced category and tag support
    */
   private async showCreateNoteDialog(date: ICalendarDate): Promise<any | null> {
+    const categories = game.seasonsStars?.categories;
+    if (!categories) {
+      ui.notifications?.error("Note categories system not available");
+      return null;
+    }
+
     return new Promise((resolve) => {
       const dateStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
       
+      // Build category options from the categories system
+      const availableCategories = categories.getCategories();
+      const categoryOptions = availableCategories.map(cat => 
+        `<option value="${cat.id}" style="color: ${cat.color};">
+          ${cat.name} ${cat.description ? `- ${cat.description}` : ''}
+        </option>`
+      ).join('');
+
+      // Get predefined tags for suggestions
+      const predefinedTags = categories.getPredefinedTags();
+      const tagSuggestions = predefinedTags.map(tag => 
+        `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`
+      ).join(' ');
+
       new Dialog({
         title: `Create Note for ${dateStr}`,
         content: `
-          <form>
+          <form class="seasons-stars-note-form">
             <div class="form-group">
               <label>Title:</label>
               <input type="text" name="title" placeholder="Note title" autofocus />
             </div>
+            
             <div class="form-group">
               <label>Content:</label>
               <textarea name="content" rows="4" placeholder="Note content"></textarea>
             </div>
+            
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label>Category:</label>
+                <select name="category" class="category-select">
+                  ${categoryOptions}
+                </select>
+              </div>
+              <div class="form-group half-width">
+                <label>
+                  <input type="checkbox" name="allDay" checked />
+                  All Day Event
+                </label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Tags:</label>
+              <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" />
+              <div class="tag-suggestions">
+                <small>Suggestions:</small>
+                ${tagSuggestions}
+              </div>
+            </div>
+            
+            <!-- Recurring Events Section -->
             <div class="form-group">
               <label>
-                <input type="checkbox" name="allDay" checked />
-                All Day Event
+                <input type="checkbox" name="isRecurring" class="recurring-toggle" />
+                Recurring Event
               </label>
+              
+              <div class="recurring-options" style="display: none; margin-top: 8px; padding: 8px; border: 1px solid var(--color-border-light); border-radius: 3px; background: rgba(255, 255, 255, 0.02);">
+                <div class="form-row">
+                  <div class="form-group half-width">
+                    <label>Frequency:</label>
+                    <select name="frequency" class="frequency-select">
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </div>
+                  <div class="form-group half-width">
+                    <label>Every:</label>
+                    <input type="number" name="interval" value="1" min="1" max="100" style="width: 60px;" />
+                    <span class="interval-label">day(s)</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label>End Date (optional):</label>
+                  <input type="date" name="endDate" />
+                </div>
+                
+                <div class="weekly-options" style="display: none;">
+                  <label>Days of Week:</label>
+                  <div class="weekday-checkboxes">
+                    <label><input type="checkbox" name="weekdays" value="sunday" /> Sun</label>
+                    <label><input type="checkbox" name="weekdays" value="monday" /> Mon</label>
+                    <label><input type="checkbox" name="weekdays" value="tuesday" /> Tue</label>
+                    <label><input type="checkbox" name="weekdays" value="wednesday" /> Wed</label>
+                    <label><input type="checkbox" name="weekdays" value="thursday" /> Thu</label>
+                    <label><input type="checkbox" name="weekdays" value="friday" /> Fri</label>
+                    <label><input type="checkbox" name="weekdays" value="saturday" /> Sat</label>
+                  </div>
+                </div>
+                
+                <div class="monthly-options" style="display: none;">
+                  <div class="form-row">
+                    <div class="form-group half-width">
+                      <label>
+                        <input type="radio" name="monthlyType" value="day" checked />
+                        Day of Month
+                      </label>
+                      <input type="number" name="monthDay" value="${date.day}" min="1" max="31" style="width: 60px;" />
+                    </div>
+                    <div class="form-group half-width">
+                      <label>
+                        <input type="radio" name="monthlyType" value="weekday" />
+                        Weekday
+                      </label>
+                      <select name="monthWeek" style="width: 70px;">
+                        <option value="1">1st</option>
+                        <option value="2">2nd</option>
+                        <option value="3">3rd</option>
+                        <option value="4">4th</option>
+                      </select>
+                      <select name="monthWeekday">
+                        <option value="sunday">Sunday</option>
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="yearly-options" style="display: none;">
+                  <div class="form-row">
+                    <div class="form-group half-width">
+                      <label>Month:</label>
+                      <input type="number" name="yearMonth" value="${date.month}" min="1" max="12" style="width: 60px;" />
+                    </div>
+                    <div class="form-group half-width">
+                      <label>Day:</label>
+                      <input type="number" name="yearDay" value="${date.day}" min="1" max="31" style="width: 60px;" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-              <label>Category:</label>
-              <select name="category">
-                <option value="general">General</option>
-                <option value="event">Event</option>
-                <option value="reminder">Reminder</option>
-                <option value="weather">Weather</option>
-                <option value="story">Story</option>
-              </select>
-            </div>
+            
             <div class="form-group">
               <label>
                 <input type="checkbox" name="playerVisible" ${game.user?.isGM ? '' : 'checked'} />
@@ -533,6 +690,63 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               </label>
             </div>
           </form>
+          
+          <style>
+            .seasons-stars-note-form .form-row {
+              display: flex;
+              gap: 10px;
+            }
+            .seasons-stars-note-form .half-width {
+              flex: 1;
+            }
+            .seasons-stars-note-form .category-select {
+              width: 100%;
+            }
+            .seasons-stars-note-form .tags-input {
+              width: 100%;
+              margin-bottom: 5px;
+            }
+            .seasons-stars-note-form .tag-suggestions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 4px;
+              align-items: center;
+            }
+            .seasons-stars-note-form .tag-suggestion {
+              background: var(--color-border-light-tertiary);
+              color: var(--color-text-light-heading);
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-size: 0.8em;
+              cursor: pointer;
+              transition: background-color 0.2s;
+            }
+            .seasons-stars-note-form .tag-suggestion:hover {
+              background: var(--color-border-light-primary);
+            }
+            .seasons-stars-note-form .weekday-checkboxes {
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              margin-top: 4px;
+            }
+            .seasons-stars-note-form .weekday-checkboxes label {
+              font-size: 0.9em;
+              display: flex;
+              align-items: center;
+              gap: 3px;
+            }
+            .seasons-stars-note-form .recurring-options {
+              font-size: 0.9em;
+            }
+            .seasons-stars-note-form .recurring-options .form-group {
+              margin-bottom: 8px;
+            }
+            .seasons-stars-note-form .interval-label {
+              margin-left: 5px;
+              color: var(--color-text-secondary);
+            }
+          </style>
         `,
         buttons: {
           create: {
@@ -544,6 +758,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               
               const title = formData.get('title') as string;
               const content = formData.get('content') as string;
+              const tagsString = formData.get('tags') as string;
               
               if (!title?.trim()) {
                 ui.notifications?.error("Note title is required");
@@ -551,13 +766,70 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 return;
               }
 
+              // Parse tags
+              const tags = categories.parseTagString(tagsString);
+              const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
+              
+              if (invalidTags.length > 0) {
+                ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
+              }
+
+              // Parse recurring pattern if enabled
+              let recurringPattern = undefined;
+              if (formData.has('isRecurring')) {
+                const frequency = formData.get('frequency') as string;
+                const interval = parseInt(formData.get('interval') as string) || 1;
+                
+                recurringPattern = {
+                  frequency: frequency as any,
+                  interval
+                };
+                
+                // Add end date if specified
+                const endDateStr = formData.get('endDate') as string;
+                if (endDateStr) {
+                  const endDateParts = endDateStr.split('-');
+                  if (endDateParts.length === 3) {
+                    recurringPattern.endDate = {
+                      year: parseInt(endDateParts[0]),
+                      month: parseInt(endDateParts[1]),
+                      day: parseInt(endDateParts[2]),
+                      weekday: 0,
+                      time: { hour: 23, minute: 59, second: 59 }
+                    };
+                  }
+                }
+                
+                // Add frequency-specific options
+                if (frequency === 'weekly') {
+                  const weekdays: string[] = [];
+                  formData.getAll('weekdays').forEach(day => weekdays.push(day as string));
+                  if (weekdays.length > 0) {
+                    recurringPattern.weekdays = weekdays as any;
+                  }
+                } else if (frequency === 'monthly') {
+                  const monthlyType = formData.get('monthlyType') as string;
+                  if (monthlyType === 'day') {
+                    recurringPattern.monthDay = parseInt(formData.get('monthDay') as string);
+                  } else if (monthlyType === 'weekday') {
+                    recurringPattern.monthWeek = parseInt(formData.get('monthWeek') as string);
+                    recurringPattern.monthWeekday = formData.get('monthWeekday') as any;
+                  }
+                } else if (frequency === 'yearly') {
+                  recurringPattern.yearMonth = parseInt(formData.get('yearMonth') as string);
+                  recurringPattern.yearDay = parseInt(formData.get('yearDay') as string);
+                }
+              }
+
               resolve({
                 title: title.trim(),
                 content: content || '',
                 startDate: date,
                 allDay: formData.has('allDay'),
-                category: formData.get('category') as string || 'general',
-                playerVisible: formData.has('playerVisible')
+                category: formData.get('category') as string || categories.getDefaultCategory().id,
+                tags: validTags,
+                playerVisible: formData.has('playerVisible'),
+                recurring: recurringPattern
               });
             }
           },
@@ -567,7 +839,67 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             callback: () => resolve(null)
           }
         },
-        default: "create"
+        default: "create",
+        render: (html: JQuery) => {
+          // Add click handlers for tag suggestions
+          html.find('.tag-suggestion').on('click', function() {
+            const tag = $(this).data('tag');
+            const tagsInput = html.find('input[name="tags"]');
+            const currentTags = tagsInput.val() as string;
+            
+            if (currentTags) {
+              tagsInput.val(currentTags + ', ' + tag);
+            } else {
+              tagsInput.val(tag);
+            }
+          });
+
+          // Update category select styling based on selection
+          html.find('.category-select').on('change', function() {
+            const selectedCat = categories.getCategory($(this).val() as string);
+            if (selectedCat) {
+              $(this).css('border-left', `4px solid ${selectedCat.color}`);
+            }
+          });
+
+          // Trigger initial styling
+          html.find('.category-select').trigger('change');
+          
+          // Recurring options toggle
+          html.find('.recurring-toggle').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            html.find('.recurring-options').toggle(isChecked);
+          });
+          
+          // Frequency selection changes
+          html.find('.frequency-select').on('change', function() {
+            const frequency = $(this).val();
+            const intervalLabel = html.find('.interval-label');
+            
+            // Update interval label
+            switch (frequency) {
+              case 'daily': intervalLabel.text('day(s)'); break;
+              case 'weekly': intervalLabel.text('week(s)'); break;
+              case 'monthly': intervalLabel.text('month(s)'); break;
+              case 'yearly': intervalLabel.text('year(s)'); break;
+            }
+            
+            // Show/hide frequency-specific options
+            html.find('.weekly-options').toggle(frequency === 'weekly');
+            html.find('.monthly-options').toggle(frequency === 'monthly');
+            html.find('.yearly-options').toggle(frequency === 'yearly');
+          });
+          
+          // Monthly type radio changes
+          html.find('input[name="monthlyType"]').on('change', function() {
+            const isWeekday = $(this).val() === 'weekday';
+            html.find('input[name="monthDay"]').prop('disabled', isWeekday);
+            html.find('select[name="monthWeek"], select[name="monthWeekday"]').prop('disabled', !isWeekday);
+          });
+          
+          // Trigger initial frequency setup
+          html.find('.frequency-select').trigger('change');
+        }
       }).render(true);
     });
   }

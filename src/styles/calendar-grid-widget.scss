@@ -277,6 +277,50 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
           }
         }
+        
+        /* Category-specific border colors */
+        &.category-general { border-color: rgba(74, 144, 226, 0.4); }
+        &.category-event { border-color: rgba(123, 104, 238, 0.4); }
+        &.category-reminder { border-color: rgba(255, 165, 0, 0.4); }
+        &.category-weather { border-color: rgba(135, 206, 235, 0.4); }
+        &.category-story { border-color: rgba(152, 251, 152, 0.4); }
+        &.category-combat { border-color: rgba(220, 20, 60, 0.4); }
+        &.category-travel { border-color: rgba(218, 165, 32, 0.4); }
+        &.category-npc { border-color: rgba(147, 112, 219, 0.4); }
+        
+        /* Mixed categories indicator */
+        &.category-mixed {
+          border: 2px solid transparent;
+          background: linear-gradient(white, white) padding-box,
+                     linear-gradient(45deg, #4a90e2, #7b68ee, #ffa500, #87ceeb) border-box;
+        }
+      }
+      
+      /* Category-specific note count badges */
+      .note-indicator .note-count {
+        &.category-general { background: #4a90e2; }
+        &.category-event { background: #7b68ee; }
+        &.category-reminder { background: #ffa500; }
+        &.category-weather { background: #87ceeb; }
+        &.category-story { background: #98fb98; }
+        &.category-combat { background: #dc143c; }
+        &.category-travel { background: #daa520; }
+        &.category-npc { background: #9370db; }
+        &.category-mixed { 
+          background: linear-gradient(45deg, #4a90e2, #7b68ee, #ffa500, #87ceeb);
+        }
+      }
+      
+      /* Single note icon colors */
+      .note-indicator i {
+        &.category-general { color: #4a90e2; }
+        &.category-event { color: #7b68ee; }
+        &.category-reminder { color: #ffa500; }
+        &.category-weather { color: #87ceeb; }
+        &.category-story { color: #98fb98; }
+        &.category-combat { color: #dc143c; }
+        &.category-travel { color: #daa520; }
+        &.category-npc { color: #9370db; }
       }
 
       /* Quick note creation button */

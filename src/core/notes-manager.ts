@@ -6,6 +6,8 @@ import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { NoteStorage } from './note-storage';
 import { notePermissions } from './note-permissions';
+import { NoteRecurrence, type RecurringPattern } from './note-recurring';
+import { NoteSearch, type NoteSearchCriteria, type NoteSearchResult } from './note-search';
 
 export interface CreateNoteData {
   title: string;
@@ -17,6 +19,7 @@ export interface CreateNoteData {
   category?: string;
   tags?: string[];
   playerVisible: boolean;
+  recurring?: RecurringPattern;
 }
 
 export interface UpdateNoteData {
@@ -28,6 +31,7 @@ export interface UpdateNoteData {
   category?: string;
   tags?: string[];
   playerVisible?: boolean;
+  recurring?: RecurringPattern;
 }
 
 export interface CalendarNoteFlags {
@@ -41,6 +45,9 @@ export interface CalendarNoteFlags {
     calendarId: string;
     category?: string;
     tags?: string[];
+    recurring?: RecurringPattern;  // Recurring pattern if applicable
+    isRecurringParent?: boolean;   // True if this is the master recurring note
+    recurringParentId?: string;    // ID of parent note for generated occurrences
     created: number;           // timestamp
     modified: number;          // timestamp
   };
@@ -107,6 +114,8 @@ export class NotesManager {
           calendarId: data.calendarId || activeCalendar.id,
           category: data.category || 'general',
           tags: data.tags || [],
+          recurring: data.recurring,
+          isRecurringParent: !!data.recurring,
           created: Date.now(),
           modified: Date.now()
         }
@@ -127,10 +136,15 @@ export class NotesManager {
     // Add to storage system
     await this.storage.storeNote(journal, data.startDate);
 
+    // Handle recurring notes - generate initial occurrences
+    if (data.recurring) {
+      await this.generateRecurringOccurrences(journal, data.recurring, data.startDate);
+    }
+
     // Emit hook for note creation
     Hooks.callAll('seasons-stars:noteCreated', journal);
 
-    console.log(`Seasons & Stars | Created note: ${data.title}`);
+    console.log(`Seasons & Stars | Created note: ${data.title}${data.recurring ? ' (recurring)' : ''}`);
     return journal;
   }
 
@@ -456,5 +470,314 @@ export class NotesManager {
     }
 
     return journal.getFlag(moduleId, 'data');
+  }
+
+  /**
+   * Search notes based on criteria
+   */
+  async searchNotes(criteria: NoteSearchCriteria): Promise<NoteSearchResult> {
+    if (!this.initialized) {
+      throw new Error('NotesManager not initialized');
+    }
+
+    return await NoteSearch.searchNotes(criteria);
+  }
+
+  /**
+   * Get search suggestions based on existing notes
+   */
+  getSearchSuggestions(): { categories: string[]; tags: string[]; authors: string[] } {
+    return NoteSearch.getSearchSuggestions();
+  }
+
+  /**
+   * Get predefined search presets
+   */
+  getSearchPresets(): Record<string, NoteSearchCriteria> {
+    return NoteSearch.getSearchPresets();
+  }
+
+  /**
+   * Quick search for notes by text
+   */
+  async quickSearch(query: string, limit: number = 10): Promise<JournalEntry[]> {
+    const result = await this.searchNotes({
+      query,
+      limit,
+      sortBy: 'created',
+      sortOrder: 'desc'
+    });
+    
+    return result.notes;
+  }
+
+  /**
+   * Get notes for a specific category
+   */
+  async getNotesByCategory(category: string, limit?: number): Promise<JournalEntry[]> {
+    const result = await this.searchNotes({
+      categories: [category],
+      limit,
+      sortBy: 'date',
+      sortOrder: 'asc'
+    });
+    
+    return result.notes;
+  }
+
+  /**
+   * Get notes with specific tags
+   */
+  async getNotesByTags(tags: string[], matchAll: boolean = true, limit?: number): Promise<JournalEntry[]> {
+    const searchCriteria: NoteSearchCriteria = {
+      limit,
+      sortBy: 'date',
+      sortOrder: 'asc'
+    };
+    
+    if (matchAll) {
+      searchCriteria.tags = tags;
+    } else {
+      searchCriteria.anyTags = tags;
+    }
+    
+    const result = await this.searchNotes(searchCriteria);
+    return result.notes;
+  }
+
+  /**
+   * Get upcoming notes (from current date forward)
+   */
+  async getUpcomingNotes(limit: number = 20): Promise<JournalEntry[]> {
+    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    if (!currentDate) return [];
+    
+    const result = await this.searchNotes({
+      dateFrom: currentDate.toObject(),
+      limit,
+      sortBy: 'date',
+      sortOrder: 'asc'
+    });
+    
+    return result.notes;
+  }
+
+  /**
+   * Get recent notes (by creation date)
+   */
+  async getRecentNotes(limit: number = 10): Promise<JournalEntry[]> {
+    const result = await this.searchNotes({
+      limit,
+      sortBy: 'created',
+      sortOrder: 'desc'
+    });
+    
+    return result.notes;
+  }
+
+  /**
+   * Generate recurring occurrences for a note
+   */
+  private async generateRecurringOccurrences(
+    parentNote: JournalEntry, 
+    pattern: RecurringPattern, 
+    startDate: ICalendarDate
+  ): Promise<void> {
+    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    if (!engine) {
+      console.warn('Seasons & Stars | No calendar engine available for recurring note generation');
+      return;
+    }
+
+    // Generate occurrences for next 2 years to start
+    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    if (!currentDate) return;
+    
+    const rangeStart = currentDate.toObject();
+    const rangeEnd: ICalendarDate = {
+      year: rangeStart.year + 2,
+      month: rangeStart.month,
+      day: rangeStart.day,
+      weekday: rangeStart.weekday,
+      time: rangeStart.time
+    };
+
+    const occurrences = NoteRecurrence.generateOccurrences(
+      startDate,
+      pattern,
+      rangeStart,
+      rangeEnd,
+      engine
+    );
+
+    console.log(`Seasons & Stars | Generating ${occurrences.length} recurring occurrences`);
+
+    // Create notes for each occurrence (except exceptions)
+    for (const occurrence of occurrences) {
+      if (occurrence.isException || occurrence.index === 0) {
+        continue; // Skip exceptions and the original note
+      }
+
+      await this.createRecurringOccurrence(parentNote, occurrence.date);
+    }
+  }
+
+  /**
+   * Create a single recurring occurrence note
+   */
+  private async createRecurringOccurrence(
+    parentNote: JournalEntry, 
+    occurrenceDate: ICalendarDate
+  ): Promise<JournalEntry> {
+    const noteFolder = await this.getOrCreateNotesFolder();
+    const parentFlags = parentNote.flags['seasons-and-stars'];
+    const parentContent = parentNote.pages.contents[0]?.text?.content || '';
+
+    // Create the occurrence note
+    const journal = await JournalEntry.create({
+      name: `${parentNote.name} (${this.formatDateKey(occurrenceDate)})`,
+      folder: noteFolder.id,
+      ownership: parentNote.ownership,
+      flags: {
+        'seasons-and-stars': {
+          calendarNote: true,
+          version: '1.0',
+          dateKey: this.formatDateKey(occurrenceDate),
+          startDate: occurrenceDate,
+          endDate: parentFlags.endDate,
+          allDay: parentFlags.allDay,
+          calendarId: parentFlags.calendarId,
+          category: parentFlags.category,
+          tags: parentFlags.tags,
+          recurringParentId: parentNote.id,
+          isRecurringParent: false,
+          created: Date.now(),
+          modified: Date.now()
+        }
+      }
+    });
+
+    if (!journal) {
+      throw new Error('Failed to create recurring occurrence');
+    }
+
+    // Create content page
+    await journal.createEmbeddedDocuments("JournalEntryPage", [{
+      type: 'text',
+      name: 'Content',
+      text: { content: parentContent }
+    }]);
+
+    // Add to storage system
+    await this.storage.storeNote(journal, occurrenceDate);
+
+    return journal;
+  }
+
+  /**
+   * Get all recurring occurrences for a parent note
+   */
+  getRecurringOccurrences(parentNoteId: string): JournalEntry[] {
+    return game.journal.filter(journal => {
+      const flags = journal.flags?.['seasons-and-stars'];
+      return flags?.calendarNote && flags?.recurringParentId === parentNoteId;
+    });
+  }
+
+  /**
+   * Delete recurring note and all its occurrences
+   */
+  async deleteRecurringNote(parentNoteId: string): Promise<void> {
+    const parentNote = game.journal?.get(parentNoteId);
+    if (!parentNote) {
+      throw new Error(`Parent note ${parentNoteId} not found`);
+    }
+
+    // Check permissions
+    if (!notePermissions.canDeleteNote(game.user!, parentNote)) {
+      throw new Error('Insufficient permissions to delete recurring note');
+    }
+
+    // Get all occurrences
+    const occurrences = this.getRecurringOccurrences(parentNoteId);
+    
+    // Delete all occurrences first
+    for (const occurrence of occurrences) {
+      await this.deleteNote(occurrence.id);
+    }
+
+    // Delete the parent note
+    await this.deleteNote(parentNoteId);
+    
+    console.log(`Seasons & Stars | Deleted recurring note and ${occurrences.length} occurrences`);
+  }
+
+  /**
+   * Update recurring pattern for a note
+   */
+  async updateRecurringPattern(
+    parentNoteId: string, 
+    newPattern: RecurringPattern
+  ): Promise<void> {
+    const parentNote = game.journal?.get(parentNoteId);
+    if (!parentNote) {
+      throw new Error(`Parent note ${parentNoteId} not found`);
+    }
+
+    // Check permissions
+    if (!notePermissions.canEditNote(game.user!, parentNote)) {
+      throw new Error('Insufficient permissions to update recurring note');
+    }
+
+    // Update the parent note's pattern
+    await parentNote.setFlag('seasons-and-stars', 'recurring', newPattern);
+    await parentNote.setFlag('seasons-and-stars', 'modified', Date.now());
+
+    // Delete existing occurrences
+    const existingOccurrences = this.getRecurringOccurrences(parentNoteId);
+    for (const occurrence of existingOccurrences) {
+      await this.deleteNote(occurrence.id);
+    }
+
+    // Generate new occurrences
+    const startDate = parentNote.flags['seasons-and-stars'].startDate;
+    await this.generateRecurringOccurrences(parentNote, newPattern, startDate);
+    
+    console.log(`Seasons & Stars | Updated recurring pattern and regenerated occurrences`);
+  }
+
+  /**
+   * Check if a note is a recurring parent
+   */
+  isRecurringParent(noteId: string): boolean {
+    const journal = game.journal?.get(noteId);
+    if (!journal) return false;
+    
+    const flags = journal.flags?.['seasons-and-stars'];
+    return flags?.calendarNote && flags?.isRecurringParent === true;
+  }
+
+  /**
+   * Check if a note is a recurring occurrence
+   */
+  isRecurringOccurrence(noteId: string): boolean {
+    const journal = game.journal?.get(noteId);
+    if (!journal) return false;
+    
+    const flags = journal.flags?.['seasons-and-stars'];
+    return flags?.calendarNote && !!flags?.recurringParentId;
+  }
+
+  /**
+   * Get the parent note for a recurring occurrence
+   */
+  getRecurringParent(occurrenceId: string): JournalEntry | null {
+    const occurrence = game.journal?.get(occurrenceId);
+    if (!occurrence) return null;
+    
+    const parentId = occurrence.flags?.['seasons-and-stars']?.recurringParentId;
+    if (!parentId) return null;
+    
+    return game.journal?.get(parentId) || null;
   }
 }

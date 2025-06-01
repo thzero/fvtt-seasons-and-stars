@@ -8,6 +8,7 @@ import './styles/seasons-and-stars.scss';
 
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
+import { noteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
 import { CalendarWidget } from './ui/calendar-widget';
@@ -137,6 +138,16 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false
+  });
+
+  // Note categories configuration - stored as Object for complex data
+  game.settings.register('seasons-and-stars', 'noteCategories', {
+    name: 'Note Categories Configuration',
+    hint: 'Configuration for note categories and tags',
+    scope: 'world',
+    config: false, // Not shown in config UI, managed by category system
+    type: Object,
+    default: null
   });
 }
 
@@ -365,6 +376,7 @@ function setupAPI(): void {
       api,
       manager: calendarManager,
       notes: notesManager,
+      categories: noteCategories,
       integration: SeasonsStarsIntegration.detect()
     };
   }
