@@ -1,5 +1,7 @@
 # Phase 1: S&S Generic APIs Audit
 
+> **Part of:** [SEASONS_STARS_COMPAT_REFACTOR_PLAN.md](../local-docs/SEASONS_STARS_COMPAT_REFACTOR_PLAN.md)
+
 ## Task 1.1: Current S&S Generic APIs
 
 ### Core API - `game.seasonsStars.api`
