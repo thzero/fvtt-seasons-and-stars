@@ -132,6 +132,30 @@ declare class HooksManager {
 }
 
 // =============================================================================
+// DIALOG SYSTEM
+// =============================================================================
+
+interface DialogButton {
+  icon?: string;
+  label: string;
+  callback?: (html: JQuery) => void;
+}
+
+interface DialogOptions {
+  title: string;
+  content: string;
+  buttons: Record<string, DialogButton>;
+  default?: string;
+  render?: (html: JQuery) => void;
+  close?: (html: JQuery) => void;
+}
+
+declare class Dialog {
+  constructor(data: DialogOptions, options?: any);
+  render(force?: boolean): this;
+}
+
+// =============================================================================
 // APPLICATION V2 FRAMEWORK
 // =============================================================================
 

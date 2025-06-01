@@ -61,12 +61,26 @@
             {{#if isEmpty}}
               <div class="calendar-day empty"></div>
             {{else}}
-              <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}}"
+              <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes{{/if}}"
                    data-action="{{#if isClickable}}selectDate{{/if}}"
                    data-day="{{day}}"
                    data-date="{{fullDate}}"
-                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if isClickable}} (Click to set date){{/if}}">
+                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteCount}} note(s){{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                 <span class="day-number">{{day}}</span>
+                {{#if hasNotes}}
+                  <span class="note-indicator" title="{{noteCount}} note(s)" data-note-count="{{noteCount}}">
+                    {{#if noteMultiple}}
+                      <span class="note-count">{{noteCount}}</span>
+                    {{else}}
+                      <i class="fas fa-sticky-note"></i>
+                    {{/if}}
+                  </span>
+                {{/if}}
+                {{#if canCreateNote}}
+                  <button type="button" class="quick-note-btn" data-action="createNote" data-day="{{day}}" title="Create note for this date" onclick="event.stopPropagation()">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                {{/if}}
               </div>
             {{/if}}
           {{/each}}

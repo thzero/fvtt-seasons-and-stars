@@ -47,7 +47,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       nextYear: CalendarGridWidget.prototype._onNextYear,
       selectDate: CalendarGridWidget.prototype._onSelectDate,
       goToToday: CalendarGridWidget.prototype._onGoToToday,
-      setYear: CalendarGridWidget.prototype._onSetYear
+      setYear: CalendarGridWidget.prototype._onSetYear,
+      createNote: CalendarGridWidget.prototype._onCreateNote
     }
   };
 
@@ -114,7 +115,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Generate calendar month data with day grid
+   * Generate calendar month data with day grid and note indicators
    */
   private generateMonthData(calendar: any, viewDate: ICalendarDate, currentDate: ICalendarDate) {
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -135,6 +136,50 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weekday: engine.calculateWeekday(viewDate.year, viewDate.month, 1),
       time: { hour: 0, minute: 0, second: 0 }
     };
+
+    // Get notes for this month for note indicators
+    const notesManager = game.seasonsStars?.notes;
+    const monthNotes = new Map<string, number>(); // dateKey -> noteCount
+    
+    if (notesManager) {
+      // Get all notes for the month
+      const monthStart: ICalendarDate = {
+        year: viewDate.year,
+        month: viewDate.month,
+        day: 1,
+        weekday: 0,
+        time: { hour: 0, minute: 0, second: 0 }
+      };
+      
+      const monthEnd: ICalendarDate = {
+        year: viewDate.year,
+        month: viewDate.month,
+        day: monthLength,
+        weekday: 0,
+        time: { hour: 23, minute: 59, second: 59 }
+      };
+
+      // Get notes synchronously for UI performance
+      try {
+        for (let day = 1; day <= monthLength; day++) {
+          const dayDate: ICalendarDate = {
+            year: viewDate.year,
+            month: viewDate.month,
+            day: day,
+            weekday: 0,
+            time: { hour: 0, minute: 0, second: 0 }
+          };
+          
+          const notes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
+          if (notes.length > 0) {
+            const dateKey = this.formatDateKey(dayDate);
+            monthNotes.set(dateKey, notes.length);
+          }
+        }
+      } catch (error) {
+        console.warn('Seasons & Stars | Error loading notes for calendar:', error);
+      }
+    }
 
     // Build calendar grid
     const weeks: Array<Array<any>> = [];
@@ -158,6 +203,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
       const isToday = this.isSameDate(dayDate, currentDate);
       const isViewDate = this.isSameDate(dayDate, viewDate);
+      const dateKey = this.formatDateKey(dayDate);
+      const noteCount = monthNotes.get(dateKey) || 0;
+      const hasNotes = noteCount > 0;
 
       currentWeek.push({
         day: day,
@@ -166,7 +214,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         isSelected: isViewDate,
         isClickable: game.user?.isGM || false,
         weekday: dayDate.weekday,
-        fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+        hasNotes: hasNotes,
+        noteCount: noteCount,
+        noteMultiple: noteCount > 1,
+        canCreateNote: this.canCreateNote()
       });
 
       // Start new week on last day of week
@@ -190,6 +242,27 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       monthName: monthInfo.name,
       monthDescription: monthInfo.description
     };
+  }
+
+  /**
+   * Format date as storage key
+   */
+  private formatDateKey(date: ICalendarDate): string {
+    return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Check if current user can create notes
+   */
+  private canCreateNote(): boolean {
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) return false;
+    
+    const user = game.user;
+    if (!user) return false;
+    
+    // Check permission via notes manager
+    return notesManager.permissions?.canCreateNote(user) || false;
   }
 
   /**
@@ -362,6 +435,141 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       this.viewDate = { ...this.viewDate, year: newYear };
       this.render();
     }
+  }
+
+  /**
+   * Create a new note for the selected date
+   */
+  async _onCreateNote(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      ui.notifications?.error("Notes system not available");
+      return;
+    }
+
+    // Check permissions
+    if (!this.canCreateNote()) {
+      ui.notifications?.error("You don't have permission to create notes");
+      return;
+    }
+
+    // Get the date from the clicked element
+    const dayElement = target.closest('.calendar-day');
+    if (!dayElement) return;
+    
+    const day = parseInt(dayElement.getAttribute('data-day') || '0');
+    if (!day) return;
+
+    const targetDate: ICalendarDate = {
+      year: this.viewDate.year,
+      month: this.viewDate.month,
+      day: day,
+      weekday: 0, // Will be calculated by the engine
+      time: { hour: 0, minute: 0, second: 0 }
+    };
+
+    // Show note creation dialog
+    const noteData = await this.showCreateNoteDialog(targetDate);
+    if (!noteData) return;
+
+    try {
+      const note = await notesManager.createNote(noteData);
+      ui.notifications?.info(`Created note: ${noteData.title}`);
+      
+      // Refresh the calendar to show the new note indicator
+      this.render();
+      
+      // Emit hook for other modules
+      Hooks.callAll('seasons-stars:noteCreated', note);
+      
+    } catch (error) {
+      console.error('Failed to create note:', error);
+      ui.notifications?.error('Failed to create note');
+    }
+  }
+
+  /**
+   * Show note creation dialog
+   */
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<any | null> {
+    return new Promise((resolve) => {
+      const dateStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+      
+      new Dialog({
+        title: `Create Note for ${dateStr}`,
+        content: `
+          <form>
+            <div class="form-group">
+              <label>Title:</label>
+              <input type="text" name="title" placeholder="Note title" autofocus />
+            </div>
+            <div class="form-group">
+              <label>Content:</label>
+              <textarea name="content" rows="4" placeholder="Note content"></textarea>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" name="allDay" checked />
+                All Day Event
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Category:</label>
+              <select name="category">
+                <option value="general">General</option>
+                <option value="event">Event</option>
+                <option value="reminder">Reminder</option>
+                <option value="weather">Weather</option>
+                <option value="story">Story</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" name="playerVisible" ${game.user?.isGM ? '' : 'checked'} />
+                Visible to Players
+              </label>
+            </div>
+          </form>
+        `,
+        buttons: {
+          create: {
+            icon: '<i class="fas fa-plus"></i>',
+            label: "Create Note",
+            callback: (html: JQuery) => {
+              const form = html.find('form')[0] as HTMLFormElement;
+              const formData = new FormData(form);
+              
+              const title = formData.get('title') as string;
+              const content = formData.get('content') as string;
+              
+              if (!title?.trim()) {
+                ui.notifications?.error("Note title is required");
+                resolve(null);
+                return;
+              }
+
+              resolve({
+                title: title.trim(),
+                content: content || '',
+                startDate: date,
+                allDay: formData.has('allDay'),
+                category: formData.get('category') as string || 'general',
+                playerVisible: formData.has('playerVisible')
+              });
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancel",
+            callback: () => resolve(null)
+          }
+        },
+        default: "create"
+      }).render(true);
+    });
   }
 
   /**

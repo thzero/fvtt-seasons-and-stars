@@ -246,6 +246,72 @@
         position: relative;
         z-index: 2;
       }
+
+      /* Note indicators */
+      &.has-notes {
+        border: 1px solid rgba(var(--color-primary-rgb), 0.4);
+        
+        .note-indicator {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          z-index: 3;
+          
+          i {
+            color: var(--color-primary);
+            font-size: 10px;
+            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+          }
+          
+          .note-count {
+            background: var(--color-primary);
+            color: var(--color-text-light);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          }
+        }
+      }
+
+      /* Quick note creation button */
+      .quick-note-btn {
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        background: rgba(var(--color-primary-rgb), 0.8);
+        color: var(--color-text-light);
+        border: none;
+        border-radius: 50%;
+        width: 14px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 3;
+        font-size: 8px;
+        
+        &:hover {
+          background: var(--color-primary);
+          transform: scale(1.1);
+        }
+        
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+
+      &:hover .quick-note-btn {
+        opacity: 1;
+      }
     }
   }
 
@@ -341,6 +407,10 @@ body.dark {
         background: rgba(255, 255, 255, 0.12);
         color: var(--color-text-primary);
         border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      &.has-notes {
+        border: 1px solid rgba(var(--color-primary-rgb), 0.6);
       }
     }
   }
