@@ -8,6 +8,7 @@ import type { CalendarDate as ICalendarDate } from '../types/calendar';
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   private viewDate: ICalendarDate;
   private static activeInstance: CalendarGridWidget | null = null;
+  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
 
   constructor(initialDate?: ICalendarDate) {
     super();
@@ -55,6 +56,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       template: 'modules/seasons-and-stars/templates/calendar-grid-widget.hbs'
     }
   };
+
+  /**
+   * Handle post-render setup
+   */
+  async _onRender(context: any, options: any): Promise<void> {
+    await super._onRender(context, options);
+    
+    // Register as active instance
+    CalendarGridWidget.activeInstance = this;
+    
+    // Render any existing sidebar buttons
+    this.renderExistingSidebarButtons();
+  }
 
   /**
    * Prepare rendering context for template
@@ -438,5 +452,106 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   static getInstance(): CalendarGridWidget | null {
     return CalendarGridWidget.activeInstance;
+  }
+
+  /**
+   * Add a sidebar button to the grid widget
+   * Provides generic API for integration with other modules
+   */
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    // Check if button already exists
+    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
+    if (existingButton) {
+      console.log(`Seasons & Stars | Button "${name}" already exists in grid widget`);
+      return;
+    }
+
+    // Add to buttons array
+    this.sidebarButtons.push({ name, icon, tooltip, callback });
+    console.log(`Seasons & Stars | Added sidebar button "${name}" to grid widget`);
+
+    // If widget is rendered, add button to DOM immediately
+    if (this.rendered && this.element) {
+      this.renderSidebarButton(name, icon, tooltip, callback);
+    }
+  }
+
+  /**
+   * Render a sidebar button in the grid widget header
+   */
+  private renderSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    if (!this.element) return;
+
+    const buttonId = `grid-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
+    
+    // Don't add if already exists in DOM
+    if (this.element.querySelector(`#${buttonId}`)) {
+      return;
+    }
+
+    // Find window controls area in header
+    let windowControls = this.element.querySelector('.window-header .window-controls') as HTMLElement;
+    if (!windowControls) {
+      // Try to find window header and add controls area
+      const windowHeader = this.element.querySelector('.window-header');
+      if (windowHeader) {
+        windowControls = document.createElement('div');
+        windowControls.className = 'window-controls';
+        windowControls.style.cssText = 'display: flex; align-items: center; margin-left: auto;';
+        windowHeader.appendChild(windowControls);
+      } else {
+        console.warn('No window header found for grid widget sidebar button');
+        return;
+      }
+    }
+
+    // Create button element
+    const button = document.createElement('button');
+    button.id = buttonId;
+    button.className = 'grid-sidebar-button';
+    button.title = tooltip;
+    button.innerHTML = `<i class="fas ${icon}"></i>`;
+    button.style.cssText = `
+      background: var(--color-bg-btn, #f0f0f0);
+      border: 1px solid var(--color-border-dark, #999);
+      border-radius: 3px;
+      padding: 4px 6px;
+      margin-left: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--color-text-primary, #000);
+      transition: background-color 0.15s ease;
+    `;
+
+    // Add click handler
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        callback();
+      } catch (error) {
+        console.error(`Error in grid widget sidebar button "${name}":`, error);
+      }
+    });
+
+    // Add hover effects
+    button.addEventListener('mouseenter', () => {
+      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
+    });
+    button.addEventListener('mouseleave', () => {
+      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
+    });
+
+    windowControls.appendChild(button);
+    console.log(`Seasons & Stars | Rendered sidebar button "${name}" in grid widget header`);
+  }
+
+  /**
+   * Render all existing sidebar buttons (called after widget render)
+   */
+  private renderExistingSidebarButtons(): void {
+    this.sidebarButtons.forEach(button => {
+      this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
+    });
   }
 }

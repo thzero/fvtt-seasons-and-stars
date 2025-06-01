@@ -7,6 +7,7 @@ import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   private static activeInstance: CalendarMiniWidget | null = null;
+  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -79,6 +80,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
+    
+    // Render any existing sidebar buttons
+    this.renderExistingSidebarButtons();
     
     // Position widget after render (SmallTime approach)
     this.positionWidget();
@@ -172,6 +176,110 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (CalendarMiniWidget.activeInstance?.rendered) {
       CalendarMiniWidget.activeInstance.close();
     }
+  }
+
+  /**
+   * Get the current instance for API access
+   */
+  static getInstance(): CalendarMiniWidget | null {
+    return CalendarMiniWidget.activeInstance;
+  }
+
+  /**
+   * Add a sidebar button to the mini widget
+   * Provides generic API for integration with other modules (e.g., Simple Weather via compatibility bridge)
+   */
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    // Check if button already exists
+    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
+    if (existingButton) {
+      console.log(`Seasons & Stars | Button "${name}" already exists in mini widget`);
+      return;
+    }
+
+    // Add to buttons array
+    this.sidebarButtons.push({ name, icon, tooltip, callback });
+    console.log(`Seasons & Stars | Added sidebar button "${name}" to mini widget`);
+
+    // If widget is rendered, add button to DOM immediately
+    if (this.rendered && this.element) {
+      this.renderSidebarButton(name, icon, tooltip, callback);
+    }
+  }
+
+  /**
+   * Render a sidebar button in the mini widget DOM
+   */
+  private renderSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+    if (!this.element) return;
+
+    const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
+    
+    // Don't add if already exists in DOM
+    if (this.element.querySelector(`#${buttonId}`)) {
+      return;
+    }
+
+    // Find or create header area for buttons
+    let headerArea = this.element.querySelector('.mini-widget-header') as HTMLElement;
+    if (!headerArea) {
+      // Create header if it doesn't exist
+      headerArea = document.createElement('div');
+      headerArea.className = 'mini-widget-header';
+      headerArea.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
+      
+      // Insert at the beginning of the widget
+      this.element.insertBefore(headerArea, this.element.firstChild);
+    }
+
+    // Create button element
+    const button = document.createElement('button');
+    button.id = buttonId;
+    button.className = 'mini-sidebar-button';
+    button.title = tooltip;
+    button.innerHTML = `<i class="fas ${icon}"></i>`;
+    button.style.cssText = `
+      background: var(--color-bg-btn, #f0f0f0);
+      border: 1px solid var(--color-border-dark, #999);
+      border-radius: 2px;
+      padding: 2px 4px;
+      margin-left: 2px;
+      cursor: pointer;
+      font-size: 10px;
+      color: var(--color-text-primary, #000);
+      transition: background-color 0.15s ease;
+    `;
+
+    // Add click handler
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        callback();
+      } catch (error) {
+        console.error(`Error in mini widget sidebar button "${name}":`, error);
+      }
+    });
+
+    // Add hover effects
+    button.addEventListener('mouseenter', () => {
+      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
+    });
+    button.addEventListener('mouseleave', () => {
+      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
+    });
+
+    headerArea.appendChild(button);
+    console.log(`Seasons & Stars | Rendered sidebar button "${name}" in mini widget DOM`);
+  }
+
+  /**
+   * Render all existing sidebar buttons (called after widget render)
+   */
+  private renderExistingSidebarButtons(): void {
+    this.sidebarButtons.forEach(button => {
+      this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
+    });
   }
 
   /**
