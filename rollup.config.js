@@ -27,6 +27,7 @@ export default {
         { src: 'templates', dest: 'dist' },
         { src: 'README.md', dest: 'dist' },
         { src: 'CHANGELOG.md', dest: 'dist' },
+        { src: 'LICENSE', dest: 'dist' },
       ],
     }),
   ],

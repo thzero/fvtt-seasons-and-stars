@@ -22,4 +22,4 @@ jobs:
           node-version: '18'
           build-command: 'npm run build'
           working-directory: 'dist'
-          module-files: 'module.js module.json templates/ calendars/ styles/ languages/'
+          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
