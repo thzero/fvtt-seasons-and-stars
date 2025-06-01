@@ -3,6 +3,7 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import { NotePerformanceOptimizer } from './note-performance-optimizer';
 
 /**
  * High-performance storage system with date-based indexing
@@ -12,14 +13,25 @@ export class NoteStorage {
   private noteCache: Map<string, JournalEntry> = new Map();
   private cacheSize = 100; // Limit cache size to prevent memory issues
   private indexBuilt = false;
+  private performanceOptimizer: NotePerformanceOptimizer;
 
   /**
    * Initialize the storage system
    */
   initialize(): void {
+    this.performanceOptimizer = NotePerformanceOptimizer.getInstance({
+      cacheSize: this.cacheSize,
+      enableMemoryPressureRelief: true,
+      memoryWarningThreshold: 150 // MB
+    });
+    
     this.buildDateIndex();
     this.indexBuilt = true;
-    console.log('Seasons & Stars | Note storage initialized');
+    
+    // Start performance monitoring
+    this.performanceOptimizer.startMonitoring();
+    
+    console.log('Seasons & Stars | Note storage initialized with performance optimization');
   }
 
   /**
@@ -172,6 +184,42 @@ export class NoteStorage {
       size: this.noteCache.size,
       maxSize: this.cacheSize
     };
+  }
+
+  /**
+   * Get performance metrics
+   */
+  getPerformanceMetrics() {
+    if (!this.performanceOptimizer) {
+      return null;
+    }
+    
+    return this.performanceOptimizer.getMetrics();
+  }
+
+  /**
+   * Optimize storage for large collections
+   */
+  async optimizeForLargeCollections(): Promise<void> {
+    if (!this.performanceOptimizer) {
+      console.warn('Seasons & Stars | Performance optimizer not initialized');
+      return;
+    }
+
+    console.log('Seasons & Stars | Optimizing storage for large collections...');
+    
+    // Clear cache and rebuild index
+    this.clearCache();
+    this.rebuildIndex();
+    
+    // Update configuration for large collections
+    this.performanceOptimizer.updateConfig({
+      cacheSize: Math.min(500, Math.max(200, this.dateIndex.size * 2)),
+      maxSearchResults: 500,
+      enablePagination: true
+    });
+    
+    console.log('Seasons & Stars | Storage optimization completed');
   }
 
   /**

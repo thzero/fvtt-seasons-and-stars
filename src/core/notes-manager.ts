@@ -80,6 +80,13 @@ export class NotesManager {
     // Initialize notes folder
     await this.initializeNotesFolder();
     
+    // Check if we have a large collection and optimize accordingly
+    const noteCount = this.getAllCalendarNotes().length;
+    if (noteCount > 500) {
+      console.log(`Seasons & Stars | Large note collection detected (${noteCount} notes) - applying optimizations`);
+      await this.storage.optimizeForLargeCollections();
+    }
+    
     this.initialized = true;
     console.log('Seasons & Stars | Notes Manager initialized');
   }
@@ -779,5 +786,64 @@ export class NotesManager {
     if (!parentId) return null;
     
     return game.journal?.get(parentId) || null;
+  }
+
+  /**
+   * Get all calendar notes in the system
+   */
+  private getAllCalendarNotes(): JournalEntry[] {
+    if (!game.journal) return [];
+    
+    return game.journal.filter(journal => {
+      const flags = journal.flags?.['seasons-and-stars'];
+      return flags?.calendarNote === true;
+    });
+  }
+
+  /**
+   * Get performance metrics for monitoring
+   */
+  getPerformanceMetrics() {
+    return this.storage.getPerformanceMetrics();
+  }
+
+  /**
+   * Optimize the notes system for better performance
+   */
+  async optimizePerformance(): Promise<void> {
+    console.log('Seasons & Stars | Starting notes system optimization...');
+    
+    await this.storage.optimizeForLargeCollections();
+    
+    // Clean up any orphaned data
+    await this.cleanupOrphanedData();
+    
+    console.log('Seasons & Stars | Notes system optimization completed');
+  }
+
+  /**
+   * Clean up orphaned data
+   */
+  private async cleanupOrphanedData(): Promise<void> {
+    const allNotes = this.getAllCalendarNotes();
+    let orphanedCount = 0;
+    
+    for (const note of allNotes) {
+      const flags = note.flags?.['seasons-and-stars'];
+      
+      // Check for recurring orphans
+      if (flags?.recurringParentId) {
+        const parent = game.journal?.get(flags.recurringParentId);
+        if (!parent) {
+          console.warn(`Seasons & Stars | Found orphaned recurring note: ${note.id}`);
+          // Could optionally clean up or convert to standalone note
+          orphanedCount++;
+        }
+      }
+    }
+    
+    if (orphanedCount > 0) {
+      console.log(`Seasons & Stars | Found ${orphanedCount} orphaned notes during cleanup`);
+    }
   }
 }
