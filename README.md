@@ -1,6 +1,6 @@
 # Seasons & Stars
 
-A modern calendar and timekeeping module for Foundry VTT v13+, designed as a clean alternative to Simple Calendar with full backward compatibility.
+A modern calendar and timekeeping module for Foundry VTT v13+ with clean integration APIs and extensible architecture.
 
 ## 🌟 Features
 
@@ -9,13 +9,13 @@ A modern calendar and timekeeping module for Foundry VTT v13+, designed as a cle
 - **Multiple Calendar Views**: Full calendar widget, compact mini widget, and monthly grid view
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
 - **Real-World Integration**: Gregorian calendars automatically initialize with current date/time
-- **Simple Calendar Compatibility**: Weather modules and existing integrations work immediately
+- **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency
 - **Multiple Calendar Support**: Switch between Gregorian, Vale Reckoning, and custom calendars
 
 ### 🚧 **Coming Soon**
 - **Notes System**: Full calendar event and note management with Journal integration
-- **Weather Module Support**: Complete Simple Calendar notes API for weather details
+- **Weather Module Support**: Comprehensive notes API for weather modules and other integrations
 - **Advanced Configuration**: In-app calendar editor and migration tools
 - **Extended Integrations**: Enhanced module compatibility and hook system
 
@@ -42,32 +42,33 @@ A modern calendar and timekeeping module for Foundry VTT v13+, designed as a cle
 ## 🎯 Who Should Use This
 
 ### **Beta Testers**
-- Users seeking a modern alternative to Simple Calendar
+- Users seeking a modern calendar solution for Foundry v13+
 - Module developers wanting to integrate calendar functionality
 - GMs who need reliable timekeeping with clean UI
 
 ### **Migration Candidates**
-- Simple Calendar users experiencing compatibility issues with Foundry v13+
+- Users seeking a modern calendar solution for Foundry v13+
 - Users wanting better SmallTime integration
 - Communities needing custom calendar support
 
-## 🤝 Simple Calendar Compatibility
+## 🤝 Module Integration
 
-Seasons & Stars provides **automatic compatibility** with existing Simple Calendar integrations:
+Seasons & Stars provides **clean integration APIs** for calendar-aware modules:
 
 ```javascript
-// Weather modules work immediately
-const currentDate = SimpleCalendar.api.currentDateTime();
-const display = SimpleCalendar.api.timestampToDate(game.time.worldTime);
-console.log(`Today is ${display.display.monthName} ${display.display.day}${display.display.daySuffix}`);
+// Direct API access
+const currentDate = game.seasonsStars.api.getCurrentDate();
+const worldTime = game.seasonsStars.api.dateToWorldTime(someDate);
+const formatted = game.seasonsStars.api.formatDate(currentDate);
 
-// Hook integration continues working
-Hooks.on(SimpleCalendar.Hooks.DateTimeChange, (data) => {
-  // Your existing weather/module code works unchanged
+// Hook integration for module updates
+Hooks.on('seasons-stars:dateChanged', (data) => {
+  // Respond to date changes in your module
+  console.log('Date changed:', data.newDate);
 });
 ```
 
-**No code changes required** for basic weather module integration.
+**Compatibility bridges available** for seamless migration from other calendar systems.
 
 ## 📋 Requirements
 

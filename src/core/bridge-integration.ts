@@ -2,7 +2,7 @@
  * Bridge Integration Interface for Seasons & Stars
  * 
  * Provides a clean, generic API for compatibility bridge modules to integrate
- * with S&S without requiring Simple Calendar-specific knowledge in the core.
+ * with S&S without requiring external calendar system knowledge in the core.
  */
 
 import type { CalendarDate, Calendar } from '../types/calendar';
