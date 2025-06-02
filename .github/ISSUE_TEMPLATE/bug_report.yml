@@ -1,0 +1,104 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Seasons & Stars
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please fill out the information below to help us diagnose and fix the issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: Seasons & Stars Version
+      description: What version of Seasons & Stars are you using?
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: foundry-version
+    attributes:
+      label: Foundry VTT Version
+      description: What version of Foundry VTT are you using?
+      placeholder: "v13.331"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened and what you expected to happen instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Tell us how to reproduce this behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: Console Errors
+      description: Check the browser console (F12) for any error messages and paste them here
+      render: javascript
+      placeholder: Paste any console errors here
+
+  - type: checkboxes
+    id: modules
+    attributes:
+      label: Related Modules
+      description: Which modules are you using that might be related to this issue?
+      options:
+        - label: Simple Calendar Compatibility Bridge
+        - label: Simple Weather
+        - label: SmallTime
+        - label: About Time
+        - label: None of the above
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: What browser are you using?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Other (please specify in additional info)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: |
+        Add any other context about the problem here.
+        
+        Tips:
+        - Screenshots or video recordings are very helpful
+        - If this worked before, mention when it started failing
+        - Include your calendar configuration if relevant
+      placeholder: Any additional context, screenshots, or information

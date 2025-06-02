@@ -1,0 +1,109 @@
+name: Bridge Integration Issue
+description: Report issues with Simple Calendar Compatibility Bridge integration
+title: "[Bridge]: "
+labels: ["bridge-integration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for issues specifically related to the Simple Calendar Compatibility Bridge integration.
+        
+        If you're having general issues with Seasons & Stars, please use the Bug Report template instead.
+
+  - type: input
+    id: bridge-version
+    attributes:
+      label: Bridge Module Version
+      description: What version of Simple Calendar Compatibility Bridge are you using?
+      placeholder: "v1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: ss-version
+    attributes:
+      label: Seasons & Stars Version
+      description: What version of Seasons & Stars are you using?
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: affected-module
+    attributes:
+      label: Affected Module
+      description: Which module is having integration issues?
+      options:
+        - label: Simple Weather
+        - label: SmallTime
+        - label: About Time
+        - label: Other (please specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Integration Issue
+      description: Describe what's not working with the module integration
+      placeholder: |
+        For example:
+        - Simple Weather isn't creating weather notes
+        - SmallTime display shows incorrect calendar data
+        - Module says Simple Calendar is not found
+    validations:
+      required: true
+
+  - type: textarea
+    id: migration-context
+    attributes:
+      label: Migration Context
+      description: |
+        Did this issue start after migrating from Simple Calendar?
+        If so, please describe your migration process.
+      placeholder: |
+        - Did you follow the migration guide?
+        - Do you still have Simple Calendar installed?
+        - Were there any existing notes or configurations?
+
+  - type: textarea
+    id: console-output
+    attributes:
+      label: Console Output
+      description: |
+        Please check the browser console (F12) for any bridge-related messages.
+        Look for messages containing "Bridge" or "Simple Calendar"
+      render: javascript
+      placeholder: Paste any bridge-related console messages here
+
+  - type: textarea
+    id: bridge-debugging
+    attributes:
+      label: Bridge Debugging
+      description: |
+        Run this command in the console and paste the output:
+        `game.modules.get('simple-calendar-compat')?.api?.debug?.()`
+      render: javascript
+      placeholder: Paste the debug output here
+
+  - type: textarea
+    id: working-before
+    attributes:
+      label: Previous Working State
+      description: |
+        Did this integration work before? If so, when did it stop working?
+        What changed? (module updates, new modules installed, etc.)
+      placeholder: Describe when this last worked and what might have changed
+
+  - type: textarea
+    id: additional-bridge
+    attributes:
+      label: Additional Information
+      description: |
+        Any other context about the bridge integration issue.
+        
+        Helpful information:
+        - Screenshots of module settings
+        - Export of your calendar configuration
+        - List of other active modules
+      placeholder: Any additional context about the bridge integration

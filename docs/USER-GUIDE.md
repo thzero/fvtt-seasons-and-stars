@@ -242,11 +242,31 @@ If automatic positioning doesn't work:
 - **Multiple Widgets**: Only keep necessary widgets open
 - **Browser Cache**: Clear cache if experiencing strange behavior
 
+#### Bridge Integration Issues
+If you're using compatibility bridges (e.g., Simple Weather with Simple Calendar Compatibility Bridge):
+
+**Notes Not Highlighting in Calendar:**
+- Some external modules may create notes that don't immediately appear as highlighted dates
+- **Theoretical Fix** (⚠️ **UNTESTED**): Run in browser console (F12):
+  ```javascript
+  // WARNING: This workaround is untested and may not work
+  game.seasonsStars.notes.storage.rebuildIndex();
+  window.SeasonsStars.CalendarGridWidget.getInstance()?.render();
+  ```
+- **Better Approach**: Run diagnostic script first (see Known Issues)
+- **Details**: See [Known Issues](../KNOWN-ISSUES.md) for full explanation
+
+**Simple Weather Integration:**
+- Weather data may appear in journal but not show date highlighting
+- Try the untested console fix above after advancing time (no guarantee it works)
+- This is a known limitation during beta testing - proper fix requires bridge enhancement
+
 ### Getting Help
 1. **Check Console**: F12 → Console for error messages
 2. **Module Conflicts**: Temporarily disable other modules to test
-3. **Report Issues**: Use GitHub Issues with error details and module list
-4. **Community Support**: Ask in Foundry Discord #modules channel
+3. **Known Issues**: Review [Known Issues](../KNOWN-ISSUES.md) for documented limitations
+4. **Report Issues**: Use GitHub Issues with error details and module list
+5. **Community Support**: Ask in Foundry Discord #modules channel
 
 ## 📋 Keyboard Shortcuts
 

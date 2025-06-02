@@ -45,6 +45,7 @@ A modern calendar and timekeeping module for Foundry VTT v13+ with clean integra
 - **[Developer Guide](./docs/DEVELOPER-GUIDE.md)** - API reference and integration guide
 - **[Migration Guide](./docs/MIGRATION-GUIDE.md)** - Moving from Simple Calendar
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
+- **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds
 
 ## 🎯 Who Should Use This
 
@@ -57,6 +58,8 @@ A modern calendar and timekeeping module for Foundry VTT v13+ with clean integra
 - Users seeking a modern calendar solution for Foundry v13+
 - Users wanting better SmallTime integration
 - Communities needing custom calendar support
+
+⚠️ **Migration Note**: Simple Calendar users should review [Known Issues](./KNOWN-ISSUES.md) for current migration limitations including calendar import and note synchronization.
 
 ## 🤝 Module Integration
 

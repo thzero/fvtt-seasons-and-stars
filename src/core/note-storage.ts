@@ -165,6 +165,11 @@ export class NoteStorage {
 
   /**
    * Rebuild the date index (call when notes are created/updated outside storage)
+   * 
+   * NOTE: This is a workaround for bridge integration synchronization issues.
+   * When external modules (like Simple Weather) create notes through the Simple Calendar
+   * Compatibility Bridge, those notes don't automatically appear in calendar highlighting
+   * until this method is called. See KNOWN-ISSUES.md for details.
    */
   rebuildIndex(): void {
     Logger.debug('Rebuilding note storage index');
