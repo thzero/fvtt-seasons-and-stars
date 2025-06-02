@@ -248,6 +248,88 @@ function setupAPI(): void {
       }
     },
 
+    setCurrentDate: async (date: ICalendarDate): Promise<boolean> => {
+      try {
+        Logger.api('setCurrentDate', { date });
+        
+        // Input validation
+        if (!date || typeof date !== 'object') {
+          const error = new Error('Date must be a valid CalendarDate object');
+          Logger.error('Invalid date parameter', error);
+          throw error;
+        }
+        
+        if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+          const error = new Error('Date must have numeric year, month, and day properties');
+          Logger.error('Invalid date structure', error);
+          throw error;
+        }
+        
+        await calendarManager.setCurrentDate(date);
+        Logger.api('setCurrentDate', { date }, 'success');
+        return true;
+      } catch (error) {
+        Logger.error('Failed to set current date', error instanceof Error ? error : new Error(String(error)));
+        return false;
+      }
+    },
+
+    advanceTime: async (amount: number, unit: string): Promise<void> => {
+      try {
+        Logger.api('advanceTime', { amount, unit });
+        
+        // Input validation
+        if (typeof amount !== 'number' || !isFinite(amount)) {
+          const error = new Error('Amount must be a finite number');
+          Logger.error('Invalid amount parameter', error);
+          throw error;
+        }
+        
+        if (typeof unit !== 'string' || unit.trim() === '') {
+          const error = new Error('Unit must be a non-empty string');
+          Logger.error('Invalid unit parameter', error);
+          throw error;
+        }
+        
+        // Route to appropriate method based on unit
+        switch (unit.toLowerCase()) {
+          case 'day':
+          case 'days':
+            await calendarManager.advanceDays(amount);
+            break;
+          case 'hour':
+          case 'hours':
+            await calendarManager.advanceHours(amount);
+            break;
+          case 'minute':
+          case 'minutes':
+            await calendarManager.advanceMinutes(amount);
+            break;
+          case 'week':
+          case 'weeks':
+            await calendarManager.advanceWeeks(amount);
+            break;
+          case 'month':
+          case 'months':
+            await calendarManager.advanceMonths(amount);
+            break;
+          case 'year':
+          case 'years':
+            await calendarManager.advanceYears(amount);
+            break;
+          default:
+            const error = new Error(`Unsupported time unit: ${unit}`);
+            Logger.error('Unsupported time unit', error);
+            throw error;
+        }
+        
+        Logger.api('advanceTime', { amount, unit }, 'success');
+      } catch (error) {
+        Logger.error('Failed to advance time', error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
+
     advanceDays: async (days: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceDays', { days, calendarId });

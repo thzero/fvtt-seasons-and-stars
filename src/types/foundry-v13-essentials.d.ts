@@ -63,9 +63,9 @@ interface Game {
   settings: ClientSettings;
   modules: Map<string, Module>;
   user?: FoundryUser;
-  users: Collection<FoundryUser>;
-  journal: Collection<FoundryJournalEntry>;
-  folders?: Collection<FoundryFolder>;
+  users: FoundryCollection<FoundryUser>;
+  journal: FoundryCollection<FoundryJournalEntry>;
+  folders?: FoundryCollection<FoundryFolder>;
   
   // Season & Stars specific integration point
   seasonsStars?: {
@@ -227,7 +227,6 @@ declare class FoundryCollection<T> extends Map<string, T> {
   find(predicate: (value: T) => boolean): T | undefined;
   filter(predicate: (value: T) => boolean): T[];
   map<U>(transform: (value: T) => U): U[];
-  [Symbol.iterator](): IterableIterator<T>;
 }
 
 // =============================================================================
@@ -267,7 +266,7 @@ declare class ApplicationV2<RenderContext = Record<string, unknown>, Configurati
   protected _onClose(options: ApplicationV2.CloseOptions): Promise<void>;
 }
 
-namespace ApplicationV2 {
+declare namespace ApplicationV2 {
   interface Configuration {
     id?: string;
     classes?: string[];
@@ -357,7 +356,7 @@ declare class DialogV2<Configuration = DialogV2.Configuration, RenderContext = R
   static prompt(options: DialogV2.PromptOptions): Promise<string | null>;
 }
 
-namespace DialogV2 {
+declare namespace DialogV2 {
   interface Configuration extends ApplicationV2.Configuration {
     content?: string;
     buttons?: DialogButton[];
@@ -500,19 +499,8 @@ interface CalendarDate {
 // =============================================================================
 
 /**
- * Collection utility class used by Foundry
+ * Collection utility class used by Foundry - use the FoundryCollection above
  */
-declare class Collection<T> extends Map<string, T> {
-  get(key: string): T | undefined;
-  set(key: string, value: T): this;
-  find(predicate: (value: T) => boolean): T | undefined;
-  filter(predicate: (value: T) => boolean): T[];
-  map<U>(transform: (value: T) => U): U[];
-  [Symbol.iterator](): IterableIterator<T>;
-}
-
-// Use FoundryCollection for actual Foundry objects
-type Collection<T> = FoundryCollection<T>;
 
 // =============================================================================
 // FOUNDRY CONSTANTS
