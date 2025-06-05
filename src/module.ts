@@ -76,6 +76,8 @@ Hooks.once('ready', async () => {
   // Expose API
   setupAPI();
   
+  // Register with Errors and Echoes if available
+  registerErrorsAndEchoes();
 
   // Register UI component hooks
   CalendarWidget.registerHooks();
@@ -886,8 +888,128 @@ function setupAPI(): void {
 
 
 
+/**
+ * Register with Errors and Echoes if available
+ */
+function registerErrorsAndEchoes(): void {
+  // Check if Errors and Echoes is available
+  if (!(window as any).ErrorsAndEchoesAPI) {
+    Logger.debug('Errors and Echoes API not available - skipping registration');
+    return;
+  }
 
-
+  try {
+    Logger.info('Registering with Errors and Echoes');
+    
+    (window as any).ErrorsAndEchoesAPI.register({
+      moduleId: 'seasons-and-stars',
+      
+      // Context provider - adds useful debugging information
+      contextProvider: () => {
+        const context: Record<string, any> = {};
+        
+        // Add calendar information
+        if (calendarManager) {
+          try {
+            const currentDate = calendarManager.getCurrentDate();
+            const activeCalendar = calendarManager.getActiveCalendar();
+            
+            context.currentDate = currentDate ? `${currentDate.year}-${currentDate.month}-${currentDate.day}` : 'unknown';
+            context.activeCalendarId = activeCalendar?.id || 'unknown';
+            context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
+            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
+          } catch (e) {
+            context.calendarError = 'Could not read calendar state';
+          }
+        }
+        
+        // Add notes information
+        if (notesManager) {
+          try {
+            context.notesSystemInitialized = notesManager.isInitialized();
+            // Don't expose note count as it might be sensitive
+          } catch (e) {
+            context.notesError = 'Could not read notes state';
+          }
+        }
+        
+        // Add current scene information
+        if (game.scenes?.active) {
+          const scene = game.scenes.active;
+          context.sceneId = scene.id;
+          context.sceneName = scene.name;
+        }
+        
+        // Add system information
+        context.gameSystem = game.system?.id || 'unknown';
+        context.systemVersion = game.system?.version || 'unknown';
+        context.foundryVersion = game.version || 'unknown';
+        
+        // Add key module settings that might affect behavior
+        try {
+          context.showTimeWidget = game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
+          context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
+          context.showNotifications = game.settings?.get('seasons-and-stars', 'showNotifications') || false;
+        } catch (e) {
+          context.settingsError = 'Could not read module settings';
+        }
+        
+        return context;
+      },
+      
+      // Error filter - only report errors that are likely S&S related
+      errorFilter: (error: Error) => {
+        const stack = error.stack || '';
+        const message = error.message || '';
+        
+        // Report errors that mention our module
+        if (stack.includes('seasons-and-stars') || 
+            message.includes('seasons-and-stars') ||
+            message.includes('S&S') ||
+            stack.includes('CalendarManager') ||
+            stack.includes('CalendarWidget') ||
+            stack.includes('CalendarEngine') ||
+            stack.includes('NotesManager')) {
+          return false; // Don't filter (report this error)
+        }
+        
+        // Report calendar or time-related errors that might affect us
+        if (message.includes('calendar') ||
+            message.includes('worldTime') ||
+            message.includes('time') && (stack.includes('updateWorldTime') || stack.includes('game.time'))) {
+          return false; // Don't filter (might be relevant)
+        }
+        
+        // Filter out errors that are clearly from other modules
+        const otherModules = [
+          'simple-calendar', 'foundryvtt-simple-calendar', 'smalltime',
+          'dice-so-nice', 'lib-wrapper', 'socketlib', 'journeys-and-jamborees'
+        ];
+        
+        for (const module of otherModules) {
+          if (stack.includes(module) && !stack.includes('seasons-and-stars')) {
+            return true; // Filter out (don't report)
+          }
+        }
+        
+        // Report core Foundry errors that might affect our module
+        if (stack.includes('foundry.js') || 
+            stack.includes('ClientDatabaseBackend') ||
+            stack.includes('Application') && message.includes('render')) {
+          return false; // Don't filter (these might affect us)
+        }
+        
+        // Filter out most other errors unless they seem related
+        return true;
+      }
+    });
+    
+    Logger.info('Successfully registered with Errors and Echoes');
+    
+  } catch (error) {
+    Logger.error('Failed to register with Errors and Echoes', error instanceof Error ? error : new Error(String(error)));
+  }
+}
 
 /**
  * Module cleanup

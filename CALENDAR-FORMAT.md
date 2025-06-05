@@ -60,6 +60,14 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
       "leapYearOnly": false,
       "countsForWeekdays": true,
       "description": "A night of survival rites and shared flame. The long dark wanes."
+    },
+    {
+      "name": "Festival of Flames",
+      "days": 3,
+      "after": "Summertide",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "A three-day celebration of the summer's peak with bonfires and feasting."
     }
   ],
   
@@ -128,6 +136,7 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `name` | string | ✅ | Name of the intercalary day/festival |
+| `days` | number | 1 | Number of days in this intercalary period |
 | `after` | string | ✅ | Month name this day comes after |
 | `leapYearOnly` | boolean | false | Only exists in leap years |
 | `countsForWeekdays` | boolean | true | Whether this day advances the weekday |
@@ -277,6 +286,40 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 }
 ```
 
+### Multi-Day Intercalary Festivals
+
+For intercalary periods longer than one day, use the `days` field:
+
+```json
+{
+  "intercalary": [
+    {
+      "name": "Needfest",
+      "days": 7,
+      "after": "Sunsebb",
+      "description": "A week-long festival at year's end celebrating the winter solstice"
+    },
+    {
+      "name": "Cooling Sun",
+      "days": 5,
+      "after": "Gather", 
+      "description": "A five-day period when the sun's killing heat allegedly lessens"
+    },
+    {
+      "name": "Midsummer",
+      "after": "Flamerule",
+      "description": "Single-day festival (defaults to 1 day)"
+    }
+  ]
+}
+```
+
+**Usage Notes:**
+- **Single-day intercalary**: Omit `days` field (defaults to 1)
+- **Multi-day intercalary**: Include explicit `days` field (2-365)
+- **Festival weeks**: Common values are 5-7 days for festival periods
+- **Seasonal breaks**: Longer periods like 10-15 days for major seasonal transitions
+
 ## Validation Rules
 
 ### Required Fields
@@ -287,7 +330,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Data Constraints
 - `id`: Must be unique, alphanumeric with hyphens/underscores
-- `days`: Must be positive integer (1-366)
+- `days` (months): Must be positive integer (1-366)
+- `days` (intercalary): Must be positive integer (1-365), defaults to 1 if omitted
 - `hoursInDay`, `minutesInHour`, `secondsInMinute`: Must be positive integers
 - `epoch`, `currentYear`: Can be negative (BCE/before epoch years)
 - `startDay`: Must be 0 to (weekdays.length - 1)
@@ -362,6 +406,6 @@ Modules can add custom fields in the format:
 
 ---
 
-**Version**: 1.0
-**Last Updated**: 2025-05-30
-**Related**: FOU-83, FOU-84, FOU-85, FOU-86
+**Version**: 1.1
+**Last Updated**: 2025-06-04
+**Related**: FOU-83, FOU-84, FOU-85, FOU-86, FOU-92

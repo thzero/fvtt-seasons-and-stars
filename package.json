@@ -1,10 +1,11 @@
 {
   "name": "seasons-and-stars",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
   "main": "dist/module.js",
   "scripts": {
+    "prebuild": "node scripts/generate-calendar-list.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "typecheck": "tsc --noEmit",

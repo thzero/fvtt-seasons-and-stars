@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-06-05
+
+### Added
+- **Multi-Day Intercalary Support**: Calendar format now supports multi-day festivals and intercalary periods
+  - Enhanced TypeScript interface with `days?: number` field for intercalary periods
+  - Backward compatibility maintained - single-day periods work unchanged
+  - Updated calendar engine to handle complex festivals like Greyhawk's 7-day celebrations
+  - Added 8 new built-in calendars: Dark Sun, Eberron, Exandrian, Forbidden Lands, Forgotten Realms, Golarion PF2e, Greyhawk, Symbaroum, Traveller Imperial, Warhammer
+- **Errors & Echoes Integration**: Optional error reporting module integration
+  - Graceful handling when Errors & Echoes not installed
+  - Rich context provider with calendar state and system information
+  - Smart error filtering for calendar-related issues only
+- **Enhanced Documentation Organization**: Professional public/private documentation separation
+  - Universal documentation standards for clean repositories
+  - Private development documentation moved to local-docs with Obsidian integration
+  - Clear public-facing documentation focused on user value
+
+### Enhanced
+- **Calendar Format**: Multi-day intercalary periods for complex festival systems
+- **Test Coverage**: Expanded to 38 automated tests including multi-day intercalary validation
+- **Real Calendar Support**: Comprehensive testing with actual fantasy calendar systems
+- **TypeScript Definitions**: Enhanced calendar type definitions with multi-day support
+
+### Fixed
+- **Calendar Engine**: Accurate date arithmetic across multi-day intercalary periods
+- **Year Length Calculation**: Correct handling of variable-length intercalary periods
+- **Date Conversion**: Proper world time conversion with complex calendar structures
+
 ## [0.1.0] - 2025-01-15
 
 ### Added

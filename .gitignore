@@ -4,11 +4,24 @@ node_modules/
 # Build output
 dist/
 
+# Generated files
+src/generated/
+
 # Development files
 test-dialog.html
 
-# Claude development memory files
+# Internal documentation (moved to ../local-docs/)
 CLAUDE.md
+*-IMPLEMENTATION.md
+PHASE*.md
+BETA-*.md
+BRIDGE-*.md
+CONVERSION-STRATEGY.md
+TYPESCRIPT-*.md
+PUBLIC-RELEASE-PLAN.md
+*-COMPLETION-SUMMARY.md
+OVERVIEW.md
+internal/
 
 # IDE and editor files
 .vscode/

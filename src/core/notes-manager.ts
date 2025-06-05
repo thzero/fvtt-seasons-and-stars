@@ -68,6 +68,13 @@ export class NotesManager {
   }
 
   /**
+   * Check if the notes manager is initialized
+   */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  /**
    * Initialize the notes manager
    */
   async initialize(): Promise<void> {

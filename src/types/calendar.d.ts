@@ -66,6 +66,7 @@ export interface CalendarWeekday {
 
 export interface CalendarIntercalary {
   name: string;
+  days?: number;
   after: string;
   leapYearOnly: boolean;
   countsForWeekdays: boolean;

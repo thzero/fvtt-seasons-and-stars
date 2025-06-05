@@ -9,6 +9,7 @@ import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
 import { Logger } from './logger';
+import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
 
 export class CalendarManager {
   private calendars: Map<string, SeasonsStarsCalendar> = new Map();
@@ -55,7 +56,7 @@ export class CalendarManager {
    * Load built-in calendar definitions
    */
   async loadBuiltInCalendars(): Promise<void> {
-    const builtInCalendars = ['gregorian', 'vale-reckoning'];
+    const builtInCalendars = BUILT_IN_CALENDARS;
     
     for (const calendarId of builtInCalendars) {
       try {

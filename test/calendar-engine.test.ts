@@ -282,3 +282,192 @@ describe('CalendarEngine - Gregorian Calendar', () => {
     }
   });
 });
+
+describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
+  // Test calendar with multi-day intercalary periods
+  const intercalaryTestCalendar: SeasonsStarsCalendar = {
+    id: 'test-intercalary',
+    translations: {
+      en: {
+        label: 'Test Intercalary',
+        description: 'Test calendar with multi-day intercalary periods',
+        setting: 'Test'
+      }
+    },
+    year: {
+      epoch: 0,
+      currentYear: 1,
+      prefix: '',
+      suffix: '',
+      startDay: 0
+    },
+    leapYear: {
+      rule: 'none'
+    },
+    months: [
+      { name: 'Month1', days: 30 },
+      { name: 'Month2', days: 30 }
+    ],
+    weekdays: [
+      { name: 'Day1' },
+      { name: 'Day2' },
+      { name: 'Day3' }
+    ],
+    intercalary: [
+      {
+        name: 'Festival1',
+        days: 7, // Multi-day festival
+        after: 'Month1',
+        leapYearOnly: false,
+        countsForWeekdays: true,
+        description: '7-day festival after Month1'
+      },
+      {
+        name: 'Festival2', 
+        days: 5, // Multi-day festival
+        after: 'Month2',
+        leapYearOnly: false,
+        countsForWeekdays: true,
+        description: '5-day festival after Month2'
+      }
+    ],
+    time: {
+      hoursInDay: 24,
+      minutesInHour: 60,
+      secondsInMinute: 60
+    }
+  };
+
+  let engine: CalendarEngine;
+
+  beforeEach(() => {
+    engine = new CalendarEngine(intercalaryTestCalendar);
+  });
+
+  it('should validate calendar with multi-day intercalary periods', () => {
+    const result = CalendarValidator.validate(intercalaryTestCalendar);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('should correctly calculate total year length with multi-day intercalary periods', () => {
+    const yearLength = engine.getYearLength(1);
+    // 30 + 30 = 60 (months) + 7 + 5 = 12 (intercalary days) = 72 total
+    expect(yearLength).toBe(72);
+  });
+
+  it('should handle date arithmetic across multi-day intercalary periods', () => {
+    // Start at end of Month1
+    const startDate = {
+      year: 1,
+      month: 1,
+      day: 30,
+      weekday: 0
+    };
+
+    // Add 8 days - should go through 7-day Festival1 and land on Month2 day 1
+    const newDate = engine.addDays(startDate, 8);
+    expect(newDate.year).toBe(1);
+    expect(newDate.month).toBe(2);
+    expect(newDate.day).toBe(1);
+  });
+
+  it('should handle conversion to/from world time with multi-day intercalary periods', () => {
+    // Test dates around intercalary periods
+    const testDates = [
+      { year: 1, month: 1, day: 30, weekday: 0 }, // Last day of Month1
+      { year: 1, month: 2, day: 1, weekday: 0 },  // First day of Month2 (after 7-day festival)
+      { year: 1, month: 2, day: 30, weekday: 0 }  // Last day of Month2 (before 5-day festival)
+    ];
+
+    for (const date of testDates) {
+      const worldTime = engine.dateToWorldTime(date);
+      const converted = engine.worldTimeToDate(worldTime);
+      
+      expect(converted.year).toBe(date.year);
+      expect(converted.month).toBe(date.month);
+      expect(converted.day).toBe(date.day);
+    }
+  });
+
+  it('should handle adding days across year boundary with intercalary periods', () => {
+    // Start at end of Month2
+    const startDate = {
+      year: 1,
+      month: 2,
+      day: 30,
+      weekday: 0
+    };
+
+    // Add 6 days - should go through 5-day Festival2 and land in next year
+    const newDate = engine.addDays(startDate, 6);
+    expect(newDate.year).toBe(2);
+    expect(newDate.month).toBe(1);
+    expect(newDate.day).toBe(1);
+  });
+
+  it('should handle single-day intercalary periods (default behavior)', () => {
+    // Test calendar with traditional single-day intercalary (no days field)
+    const singleDayCalendar: SeasonsStarsCalendar = {
+      ...intercalaryTestCalendar,
+      id: 'test-single-day',
+      intercalary: [
+        {
+          name: 'SingleDay',
+          // No days field - should default to 1
+          after: 'Month1',
+          leapYearOnly: false,
+          countsForWeekdays: true,
+          description: 'Single day festival'
+        }
+      ]
+    };
+
+    const singleEngine = new CalendarEngine(singleDayCalendar);
+    const yearLength = singleEngine.getYearLength(1);
+    // 30 + 30 = 60 (months) + 1 (single intercalary day) = 61 total
+    expect(yearLength).toBe(61);
+  });
+});
+
+describe('CalendarEngine - Real Calendar Integration Tests', () => {
+  it('should load and validate Greyhawk calendar with 7-day festivals', async () => {
+    // Load the actual Greyhawk calendar
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const greyhawkPath = path.resolve('./calendars/greyhawk.json');
+    const greyhawkData = JSON.parse(fs.readFileSync(greyhawkPath, 'utf8'));
+    
+    // Validate the calendar
+    const result = CalendarValidator.validate(greyhawkData);
+    expect(result.isValid).toBe(true);
+    
+    // Test the engine with real data
+    const engine = new CalendarEngine(greyhawkData);
+    const yearLength = engine.getYearLength(591);
+    
+    // Greyhawk: 12 months × 28 days = 336 + 4 festivals × 7 days = 28 = 364 total
+    expect(yearLength).toBe(364);
+  });
+
+  it('should load and validate Dark Sun calendar with 5-day periods', async () => {
+    // Load the actual Dark Sun calendar
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const darkSunPath = path.resolve('./calendars/dark-sun.json');
+    const darkSunData = JSON.parse(fs.readFileSync(darkSunPath, 'utf8'));
+    
+    // Validate the calendar
+    const result = CalendarValidator.validate(darkSunData);
+    expect(result.isValid).toBe(true);
+    
+    // Test the engine with real data
+    const engine = new CalendarEngine(darkSunData);
+    const yearLength = engine.getYearLength(1);
+    
+    // Dark Sun: 12 months × 30 days = 360 + 3 periods × 5 days = 15 = 375 total
+    expect(yearLength).toBe(375);
+  });
+});

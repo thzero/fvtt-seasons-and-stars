@@ -242,20 +242,20 @@ export class CalendarEngine {
       );
       
       for (const intercalary of intercalaryAfterMonth) {
-        if (remainingDays === 0) {
-          // This is an intercalary day
+        const intercalaryDayCount = intercalary.days || 1;
+        
+        if (remainingDays < intercalaryDayCount) {
+          // We're within this intercalary period
           return {
             year,
             month,
-            day: this.calendar.months[month - 1].days,
-            weekday: this.calculateWeekday(year, month, this.calendar.months[month - 1].days),
+            day: this.calendar.months[month - 1].days + remainingDays + 1,
+            weekday: this.calculateWeekday(year, month, this.calendar.months[month - 1].days + remainingDays + 1),
             intercalary: intercalary.name
           };
         }
         
-        if (remainingDays > 0) {
-          remainingDays--;
-        }
+        remainingDays -= intercalaryDayCount;
       }
     }
     
@@ -299,7 +299,10 @@ export class CalendarEngine {
       const intercalaryAfterMonth = intercalaryDays.filter(i => 
         i.after === this.calendar.months[month - 1].name
       );
-      totalDays += intercalaryAfterMonth.length;
+      // Sum up all days from intercalary periods (using days field, defaulting to 1)
+      totalDays += intercalaryAfterMonth.reduce((sum, intercalary) => {
+        return sum + (intercalary.days || 1);
+      }, 0);
     }
     
     // Add days in the target month
@@ -332,7 +335,12 @@ export class CalendarEngine {
     const baseLength = monthLengths.reduce((sum, length) => sum + length, 0);
     const intercalaryDays = this.getIntercalaryDays(year);
     
-    return baseLength + intercalaryDays.length;
+    // Sum up all intercalary days, using the days field (defaulting to 1 for backward compatibility)
+    const totalIntercalaryDays = intercalaryDays.reduce((sum, intercalary) => {
+      return sum + (intercalary.days || 1);
+    }, 0);
+    
+    return baseLength + totalIntercalaryDays;
   }
 
   /**

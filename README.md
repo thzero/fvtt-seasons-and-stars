@@ -1,14 +1,14 @@
 # Seasons & Stars
 
-A modern calendar and timekeeping module for Foundry VTT v13+ with clean integration APIs and extensible architecture.
+A calendar and timekeeping module for Foundry VTT v13+ with clean integration APIs and extensible architecture.
 
 ## 🌟 Features
 
-### ✅ **Available Now (Beta)**
+### ✅ **Available Now (Alpha)**
 - **Modern UI**: Clean, responsive calendar interface with ApplicationV2 architecture
 - **Multiple Calendar Views**: Full calendar widget, compact mini widget, and monthly grid view
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
-- **Real-World Integration**: Gregorian calendars automatically initialize with current date/time
+- **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency
 - **Multiple Calendar Support**: Switch between Gregorian, Vale Reckoning, and custom calendars
@@ -83,7 +83,7 @@ Hooks.on('seasons-stars:dateChanged', (data) => {
 ## 📋 Requirements
 
 - **Foundry VTT**: v13 or higher
-- **Compatibility**: All game systems (system-agnostic design)
+- **Compatibility**: Intended for all game systems (system-agnostic design)
 - **Permissions**: GM required for time changes
 
 ## 🔧 Development
@@ -141,4 +141,4 @@ See the complete [Roadmap](./docs/ROADMAP.md) for detailed timelines.
 
 ---
 
-**Ready to modernize your calendar system?** Install Seasons & Stars today and experience the difference!
+**Ready to try a calendar system built for Foundry v13+?** Install Seasons & Stars today and experience the difference!
