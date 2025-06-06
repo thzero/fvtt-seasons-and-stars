@@ -1152,16 +1152,15 @@ Hooks.once('destroy', () => {
  * Register with Memory Mage module if available
  */
 function registerMemoryMageIntegration(): void {
-  // Check if Memory Mage is available
-  const memoryMage = (globalThis as any).memoryMage;
-  if (!memoryMage) {
-    Logger.info('Memory Mage not available - skipping memory monitoring integration');
-    return;
-  }
-
-  Logger.info('Registering with Memory Mage for memory monitoring');
-
   try {
+    // Check if Memory Mage is available (standard Foundry module pattern)
+    const memoryMage = (game as any).memoryMage || (game.modules?.get('memory-mage') as any)?.api;
+    if (!memoryMage) {
+      Logger.info('Memory Mage not available - skipping memory monitoring integration');
+      return;
+    }
+
+    Logger.info('Registering with Memory Mage for memory monitoring');
     // Register self-reporting memory usage
     memoryMage.registerModule('seasons-and-stars', () => {
       const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
@@ -1211,7 +1210,7 @@ function registerMemoryMageIntegration(): void {
 
     Logger.info('Memory Mage integration registered successfully');
   } catch (error) {
-    Logger.warn('Failed to register with Memory Mage:', error);
+    Logger.warn('Failed to register with Memory Mage - module will continue without memory monitoring:', error);
   }
 }
 
