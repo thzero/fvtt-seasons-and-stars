@@ -6,23 +6,31 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
-export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   private viewDate: ICalendarDate;
   private static activeInstance: CalendarGridWidget | null = null;
-  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
+  private sidebarButtons: Array<{
+    name: string;
+    icon: string;
+    tooltip: string;
+    callback: Function;
+  }> = [];
 
   constructor(initialDate?: ICalendarDate) {
     super();
-    
+
     // Use provided date or current date
     const manager = game.seasonsStars?.manager;
-    this.viewDate = initialDate || manager?.getCurrentDate() || {
-      year: 2024,
-      month: 1,
-      day: 1,
-      weekday: 0,
-      time: { hour: 0, minute: 0, second: 0 }
-    };
+    this.viewDate = initialDate ||
+      manager?.getCurrentDate() || {
+        year: 2024,
+        month: 1,
+        day: 1,
+        weekday: 0,
+        time: { hour: 0, minute: 0, second: 0 },
+      };
   }
 
   static DEFAULT_OPTIONS = {
@@ -35,11 +43,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       title: 'SEASONS_STARS.calendar.monthly_view',
       icon: 'fa-solid fa-calendar',
       minimizable: false,
-      resizable: false
+      resizable: false,
     },
     position: {
       width: 400,
-      height: 'auto' as const
+      height: 'auto' as const,
     },
     actions: {
       previousMonth: CalendarGridWidget.prototype._onPreviousMonth,
@@ -49,15 +57,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       selectDate: CalendarGridWidget.prototype._onSelectDate,
       goToToday: CalendarGridWidget.prototype._onGoToToday,
       setYear: CalendarGridWidget.prototype._onSetYear,
-      createNote: CalendarGridWidget.prototype._onCreateNote
-    }
+      createNote: CalendarGridWidget.prototype._onCreateNote,
+    },
   };
 
   static PARTS = {
     main: {
       id: 'main',
-      template: 'modules/seasons-and-stars/templates/calendar-grid-widget.hbs'
-    }
+      template: 'modules/seasons-and-stars/templates/calendar-grid-widget.hbs',
+    },
   };
 
   /**
@@ -65,10 +73,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onRender(context: any, options: any): Promise<void> {
     await super._onRender(context, options);
-    
+
     // Register as active instance
     CalendarGridWidget.activeInstance = this;
-    
+
     // Render any existing sidebar buttons
     this.renderExistingSidebarButtons();
   }
@@ -78,27 +86,27 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
-    
+
     const manager = game.seasonsStars?.manager;
-    
+
     if (!manager) {
       return Object.assign(context, {
-        error: 'Calendar manager not initialized'
+        error: 'Calendar manager not initialized',
       });
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
-    
+
     if (!activeCalendar || !currentDate) {
       return Object.assign(context, {
-        error: 'No active calendar'
+        error: 'No active calendar',
       });
     }
 
     const calendarInfo = CalendarLocalization.getLocalizedCalendarInfo(activeCalendar);
     const monthData = this.generateMonthData(activeCalendar, this.viewDate, currentDate);
-    
+
     return Object.assign(context, {
       calendar: calendarInfo,
       viewDate: this.viewDate,
@@ -111,8 +119,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weekdays: activeCalendar.weekdays.map(wd => ({
         name: wd.name,
         abbreviation: wd.abbreviation,
-        description: wd.description
-      }))
+        description: wd.description,
+      })),
     });
   }
 
@@ -129,21 +137,24 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     // Calculate month length (considering leap years)
     const monthLength = engine.getMonthLength(viewDate.month, viewDate.year);
-    
+
     // Find the first day of the month and its weekday
     const firstDay: ICalendarDate = {
       year: viewDate.year,
       month: viewDate.month,
       day: 1,
       weekday: engine.calculateWeekday(viewDate.year, viewDate.month, 1),
-      time: { hour: 0, minute: 0, second: 0 }
+      time: { hour: 0, minute: 0, second: 0 },
     };
 
     // Get notes for this month for note indicators with category information
     const notesManager = game.seasonsStars?.notes;
     const categories = game.seasonsStars?.categories;
-    const monthNotes = new Map<string, { count: number; primaryCategory: string; categories: Set<string> }>(); // dateKey -> note data
-    
+    const monthNotes = new Map<
+      string,
+      { count: number; primaryCategory: string; categories: Set<string> }
+    >(); // dateKey -> note data
+
     if (notesManager) {
       // Get all notes for the month
       const monthStart: ICalendarDate = {
@@ -151,15 +162,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         month: viewDate.month,
         day: 1,
         weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       };
-      
+
       const monthEnd: ICalendarDate = {
         year: viewDate.year,
         month: viewDate.month,
         day: monthLength,
         weekday: 0,
-        time: { hour: 23, minute: 59, second: 59 }
+        time: { hour: 23, minute: 59, second: 59 },
       };
 
       // Get notes synchronously for UI performance
@@ -170,34 +181,34 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             month: viewDate.month,
             day: day,
             weekday: 0,
-            time: { hour: 0, minute: 0, second: 0 }
+            time: { hour: 0, minute: 0, second: 0 },
           };
-          
+
           const notes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
           if (notes.length > 0) {
             const dateKey = this.formatDateKey(dayDate);
             const dayCategories = new Set<string>();
-            
+
             // Gather categories from all notes for this day
             notes.forEach(note => {
               const category = note.flags?.['seasons-and-stars']?.category || 'general';
               dayCategories.add(category);
             });
-            
+
             // Determine primary category (most common, or first if tied)
             const categoryCount = new Map<string, number>();
             notes.forEach(note => {
               const category = note.flags?.['seasons-and-stars']?.category || 'general';
               categoryCount.set(category, (categoryCount.get(category) || 0) + 1);
             });
-            
-            const primaryCategory = Array.from(categoryCount.entries())
-              .sort((a, b) => b[1] - a[1])[0]?.[0] || 'general';
-            
+
+            const primaryCategory =
+              Array.from(categoryCount.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || 'general';
+
             monthNotes.set(dateKey, {
               count: notes.length,
               primaryCategory,
-              categories: dayCategories
+              categories: dayCategories,
             });
           }
         }
@@ -209,7 +220,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Build calendar grid
     const weeks: Array<Array<any>> = [];
     let currentWeek: Array<any> = [];
-    
+
     // Fill in empty cells before month starts
     const startWeekday = firstDay.weekday || 0;
     for (let i = 0; i < startWeekday; i++) {
@@ -223,7 +234,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         month: viewDate.month,
         day: day,
         weekday: engine.calculateWeekday(viewDate.year, viewDate.month, day),
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       };
 
       const isToday = this.isSameDate(dayDate, currentDate);
@@ -232,7 +243,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const noteData = monthNotes.get(dateKey);
       const noteCount = noteData?.count || 0;
       const hasNotes = noteCount > 0;
-      
+
       // Determine category class for styling
       let categoryClass = '';
       if (hasNotes && noteData) {
@@ -256,7 +267,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         noteMultiple: noteCount > 1,
         categoryClass: categoryClass,
         primaryCategory: noteData?.primaryCategory || 'general',
-        canCreateNote: this.canCreateNote()
+        canCreateNote: this.canCreateNote(),
       });
 
       // Start new week on last day of week
@@ -278,7 +289,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weeks: weeks,
       totalDays: monthLength,
       monthName: monthInfo.name,
-      monthDescription: monthInfo.description
+      monthDescription: monthInfo.description,
     };
   }
 
@@ -295,10 +306,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   private canCreateNote(): boolean {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) return false;
-    
+
     const user = game.user;
     if (!user) return false;
-    
+
     // Check permission via notes manager
     return notesManager.permissions?.canCreateNote(user) || false;
   }
@@ -307,9 +318,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Check if two dates are the same (ignoring time)
    */
   private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
-    return date1.year === date2.year && 
-           date1.month === date2.month && 
-           date1.day === date2.day;
+    return date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
   }
 
   /**
@@ -317,7 +326,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onPreviousMonth(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return;
 
@@ -330,7 +339,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onNextMonth(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return;
 
@@ -343,7 +352,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onPreviousYear(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return;
 
@@ -356,7 +365,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onNextYear(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return;
 
@@ -369,7 +378,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onSelectDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     if (!game.user?.isGM) {
       ui.notifications?.warn('Only GMs can change the current date');
       return;
@@ -390,18 +399,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         month: this.viewDate.month,
         day: day,
         weekday: engine.calculateWeekday(this.viewDate.year, this.viewDate.month, day),
-        time: currentDate.time || { hour: 0, minute: 0, second: 0 }
+        time: currentDate.time || { hour: 0, minute: 0, second: 0 },
       };
 
       // Set the target date
       await manager.setCurrentDate(targetDate);
 
-      ui.notifications?.info(`Date set to ${targetDate.year}-${targetDate.month.toString().padStart(2, '0')}-${targetDate.day.toString().padStart(2, '0')}`);
-      
+      ui.notifications?.info(
+        `Date set to ${targetDate.year}-${targetDate.month.toString().padStart(2, '0')}-${targetDate.day.toString().padStart(2, '0')}`
+      );
+
       // Update view date to selected date
       this.viewDate = targetDate;
       this.render();
-      
     } catch (error) {
       Logger.error('Failed to set date', error as Error);
       ui.notifications?.error('Failed to set date');
@@ -413,7 +423,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onGoToToday(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
@@ -427,15 +437,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onSetYear(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return;
 
     // Create a simple input dialog
     const currentYear = this.viewDate.year;
-    const newYear = await new Promise<number | null>((resolve) => {
+    const newYear = await new Promise<number | null>(resolve => {
       new Dialog({
-        title: "Set Year",
+        title: 'Set Year',
         content: `
           <form>
             <div class="form-group">
@@ -447,25 +457,25 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         buttons: {
           ok: {
             icon: '<i class="fas fa-check"></i>',
-            label: "Set Year",
+            label: 'Set Year',
             callback: (html: JQuery) => {
               const yearInput = html.find('input[name="year"]').val() as string;
               const year = parseInt(yearInput);
               if (!isNaN(year) && year > 0) {
                 resolve(year);
               } else {
-                ui.notifications?.error("Please enter a valid year");
+                ui.notifications?.error('Please enter a valid year');
                 resolve(null);
               }
-            }
+            },
           },
           cancel: {
             icon: '<i class="fas fa-times"></i>',
-            label: "Cancel",
-            callback: () => resolve(null)
-          }
+            label: 'Cancel',
+            callback: () => resolve(null),
+          },
         },
-        default: "ok"
+        default: 'ok',
       }).render(true);
     });
 
@@ -481,10 +491,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onCreateNote(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
-      ui.notifications?.error("Notes system not available");
+      ui.notifications?.error('Notes system not available');
       return;
     }
 
@@ -497,7 +507,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Get the date from the clicked element
     const dayElement = target.closest('.calendar-day');
     if (!dayElement) return;
-    
+
     const day = parseInt(dayElement.getAttribute('data-day') || '0');
     if (!day) return;
 
@@ -506,7 +516,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       month: this.viewDate.month,
       day: day,
       weekday: 0, // Will be calculated by the engine
-      time: { hour: 0, minute: 0, second: 0 }
+      time: { hour: 0, minute: 0, second: 0 },
     };
 
     // Show note creation dialog
@@ -516,13 +526,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     try {
       const note = await notesManager.createNote(noteData);
       ui.notifications?.info(`Created note: ${noteData.title}`);
-      
+
       // Refresh the calendar to show the new note indicator
       this.render();
-      
+
       // Emit hook for other modules
       Hooks.callAll('seasons-stars:noteCreated', note);
-      
     } catch (error) {
       Logger.error('Failed to create note', error as Error);
       ui.notifications?.error('Failed to create note');
@@ -535,26 +544,29 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   private async showCreateNoteDialog(date: ICalendarDate): Promise<any | null> {
     const categories = game.seasonsStars?.categories;
     if (!categories) {
-      ui.notifications?.error("Note categories system not available");
+      ui.notifications?.error('Note categories system not available');
       return null;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const dateStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
-      
+
       // Build category options from the categories system
       const availableCategories = categories.getCategories();
-      const categoryOptions = availableCategories.map(cat => 
-        `<option value="${cat.id}" style="color: ${cat.color};">
+      const categoryOptions = availableCategories
+        .map(
+          cat =>
+            `<option value="${cat.id}" style="color: ${cat.color};">
           ${cat.name} ${cat.description ? `- ${cat.description}` : ''}
         </option>`
-      ).join('');
+        )
+        .join('');
 
       // Get predefined tags for suggestions
       const predefinedTags = categories.getPredefinedTags();
-      const tagSuggestions = predefinedTags.map(tag => 
-        `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`
-      ).join(' ');
+      const tagSuggestions = predefinedTags
+        .map(tag => `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`)
+        .join(' ');
 
       new Dialog({
         title: `Create Note for ${dateStr}`,
@@ -753,17 +765,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         buttons: {
           create: {
             icon: '<i class="fas fa-plus"></i>',
-            label: "Create Note",
+            label: 'Create Note',
             callback: (html: JQuery) => {
               const form = html.find('form')[0] as HTMLFormElement;
               const formData = new FormData(form);
-              
+
               const title = formData.get('title') as string;
               const content = formData.get('content') as string;
               const tagsString = formData.get('tags') as string;
-              
+
               if (!title?.trim()) {
-                ui.notifications?.error("Note title is required");
+                ui.notifications?.error('Note title is required');
                 resolve(null);
                 return;
               }
@@ -771,7 +783,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               // Parse tags
               const tags = categories.parseTagString(tagsString);
               const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
-              
+
               if (invalidTags.length > 0) {
                 ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
               }
@@ -781,7 +793,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               if (formData.has('isRecurring')) {
                 const frequency = formData.get('frequency') as string;
                 const interval = parseInt(formData.get('interval') as string) || 1;
-                
+
                 recurringPattern = {
                   frequency: frequency as any,
                   interval,
@@ -791,9 +803,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                   monthWeek: undefined,
                   monthWeekday: undefined,
                   yearMonth: undefined,
-                  yearDay: undefined
+                  yearDay: undefined,
                 };
-                
+
                 // Add end date if specified
                 const endDateStr = formData.get('endDate') as string;
                 if (endDateStr) {
@@ -804,11 +816,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                       month: parseInt(endDateParts[1]),
                       day: parseInt(endDateParts[2]),
                       weekday: 0,
-                      time: { hour: 23, minute: 59, second: 59 }
+                      time: { hour: 23, minute: 59, second: 59 },
                     };
                   }
                 }
-                
+
                 // Add frequency-specific options
                 if (frequency === 'weekly') {
                   const weekdays: string[] = [];
@@ -835,27 +847,28 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 content: content || '',
                 startDate: date,
                 allDay: formData.has('allDay'),
-                category: formData.get('category') as string || categories.getDefaultCategory().id,
+                category:
+                  (formData.get('category') as string) || categories.getDefaultCategory().id,
                 tags: validTags,
                 playerVisible: formData.has('playerVisible'),
-                recurring: recurringPattern
+                recurring: recurringPattern,
               });
-            }
+            },
           },
           cancel: {
             icon: '<i class="fas fa-times"></i>',
-            label: "Cancel",
-            callback: () => resolve(null)
-          }
+            label: 'Cancel',
+            callback: () => resolve(null),
+          },
         },
-        default: "create",
+        default: 'create',
         render: (html: JQuery) => {
           // Add click handlers for tag suggestions
-          html.find('.tag-suggestion').on('click', function() {
+          html.find('.tag-suggestion').on('click', function () {
             const tag = $(this).data('tag');
             const tagsInput = html.find('input[name="tags"]');
             const currentTags = tagsInput.val() as string;
-            
+
             if (currentTags) {
               tagsInput.val(currentTags + ', ' + tag);
             } else {
@@ -864,7 +877,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Update category select styling based on selection
-          html.find('.category-select').on('change', function() {
+          html.find('.category-select').on('change', function () {
             const selectedCat = categories.getCategory($(this).val() as string);
             if (selectedCat) {
               $(this).css('border-left', `4px solid ${selectedCat.color}`);
@@ -873,42 +886,52 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
           // Trigger initial styling
           html.find('.category-select').trigger('change');
-          
+
           // Recurring options toggle
-          html.find('.recurring-toggle').on('change', function() {
+          html.find('.recurring-toggle').on('change', function () {
             const isChecked = $(this).is(':checked');
             html.find('.recurring-options').toggle(isChecked);
           });
-          
+
           // Frequency selection changes
-          html.find('.frequency-select').on('change', function() {
+          html.find('.frequency-select').on('change', function () {
             const frequency = $(this).val();
             const intervalLabel = html.find('.interval-label');
-            
+
             // Update interval label
             switch (frequency) {
-              case 'daily': intervalLabel.text('day(s)'); break;
-              case 'weekly': intervalLabel.text('week(s)'); break;
-              case 'monthly': intervalLabel.text('month(s)'); break;
-              case 'yearly': intervalLabel.text('year(s)'); break;
+              case 'daily':
+                intervalLabel.text('day(s)');
+                break;
+              case 'weekly':
+                intervalLabel.text('week(s)');
+                break;
+              case 'monthly':
+                intervalLabel.text('month(s)');
+                break;
+              case 'yearly':
+                intervalLabel.text('year(s)');
+                break;
             }
-            
+
             // Show/hide frequency-specific options
             html.find('.weekly-options').toggle(frequency === 'weekly');
             html.find('.monthly-options').toggle(frequency === 'monthly');
             html.find('.yearly-options').toggle(frequency === 'yearly');
           });
-          
+
           // Monthly type radio changes
-          html.find('input[name="monthlyType"]').on('change', function() {
+          html.find('input[name="monthlyType"]').on('change', function () {
             const isWeekday = $(this).val() === 'weekday';
             html.find('input[name="monthDay"]').prop('disabled', isWeekday);
-            html.find('select[name="monthWeek"], select[name="monthWeekday"]').prop('disabled', !isWeekday);
+            html
+              .find('select[name="monthWeek"], select[name="monthWeekday"]')
+              .prop('disabled', !isWeekday);
           });
-          
+
           // Trigger initial frequency setup
           html.find('.frequency-select').trigger('change');
-        }
+        },
       }).render(true);
     });
   }
@@ -931,7 +954,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     if (CalendarGridWidget.activeInstance === this) {
       CalendarGridWidget.activeInstance = null;
     }
-    
+
     return super.close(options);
   }
 
@@ -1028,18 +1051,25 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Render a sidebar button in the grid widget header
    */
-  private renderSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+  private renderSidebarButton(
+    name: string,
+    icon: string,
+    tooltip: string,
+    callback: Function
+  ): void {
     if (!this.element) return;
 
     const buttonId = `grid-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-    
+
     // Don't add if already exists in DOM
     if (this.element.querySelector(`#${buttonId}`)) {
       return;
     }
 
     // Find window controls area in header
-    let windowControls = this.element.querySelector('.window-header .window-controls') as HTMLElement;
+    let windowControls = this.element.querySelector(
+      '.window-header .window-controls'
+    ) as HTMLElement;
     if (!windowControls) {
       // Try to find window header and add controls area
       const windowHeader = this.element.querySelector('.window-header');
@@ -1073,7 +1103,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     `;
 
     // Add click handler
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
       try {

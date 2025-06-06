@@ -14,20 +14,20 @@ const gregorianCalendar: SeasonsStarsCalendar = {
     en: {
       label: 'Test Gregorian',
       description: 'Test calendar',
-      setting: 'Test'
-    }
+      setting: 'Test',
+    },
   },
   year: {
     epoch: 2024,
     currentYear: 2024,
     prefix: '',
     suffix: ' CE',
-    startDay: 1 // Monday
+    startDay: 1, // Monday
   },
   leapYear: {
     rule: 'gregorian',
     month: 'February',
-    extraDays: 1
+    extraDays: 1,
   },
   months: [
     { name: 'January', days: 31 },
@@ -41,7 +41,7 @@ const gregorianCalendar: SeasonsStarsCalendar = {
     { name: 'September', days: 30 },
     { name: 'October', days: 31 },
     { name: 'November', days: 30 },
-    { name: 'December', days: 31 }
+    { name: 'December', days: 31 },
   ],
   weekdays: [
     { name: 'Sunday' },
@@ -50,14 +50,14 @@ const gregorianCalendar: SeasonsStarsCalendar = {
     { name: 'Wednesday' },
     { name: 'Thursday' },
     { name: 'Friday' },
-    { name: 'Saturday' }
+    { name: 'Saturday' },
   ],
   intercalary: [],
   time: {
     hoursInDay: 24,
     minutesInHour: 60,
-    secondsInMinute: 60
-  }
+    secondsInMinute: 60,
+  },
 };
 
 // Simple test calendar
@@ -67,34 +67,30 @@ const simpleCalendar: SeasonsStarsCalendar = {
     en: {
       label: 'Test Simple',
       description: 'Simple test calendar',
-      setting: 'Test'
-    }
+      setting: 'Test',
+    },
   },
   year: {
     epoch: 0,
     currentYear: 1,
     prefix: '',
     suffix: '',
-    startDay: 0
+    startDay: 0,
   },
   leapYear: {
-    rule: 'none'
+    rule: 'none',
   },
   months: [
     { name: 'Month1', days: 30 },
-    { name: 'Month2', days: 30 }
+    { name: 'Month2', days: 30 },
   ],
-  weekdays: [
-    { name: 'Day1' },
-    { name: 'Day2' },
-    { name: 'Day3' }
-  ],
+  weekdays: [{ name: 'Day1' }, { name: 'Day2' }, { name: 'Day3' }],
   intercalary: [],
   time: {
     hoursInDay: 24,
     minutesInHour: 60,
-    secondsInMinute: 60
-  }
+    secondsInMinute: 60,
+  },
 };
 
 describe('CalendarValidator', () => {
@@ -135,7 +131,7 @@ describe('CalendarEngine - Basic Operations', () => {
     const date = engine.worldTimeToDate(0);
     expect(date.year).toBe(0); // epoch is 0
     expect(date.month).toBe(1); // 1-based months
-    expect(date.day).toBe(1);   // 1-based days
+    expect(date.day).toBe(1); // 1-based days
     expect(date.weekday).toBe(0); // startDay is 0
   });
 
@@ -144,9 +140,9 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 0, // Use epoch year
       month: 1,
       day: 1,
-      weekday: 0
+      weekday: 0,
     };
-    
+
     const worldTime = engine.dateToWorldTime(date);
     expect(worldTime).toBe(0); // Should be epoch
   });
@@ -156,7 +152,7 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 1,
       month: 1,
       day: 1,
-      weekday: 0
+      weekday: 0,
     };
 
     const newDate = engine.addDays(startDate, 5);
@@ -171,7 +167,7 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 1,
       month: 1,
       day: 25,
-      weekday: 0
+      weekday: 0,
     };
 
     const newDate = engine.addDays(startDate, 10); // Should go into next month
@@ -185,7 +181,7 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 1,
       month: 2,
       day: 25,
-      weekday: 0
+      weekday: 0,
     };
 
     const newDate = engine.addDays(startDate, 10); // Should go into next year
@@ -199,7 +195,7 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 1,
       month: 1,
       day: 15,
-      weekday: 0
+      weekday: 0,
     };
 
     const newDate = engine.addMonths(startDate, 1);
@@ -213,7 +209,7 @@ describe('CalendarEngine - Basic Operations', () => {
       year: 1,
       month: 1,
       day: 15,
-      weekday: 0
+      weekday: 0,
     };
 
     const newDate = engine.addYears(startDate, 1);
@@ -234,14 +230,14 @@ describe('CalendarEngine - Gregorian Calendar', () => {
     // Test leap year date
     const leapYearDate = {
       year: 2024, // 2024 is a leap year
-      month: 2,   // February
-      day: 29,    // 29th day
-      weekday: 0
+      month: 2, // February
+      day: 29, // 29th day
+      weekday: 0,
     };
 
     const worldTime = engine.dateToWorldTime(leapYearDate);
     const convertedBack = engine.worldTimeToDate(worldTime);
-    
+
     expect(convertedBack.year).toBe(2024);
     expect(convertedBack.month).toBe(2);
     expect(convertedBack.day).toBe(29);
@@ -251,14 +247,14 @@ describe('CalendarEngine - Gregorian Calendar', () => {
     // Test that February 29 doesn't exist in non-leap years
     const nonLeapYearDate = {
       year: 2023, // 2023 is not a leap year
-      month: 3,   // March
-      day: 1,     // 1st day
-      weekday: 0
+      month: 3, // March
+      day: 1, // 1st day
+      weekday: 0,
     };
 
     const worldTime = engine.dateToWorldTime(nonLeapYearDate);
     const convertedBack = engine.worldTimeToDate(worldTime);
-    
+
     expect(convertedBack.year).toBe(2023);
     expect(convertedBack.month).toBe(3);
     expect(convertedBack.day).toBe(1);
@@ -266,16 +262,16 @@ describe('CalendarEngine - Gregorian Calendar', () => {
 
   it('should roundtrip dates correctly', () => {
     const testDates = [
-      { year: 2024, month: 1, day: 1, weekday: 0 },    // New Year
-      { year: 2024, month: 2, day: 29, weekday: 0 },   // Leap day
-      { year: 2024, month: 12, day: 31, weekday: 0 },  // End of year
-      { year: 2025, month: 6, day: 15, weekday: 0 }    // Mid-year
+      { year: 2024, month: 1, day: 1, weekday: 0 }, // New Year
+      { year: 2024, month: 2, day: 29, weekday: 0 }, // Leap day
+      { year: 2024, month: 12, day: 31, weekday: 0 }, // End of year
+      { year: 2025, month: 6, day: 15, weekday: 0 }, // Mid-year
     ];
 
     for (const date of testDates) {
       const worldTime = engine.dateToWorldTime(date);
       const converted = engine.worldTimeToDate(worldTime);
-      
+
       expect(converted.year).toBe(date.year);
       expect(converted.month).toBe(date.month);
       expect(converted.day).toBe(date.day);
@@ -291,28 +287,24 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
       en: {
         label: 'Test Intercalary',
         description: 'Test calendar with multi-day intercalary periods',
-        setting: 'Test'
-      }
+        setting: 'Test',
+      },
     },
     year: {
       epoch: 0,
       currentYear: 1,
       prefix: '',
       suffix: '',
-      startDay: 0
+      startDay: 0,
     },
     leapYear: {
-      rule: 'none'
+      rule: 'none',
     },
     months: [
       { name: 'Month1', days: 30 },
-      { name: 'Month2', days: 30 }
+      { name: 'Month2', days: 30 },
     ],
-    weekdays: [
-      { name: 'Day1' },
-      { name: 'Day2' },
-      { name: 'Day3' }
-    ],
+    weekdays: [{ name: 'Day1' }, { name: 'Day2' }, { name: 'Day3' }],
     intercalary: [
       {
         name: 'Festival1',
@@ -320,22 +312,22 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
         after: 'Month1',
         leapYearOnly: false,
         countsForWeekdays: true,
-        description: '7-day festival after Month1'
+        description: '7-day festival after Month1',
       },
       {
-        name: 'Festival2', 
+        name: 'Festival2',
         days: 5, // Multi-day festival
         after: 'Month2',
         leapYearOnly: false,
         countsForWeekdays: true,
-        description: '5-day festival after Month2'
-      }
+        description: '5-day festival after Month2',
+      },
     ],
     time: {
       hoursInDay: 24,
       minutesInHour: 60,
-      secondsInMinute: 60
-    }
+      secondsInMinute: 60,
+    },
   };
 
   let engine: CalendarEngine;
@@ -362,7 +354,7 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
       year: 1,
       month: 1,
       day: 30,
-      weekday: 0
+      weekday: 0,
     };
 
     // Add 8 days - should go through 7-day Festival1 and land on Month2 day 1
@@ -376,14 +368,14 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
     // Test dates around intercalary periods
     const testDates = [
       { year: 1, month: 1, day: 30, weekday: 0 }, // Last day of Month1
-      { year: 1, month: 2, day: 1, weekday: 0 },  // First day of Month2 (after 7-day festival)
-      { year: 1, month: 2, day: 30, weekday: 0 }  // Last day of Month2 (before 5-day festival)
+      { year: 1, month: 2, day: 1, weekday: 0 }, // First day of Month2 (after 7-day festival)
+      { year: 1, month: 2, day: 30, weekday: 0 }, // Last day of Month2 (before 5-day festival)
     ];
 
     for (const date of testDates) {
       const worldTime = engine.dateToWorldTime(date);
       const converted = engine.worldTimeToDate(worldTime);
-      
+
       expect(converted.year).toBe(date.year);
       expect(converted.month).toBe(date.month);
       expect(converted.day).toBe(date.day);
@@ -396,7 +388,7 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
       year: 1,
       month: 2,
       day: 30,
-      weekday: 0
+      weekday: 0,
     };
 
     // Add 6 days - should go through 5-day Festival2 and land in next year
@@ -418,9 +410,9 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
           after: 'Month1',
           leapYearOnly: false,
           countsForWeekdays: true,
-          description: 'Single day festival'
-        }
-      ]
+          description: 'Single day festival',
+        },
+      ],
     };
 
     const singleEngine = new CalendarEngine(singleDayCalendar);
@@ -435,18 +427,18 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     // Load the actual Greyhawk calendar
     const fs = await import('fs');
     const path = await import('path');
-    
+
     const greyhawkPath = path.resolve('./calendars/greyhawk.json');
     const greyhawkData = JSON.parse(fs.readFileSync(greyhawkPath, 'utf8'));
-    
+
     // Validate the calendar
     const result = CalendarValidator.validate(greyhawkData);
     expect(result.isValid).toBe(true);
-    
+
     // Test the engine with real data
     const engine = new CalendarEngine(greyhawkData);
     const yearLength = engine.getYearLength(591);
-    
+
     // Greyhawk: 12 months × 28 days = 336 + 4 festivals × 7 days = 28 = 364 total
     expect(yearLength).toBe(364);
   });
@@ -455,18 +447,18 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     // Load the actual Dark Sun calendar
     const fs = await import('fs');
     const path = await import('path');
-    
+
     const darkSunPath = path.resolve('./calendars/dark-sun.json');
     const darkSunData = JSON.parse(fs.readFileSync(darkSunPath, 'utf8'));
-    
+
     // Validate the calendar
     const result = CalendarValidator.validate(darkSunData);
     expect(result.isValid).toBe(true);
-    
+
     // Test the engine with real data
     const engine = new CalendarEngine(darkSunData);
     const yearLength = engine.getYearLength(1);
-    
+
     // Dark Sun: 12 months × 30 days = 360 + 3 periods × 5 days = 15 = 375 total
     expect(yearLength).toBe(375);
   });

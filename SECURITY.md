@@ -42,12 +42,14 @@ If you discover a security vulnerability in Seasons & Stars, please report it re
 When using Seasons & Stars:
 
 ### For GMs and Users
+
 - **Keep Updated**: Always use the latest version for security fixes
 - **Foundry Security**: Follow Foundry VTT security best practices
 - **Module Permissions**: Review permissions for all installed modules
 - **Data Backup**: Regularly backup your calendar data and notes
 
 ### For Developers
+
 - **Input Validation**: All user inputs are validated and sanitized
 - **Permission Checks**: Calendar modifications require appropriate GM permissions
 - **Data Integrity**: Calendar data is validated before storage
@@ -56,11 +58,13 @@ When using Seasons & Stars:
 ## Known Security Considerations
 
 ### Calendar Data
+
 - Calendar notes may contain sensitive campaign information
 - Consider world-level permissions when sharing calendar access
 - Custom calendar definitions are processed as JSON (no code execution)
 
 ### Module Integration
+
 - Bridge modules operate with limited permissions
 - Third-party integrations use public APIs only
 - No sensitive data is logged or transmitted
@@ -80,4 +84,4 @@ When using Seasons & Stars:
 
 ---
 
-*Last updated: December 2024*
+_Last updated: December 2024_

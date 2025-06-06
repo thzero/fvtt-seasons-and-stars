@@ -27,57 +27,57 @@ export const DEFAULT_CATEGORIES: NoteCategory[] = [
     icon: 'fas fa-sticky-note',
     color: '#4a90e2',
     description: 'General notes and reminders',
-    isDefault: true
+    isDefault: true,
   },
   {
     id: 'event',
     name: 'Event',
     icon: 'fas fa-calendar-star',
     color: '#7b68ee',
-    description: 'Special events and occasions'
+    description: 'Special events and occasions',
   },
   {
     id: 'reminder',
     name: 'Reminder',
     icon: 'fas fa-bell',
     color: '#ffa500',
-    description: 'Important reminders and deadlines'
+    description: 'Important reminders and deadlines',
   },
   {
     id: 'weather',
     name: 'Weather',
     icon: 'fas fa-cloud-sun',
     color: '#87ceeb',
-    description: 'Weather conditions and patterns'
+    description: 'Weather conditions and patterns',
   },
   {
     id: 'story',
     name: 'Story',
     icon: 'fas fa-book-open',
     color: '#98fb98',
-    description: 'Story events and narrative notes'
+    description: 'Story events and narrative notes',
   },
   {
     id: 'combat',
     name: 'Combat',
     icon: 'fas fa-crossed-swords',
     color: '#dc143c',
-    description: 'Combat encounters and battles'
+    description: 'Combat encounters and battles',
   },
   {
     id: 'travel',
     name: 'Travel',
     icon: 'fas fa-route',
     color: '#daa520',
-    description: 'Travel plans and journey notes'
+    description: 'Travel plans and journey notes',
   },
   {
     id: 'npc',
     name: 'NPC',
     icon: 'fas fa-users',
     color: '#9370db',
-    description: 'Non-player character events'
-  }
+    description: 'Non-player character events',
+  },
 ];
 
 /**
@@ -95,7 +95,7 @@ export const DEFAULT_TAGS: string[] = [
   'completed',
   'in-progress',
   'planned',
-  'cancelled'
+  'cancelled',
 ];
 
 /**
@@ -112,24 +112,27 @@ export class NoteCategories {
    * Load category configuration from game settings
    */
   private loadConfiguration(): NoteCategoryConfig {
-    const savedConfig = game.settings.get('seasons-and-stars', 'noteCategories') as NoteCategoryConfig;
-    
+    const savedConfig = game.settings.get(
+      'seasons-and-stars',
+      'noteCategories'
+    ) as NoteCategoryConfig;
+
     if (savedConfig && savedConfig.categories) {
       // Merge saved categories with defaults, ensuring defaults exist
       const savedIds = new Set(savedConfig.categories.map(c => c.id));
       const missingDefaults = DEFAULT_CATEGORIES.filter(c => !savedIds.has(c.id));
-      
+
       return {
         categories: [...savedConfig.categories, ...missingDefaults],
         allowCustomTags: savedConfig.allowCustomTags ?? true,
-        predefinedTags: savedConfig.predefinedTags || DEFAULT_TAGS
+        predefinedTags: savedConfig.predefinedTags || DEFAULT_TAGS,
       };
     }
 
     return {
       categories: [...DEFAULT_CATEGORIES],
       allowCustomTags: true,
-      predefinedTags: [...DEFAULT_TAGS]
+      predefinedTags: [...DEFAULT_TAGS],
     };
   }
 
@@ -266,13 +269,13 @@ export class NoteCategories {
   /**
    * Validate tags against configuration
    */
-  validateTags(tags: string[]): { valid: string[], invalid: string[] } {
+  validateTags(tags: string[]): { valid: string[]; invalid: string[] } {
     const valid: string[] = [];
     const invalid: string[] = [];
 
     for (const tag of tags) {
       const normalizedTag = tag.toLowerCase().trim();
-      
+
       if (this.config.predefinedTags.includes(normalizedTag)) {
         valid.push(normalizedTag);
       } else if (this.config.allowCustomTags) {
@@ -290,7 +293,7 @@ export class NoteCategories {
    */
   parseTagString(tagString: string): string[] {
     if (!tagString) return [];
-    
+
     return tagString
       .split(/[,;]/) // Split on comma or semicolon
       .map(tag => tag.trim())
@@ -326,11 +329,12 @@ export class NoteCategories {
    */
   searchCategories(query: string): NoteCategory[] {
     if (!query) return this.getCategories();
-    
+
     const lowercaseQuery = query.toLowerCase();
-    return this.config.categories.filter(category =>
-      category.name.toLowerCase().includes(lowercaseQuery) ||
-      category.description?.toLowerCase().includes(lowercaseQuery)
+    return this.config.categories.filter(
+      category =>
+        category.name.toLowerCase().includes(lowercaseQuery) ||
+        category.description?.toLowerCase().includes(lowercaseQuery)
     );
   }
 }

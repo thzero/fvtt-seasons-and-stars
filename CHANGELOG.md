@@ -8,25 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2025-06-05
 
 ### Added
+
 - **Security Policy**: Added comprehensive SECURITY.md with vulnerability reporting guidelines
 - **Repository Infrastructure**: Enhanced repository with proper description, topics, and branch protection
 
 ### Changed
+
 - **Memory Management**: Removed memory size checking in favor of dedicated Memory Mage module in development
 - **Performance Monitoring**: Simplified note performance optimizer to focus on core functionality
 
 ### Enhanced
+
 - **Code Quality**: Improved TypeScript definitions and cleaned up dependencies
 - **UI Polish**: Minor styling improvements and template refinements
 - **Localization**: Updated language strings for better user experience
 
 ### Fixed
+
 - **Performance**: Optimized note storage systems and reduced memory overhead
 - **Styling**: Enhanced calendar widget responsive design and visual consistency
 
 ## [0.2.0] - 2025-06-05
 
 ### Added
+
 - **Multi-Day Intercalary Support**: Calendar format now supports multi-day festivals and intercalary periods
   - Enhanced TypeScript interface with `days?: number` field for intercalary periods
   - Backward compatibility maintained - single-day periods work unchanged
@@ -42,12 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Clear public-facing documentation focused on user value
 
 ### Enhanced
+
 - **Calendar Format**: Multi-day intercalary periods for complex festival systems
 - **Test Coverage**: Expanded to 38 automated tests including multi-day intercalary validation
 - **Real Calendar Support**: Comprehensive testing with actual fantasy calendar systems
 - **TypeScript Definitions**: Enhanced calendar type definitions with multi-day support
 
 ### Fixed
+
 - **Calendar Engine**: Accurate date arithmetic across multi-day intercalary periods
 - **Year Length Calculation**: Correct handling of variable-length intercalary periods
 - **Date Conversion**: Proper world time conversion with complex calendar structures
@@ -55,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-01-15
 
 ### Added
+
 - **Complete Calendar System**: Modern calendar interface with native Foundry v13+ integration
 - **Calendar Widget**: Main calendar interface with full date navigation and time controls
 - **Calendar Mini Widget**: Compact companion widget with SmallTime integration
@@ -80,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hook System**: Event handling for module integration and extensibility
 
 ### Technical Features
+
 - **ApplicationV2 Architecture**: Modern Foundry v13+ application framework
 - **HandlebarsApplicationMixin**: Template-driven UI with proper data binding
 - **Semantic Versioning**: Future-proof versioning with compatibility detection
@@ -90,12 +99,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation**: Complete API reference, user guide, and developer documentation
 
 ### Migration Support
+
 - **Simple Calendar Compatibility**: Separate compatibility bridge for zero-migration transition
 - **API Compatibility**: Complete Simple Calendar API emulation for existing modules
 - **Data Format Conversion**: Seamless conversion between calendar formats
 - **Bridge Architecture**: Clean separation between core module and compatibility layer
 
 ### Performance
+
 - **Sub-100ms Search**: Optimized search performance for large note collections
 - **Memory Management**: Intelligent caching with pressure relief mechanisms
 - **Efficient Storage**: Date-based indexing for fast note retrieval
@@ -103,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Real-time Updates**: Synchronous operations for immediate UI feedback
 
 ### Developer Experience
+
 - **Complete API Documentation**: 780-line developer reference guide
 - **Integration Examples**: Real-world usage patterns and code samples
 - **Error Handling Guide**: Comprehensive error scenarios and recovery strategies
@@ -110,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TypeScript Definitions**: Full type safety with IntelliSense support
 
 ### User Experience
+
 - **Intuitive Interface**: Clean, modern UI following Foundry design patterns
 - **Quick Time Controls**: One-click time advancement buttons
 - **Visual Feedback**: Clear indicators, animations, and state changes
@@ -119,6 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned Features
+
 - **Calendar Editor**: In-app calendar creation and modification tools
 - **Community Calendar Library**: User-submitted calendar collection
 - **Advanced Time Zones**: Multi-region time tracking capabilities

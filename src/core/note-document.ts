@@ -42,7 +42,7 @@ export class CalendarNote {
   get content(): string {
     const pages = this.journal.pages;
     if (pages.size === 0) return '';
-    
+
     const firstPage = pages.values().next().value;
     return firstPage?.text?.content || '';
   }
@@ -125,12 +125,10 @@ export class CalendarNote {
   get isMultiDay(): boolean {
     const start = this.startDate;
     const end = this.endDate;
-    
+
     if (!start || !end) return false;
-    
-    return start.year !== end.year || 
-           start.month !== end.month || 
-           start.day !== end.day;
+
+    return start.year !== end.year || start.month !== end.month || start.day !== end.day;
   }
 
   /**
@@ -144,7 +142,7 @@ export class CalendarNote {
     if (!activeCalendar) return this.dateKey;
 
     const calendarDate = new CalendarDate(startDate, activeCalendar);
-    
+
     if (this.isAllDay) {
       return calendarDate.toDateString();
     } else {
@@ -159,17 +157,19 @@ export class CalendarNote {
     const pages = this.journal.pages;
     if (pages.size === 0) {
       // Create first page if none exists
-      await this.journal.createEmbeddedDocuments("JournalEntryPage", [{
-        type: 'text',
-        name: 'Content',
-        text: { content }
-      }]);
+      await this.journal.createEmbeddedDocuments('JournalEntryPage', [
+        {
+          type: 'text',
+          name: 'Content',
+          text: { content },
+        },
+      ]);
     } else {
       // Update existing page
       const firstPage = pages.values().next().value;
       if (firstPage?.update) {
         await firstPage.update({
-          'text.content': content
+          'text.content': content,
         });
       }
     }
@@ -193,7 +193,7 @@ export class CalendarNote {
     const updateData = {
       'flags.seasons-and-stars.startDate': startDate,
       'flags.seasons-and-stars.dateKey': this.formatDateKey(startDate),
-      'flags.seasons-and-stars.modified': Date.now()
+      'flags.seasons-and-stars.modified': Date.now(),
     };
 
     if (endDate) {
@@ -209,7 +209,7 @@ export class CalendarNote {
   async updateCategory(category: string): Promise<void> {
     await this.journal.update({
       'flags.seasons-and-stars.category': category,
-      'flags.seasons-and-stars.modified': Date.now()
+      'flags.seasons-and-stars.modified': Date.now(),
     });
   }
 
@@ -219,7 +219,7 @@ export class CalendarNote {
   async updateTags(tags: string[]): Promise<void> {
     await this.journal.update({
       'flags.seasons-and-stars.tags': tags,
-      'flags.seasons-and-stars.modified': Date.now()
+      'flags.seasons-and-stars.modified': Date.now(),
     });
   }
 
@@ -246,7 +246,7 @@ export class CalendarNote {
     for (const [key, value] of Object.entries(flags)) {
       updates[`flags.${moduleId}.${key}`] = value;
     }
-    
+
     await this.journal.update(updates);
     await this.updateModified();
   }
@@ -256,10 +256,11 @@ export class CalendarNote {
    */
   isVisibleToUser(user: User): boolean {
     if (user.isGM) return true;
-    
+
     const ownership = this.journal.ownership;
-    const userLevel = ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+    const userLevel =
+      ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
   }
 
@@ -268,10 +269,11 @@ export class CalendarNote {
    */
   isEditableByUser(user: User): boolean {
     if (user.isGM) return true;
-    
+
     const ownership = this.journal.ownership;
-    const userLevel = ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+    const userLevel =
+      ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
   }
 
@@ -286,29 +288,29 @@ export class CalendarNote {
    * Set player visibility
    */
   async setPlayerVisible(visible: boolean): Promise<void> {
-    const ownership = visible ? 
-      { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER } : 
-      {};
-    
+    const ownership = visible ? { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER } : {};
+
     await this.updateOwnership(ownership);
   }
 
   /**
    * Clone this note with optional modifications
    */
-  async clone(modifications: {
-    title?: string;
-    content?: string;
-    startDate?: ICalendarDate;
-    endDate?: ICalendarDate;
-    category?: string;
-    tags?: string[];
-  } = {}): Promise<CalendarNote> {
+  async clone(
+    modifications: {
+      title?: string;
+      content?: string;
+      startDate?: ICalendarDate;
+      endDate?: ICalendarDate;
+      category?: string;
+      tags?: string[];
+    } = {}
+  ): Promise<CalendarNote> {
     const cloneData = {
       name: modifications.title || this.title,
       folder: this.journal.folder,
       ownership: this.journal.ownership,
-      flags: foundry.utils.deepClone(this.journal.flags)
+      flags: foundry.utils.deepClone(this.journal.flags),
     };
 
     // Update calendar-specific flags
@@ -326,7 +328,7 @@ export class CalendarNote {
     if (modifications.tags) {
       flags.tags = modifications.tags;
     }
-    
+
     // Update timestamps
     flags.created = Date.now();
     flags.modified = Date.now();
@@ -339,11 +341,13 @@ export class CalendarNote {
     // Copy content with modifications
     const content = modifications.content || this.content;
     if (content) {
-      await clonedJournal.createEmbeddedDocuments("JournalEntryPage", [{
-        type: 'text',
-        name: 'Content',
-        text: { content }
-      }]);
+      await clonedJournal.createEmbeddedDocuments('JournalEntryPage', [
+        {
+          type: 'text',
+          name: 'Content',
+          text: { content },
+        },
+      ]);
     }
 
     return new CalendarNote(clonedJournal);
@@ -366,7 +370,7 @@ export class CalendarNote {
       created: this.created,
       modified: this.modified,
       ownership: this.journal.ownership,
-      flags: this.journal.flags
+      flags: this.journal.flags,
     };
   }
 
@@ -377,7 +381,7 @@ export class CalendarNote {
     const journal = await JournalEntry.create({
       name: data.title,
       ownership: data.ownership,
-      flags: data.flags
+      flags: data.flags,
     });
 
     if (!journal) {
@@ -385,11 +389,13 @@ export class CalendarNote {
     }
 
     if (data.content) {
-      await journal.createEmbeddedDocuments("JournalEntryPage", [{
-        type: 'text',
-        name: 'Content',
-        text: { content: data.content }
-      }]);
+      await journal.createEmbeddedDocuments('JournalEntryPage', [
+        {
+          type: 'text',
+          name: 'Content',
+          text: { content: data.content },
+        },
+      ]);
     }
 
     return new CalendarNote(journal);
@@ -400,9 +406,9 @@ export class CalendarNote {
    */
   private isValidCalendarNote(): boolean {
     const flags = this.journal.flags?.['seasons-and-stars'];
-    return flags?.calendarNote === true && 
-           flags?.startDate !== undefined &&
-           flags?.dateKey !== undefined;
+    return (
+      flags?.calendarNote === true && flags?.startDate !== undefined && flags?.dateKey !== undefined
+    );
   }
 
   /**
@@ -439,7 +445,7 @@ export class CalendarNote {
    */
   static getAllCalendarNotes(): CalendarNote[] {
     const notes: CalendarNote[] = [];
-    
+
     game.journal?.forEach(journal => {
       const note = CalendarNote.fromJournalEntry(journal);
       if (note) {

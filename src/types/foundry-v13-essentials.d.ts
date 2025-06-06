@@ -1,9 +1,9 @@
 /**
  * Essential Foundry VTT v13 Type Definitions
- * 
+ *
  * This file provides minimal but complete type definitions for Foundry VTT v13
  * to replace the broken official fvtt-types package until it's stable.
- * 
+ *
  * Only includes types actually used by Seasons & Stars module.
  */
 
@@ -28,10 +28,10 @@ declare global {
   const CONFIG: Config;
   const canvas: Canvas;
   const renderTemplate: (path: string, data?: any) => Promise<string>;
-  
+
   // Foundry global namespace
   const foundry: FoundryNamespace;
-  
+
   // Global performance API
   interface Performance {
     memory?: {
@@ -40,26 +40,26 @@ declare global {
       jsHeapSizeLimit: number;
     };
   }
-  
+
   // Make Foundry types available globally
   const JournalEntry: typeof FoundryJournalEntry;
   const Folder: typeof FoundryFolder;
   const Dialog: typeof FoundryDialog;
   const Application: typeof FoundryApplication;
-  
+
   type Folder = FoundryFolder;
-  
+
   type JournalEntry = FoundryJournalEntry;
   type User = FoundryUser;
   type Calendar = FoundryCalendar;
-  
+
   // Global Node.js compatibility
   interface NodeGlobal {
     gc?: () => void;
   }
-  
+
   const global: NodeGlobal;
-  
+
   // jQuery globals provided by @types/jquery
 }
 
@@ -76,7 +76,7 @@ interface Game {
   users: FoundryCollection<FoundryUser>;
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
-  
+
   // Season & Stars specific integration point
   seasonsStars?: {
     manager?: any;
@@ -118,7 +118,7 @@ declare class FoundryJournalEntry {
   flags: Record<string, any>;
   author?: FoundryUser;
   folder?: string;
-  
+
   static create(data: any): Promise<FoundryJournalEntry>;
   update(data: any): Promise<FoundryJournalEntry>;
   delete(): Promise<void>;
@@ -142,7 +142,7 @@ declare class FoundryFolder {
   id: string;
   name: string;
   type: string;
-  
+
   static create(data: any): Promise<FoundryFolder>;
   getFlag(scope: string, key: string): any;
 }
@@ -247,32 +247,40 @@ declare class FoundryCollection<T> extends Map<string, T> {
  * ApplicationV2 base class for Foundry v13
  * Provides essential methods used by Calendar widgets
  */
-declare class ApplicationV2<RenderContext = Record<string, unknown>, Configuration = ApplicationV2.Configuration, RenderOptions = ApplicationV2.RenderOptions> {
+declare class ApplicationV2<
+  RenderContext = Record<string, unknown>,
+  Configuration = ApplicationV2.Configuration,
+  RenderOptions = ApplicationV2.RenderOptions,
+> {
   constructor(options?: Partial<Configuration>);
-  
+
   // Core lifecycle methods
   render(force?: boolean, options?: Partial<RenderOptions>): Promise<this>;
   close(options?: ApplicationV2.CloseOptions): Promise<this>;
-  
+
   // Element and DOM access
   readonly element: HTMLElement | null;
   readonly window: ApplicationV2.ApplicationWindow | null;
   readonly rendered: boolean;
-  
+
   // Position management
   setPosition(position?: Partial<ApplicationV2.Position>): void;
-  
+
   // Tab management (for tabbed applications)
   changeTab(tab: string, group?: string): void;
-  
+
   // Static configuration
   static DEFAULT_OPTIONS: ApplicationV2.Configuration;
   static PARTS: Record<string, ApplicationV2.ApplicationPart>;
-  
+
   // Protected methods that subclasses implement
   protected _prepareContext(options: RenderOptions): Promise<RenderContext>;
   protected _onRender(context: RenderContext, options: RenderOptions): Promise<void>;
-  protected _attachPartListeners(partId: string, htmlElement: HTMLElement, options: RenderOptions): void;
+  protected _attachPartListeners(
+    partId: string,
+    htmlElement: HTMLElement,
+    options: RenderOptions
+  ): void;
   protected _onClose(options: ApplicationV2.CloseOptions): Promise<void>;
 }
 
@@ -291,7 +299,7 @@ declare namespace ApplicationV2 {
     position?: Partial<Position>;
     actions?: Record<string, any>;
   }
-  
+
   interface Position {
     top?: number;
     left?: number;
@@ -299,44 +307,46 @@ declare namespace ApplicationV2 {
     height?: number | 'auto';
     scale?: number;
   }
-  
+
   interface RenderOptions {
     force?: boolean;
     position?: Partial<Position>;
     window?: Partial<ApplicationWindow>;
     parts?: string[];
   }
-  
+
   interface CloseOptions {
     animate?: boolean;
   }
-  
+
   interface ApplicationWindow {
     title: string;
     icon: string;
     controls: ApplicationHeaderButton[];
   }
-  
+
   interface ApplicationHeaderButton {
     icon: string;
     label: string;
     action: string;
   }
-  
+
   interface ApplicationPart {
     id: string;
     template: string;
     classes?: string[];
     scrollable?: string[];
   }
-  
+
   interface ApplicationAction {
     handler?: (event: Event, target: HTMLElement) => Promise<void> | void;
     buttons?: number[];
   }
-  
+
   // Allow actions to be direct function references
-  type ApplicationActionValue = ApplicationAction | ((event: Event, target: HTMLElement) => Promise<void> | void);
+  type ApplicationActionValue =
+    | ApplicationAction
+    | ((event: Event, target: HTMLElement) => Promise<void> | void);
 }
 
 // =============================================================================
@@ -349,7 +359,7 @@ declare namespace ApplicationV2 {
 declare class HandlebarsApplicationMixin {
   // Template rendering
   protected _renderHTML(context: any, options: any): Promise<Record<string, string>>;
-  
+
   // Template utilities
   protected _replaceHTML(result: Record<string, string>, content: HTMLElement, options: any): void;
 }
@@ -358,9 +368,12 @@ declare class HandlebarsApplicationMixin {
 // DIALOG SYSTEM (For Calendar Selection Dialog)
 // =============================================================================
 
-declare class DialogV2<Configuration = DialogV2.Configuration, RenderContext = Record<string, unknown>> extends ApplicationV2<RenderContext, Configuration> {
+declare class DialogV2<
+  Configuration = DialogV2.Configuration,
+  RenderContext = Record<string, unknown>,
+> extends ApplicationV2<RenderContext, Configuration> {
   constructor(options?: Partial<Configuration>);
-  
+
   static wait<T = any>(config: DialogV2.WaitOptions<T>): Promise<T | null>;
   static confirm(options: DialogV2.ConfirmOptions): Promise<boolean>;
   static prompt(options: DialogV2.PromptOptions): Promise<string | null>;
@@ -373,7 +386,7 @@ declare namespace DialogV2 {
     modal?: boolean;
     rejectClose?: boolean;
   }
-  
+
   interface DialogButton {
     action: string;
     label: string;
@@ -381,7 +394,7 @@ declare namespace DialogV2 {
     default?: boolean;
     callback?: Function;
   }
-  
+
   interface WaitOptions<T> {
     title?: string;
     content?: string;
@@ -392,7 +405,7 @@ declare namespace DialogV2 {
     render?: Function;
     close?: Function;
   }
-  
+
   interface ConfirmOptions {
     title?: string;
     content?: string;
@@ -401,7 +414,7 @@ declare namespace DialogV2 {
     modal?: boolean;
     rejectClose?: boolean;
   }
-  
+
   interface PromptOptions {
     title?: string;
     content?: string;
@@ -500,8 +513,8 @@ interface CalendarSeason {
  */
 interface CalendarDate {
   year: number;
-  month: number;  // 1-based
-  day: number;    // 1-based
+  month: number; // 1-based
+  day: number; // 1-based
 }
 
 // =============================================================================
@@ -543,7 +556,9 @@ interface FoundryNamespace {
   applications: {
     api: {
       ApplicationV2: typeof ApplicationV2;
-      HandlebarsApplicationMixin: <T extends new (...args: any[]) => ApplicationV2>(Base: T) => T & {
+      HandlebarsApplicationMixin: <T extends new (...args: any[]) => ApplicationV2>(
+        Base: T
+      ) => T & {
         new (...args: any[]): ApplicationV2 & HandlebarsApplicationMixin;
       };
     };

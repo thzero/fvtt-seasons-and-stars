@@ -7,16 +7,22 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
-export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   private selectedCalendarId: string | null = null;
   private calendars: Map<string, SeasonsStarsCalendar>;
   private currentCalendarId: string;
 
   constructor(calendars: any, currentCalendarId: string) {
     super();
-    
-    Logger.debug('CalendarSelectionDialog constructor', { type: typeof calendars, isMap: calendars instanceof Map, calendars });
-    
+
+    Logger.debug('CalendarSelectionDialog constructor', {
+      type: typeof calendars,
+      isMap: calendars instanceof Map,
+      calendars,
+    });
+
     // Convert array to Map if needed
     if (Array.isArray(calendars)) {
       Logger.debug('Converting array to Map');
@@ -32,7 +38,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       Logger.error('Unsupported calendars type', new Error(`Type: ${typeof calendars}`));
       this.calendars = new Map();
     }
-    
+
     this.currentCalendarId = currentCalendarId;
     this.selectedCalendarId = currentCalendarId;
   }
@@ -47,40 +53,40 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       title: 'SEASONS_STARS.dialog.calendar_selection.title',
       icon: 'fa-solid fa-calendar-alt',
       minimizable: false,
-      resizable: true
+      resizable: true,
     },
     position: {
       width: 600,
-      height: 600
+      height: 600,
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,
       previewCalendar: CalendarSelectionDialog.prototype._onPreviewCalendar,
       chooseCalendar: CalendarSelectionDialog.prototype._onChooseCalendar,
-      cancel: CalendarSelectionDialog.prototype._onCancel
-    }
+      cancel: CalendarSelectionDialog.prototype._onCancel,
+    },
   };
 
   static PARTS = {
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
-      scrollable: ['.calendar-selection-grid']
-    }
+      scrollable: ['.calendar-selection-grid'],
+    },
   };
 
   /** @override */
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
-    
+
     const calendarsData = Array.from(this.calendars.entries()).map(([id, calendar]) => {
       const label = CalendarLocalization.getCalendarLabel(calendar);
       const description = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
-      
+
       // Generate sample date for preview
       const sampleDate = this.generateSampleDate(calendar);
-      
+
       return {
         id,
         label,
@@ -88,14 +94,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         setting,
         sampleDate,
         isCurrent: id === this.currentCalendarId,
-        isSelected: id === this.selectedCalendarId
+        isSelected: id === this.selectedCalendarId,
       };
     });
 
     return Object.assign(context, {
       calendars: calendarsData,
       selectedCalendar: this.selectedCalendarId,
-      currentCalendar: this.currentCalendarId
+      currentCalendar: this.currentCalendarId,
     });
   }
 
@@ -109,15 +115,15 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // Add action buttons to window and update button state after rendering
     this.addActionButtons($(htmlElement));
     this.updateSelectButton($(htmlElement));
-    
+
     // Debug: Check if scrolling is working
     const scrollableGrid = htmlElement.querySelector('.calendar-selection-grid');
     if (scrollableGrid) {
       const style = getComputedStyle(scrollableGrid);
-      Logger.debug('Found scrollable grid', { 
-        overflow: style.overflow, 
-        clientHeight: scrollableGrid.clientHeight, 
-        scrollHeight: scrollableGrid.scrollHeight 
+      Logger.debug('Found scrollable grid', {
+        overflow: style.overflow,
+        clientHeight: scrollableGrid.clientHeight,
+        scrollHeight: scrollableGrid.scrollHeight,
       });
     }
   }
@@ -138,7 +144,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         </button>
       </div>
     `);
-    
+
     html.append(footer);
   }
 
@@ -147,7 +153,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    */
   private selectCalendarCard(calendarId: string): void {
     this.selectedCalendarId = calendarId;
-    
+
     // Re-render to update UI state
     this.render(true);
   }
@@ -159,13 +165,15 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     const $html = html || (this.element ? $(this.element) : $());
     const selectButton = $html.find('#select-calendar');
     const isDifferent = this.selectedCalendarId !== this.currentCalendarId;
-    
+
     selectButton.prop('disabled', !isDifferent);
     selectButton.toggleClass('disabled', !isDifferent);
-    
+
     if (isDifferent) {
       const calendar = this.calendars.get(this.selectedCalendarId!);
-      const label = calendar ? CalendarLocalization.getCalendarLabel(calendar) : this.selectedCalendarId;
+      const label = calendar
+        ? CalendarLocalization.getCalendarLabel(calendar)
+        : this.selectedCalendarId;
       selectButton.html(`<i class="fas fa-check"></i> Switch to ${label}`);
     } else {
       selectButton.html(`<i class="fas fa-check"></i> Select Calendar`);
@@ -182,12 +190,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     const label = CalendarLocalization.getCalendarLabel(calendar);
     const description = CalendarLocalization.getCalendarDescription(calendar);
     const setting = CalendarLocalization.getCalendarSetting(calendar);
-    
+
     // Generate multiple sample dates
     const samples = [
       this.generateSampleDate(calendar, 1),
       this.generateSampleDate(calendar, 100),
-      this.generateSampleDate(calendar, 365)
+      this.generateSampleDate(calendar, 365),
     ];
 
     const content = `
@@ -212,22 +220,25 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       </div>
     `;
 
-    new Dialog({
-      title: game.i18n.format('SEASONS_STARS.dialog.calendar_preview.title', { calendar: label }),
-      content,
-      buttons: {
-        close: {
-          icon: '<i class="fas fa-times"></i>',
-          label: game.i18n.localize('SEASONS_STARS.dialog.close'),
-          callback: () => {}
-        }
+    new Dialog(
+      {
+        title: game.i18n.format('SEASONS_STARS.dialog.calendar_preview.title', { calendar: label }),
+        content,
+        buttons: {
+          close: {
+            icon: '<i class="fas fa-times"></i>',
+            label: game.i18n.localize('SEASONS_STARS.dialog.close'),
+            callback: () => {},
+          },
+        },
+        default: 'close',
       },
-      default: 'close'
-    }, {
-      classes: ['seasons-stars', 'calendar-preview-dialog'],
-      width: 400,
-      height: 'auto'
-    }).render(true);
+      {
+        classes: ['seasons-stars', 'calendar-preview-dialog'],
+        width: 400,
+        height: 'auto',
+      }
+    ).render(true);
   }
 
   /**
@@ -236,7 +247,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private generateSampleDate(calendar: SeasonsStarsCalendar, dayOffset: number = 1): string {
     // Use current world time if no offset, otherwise use offset from a reasonable base
     let totalDays: number;
-    
+
     if (dayOffset === 1) {
       // Use current world time for default sample
       const currentTime = game.time?.worldTime || 0;
@@ -249,14 +260,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       totalDays = dayOffset;
       Logger.debug(`Using offset days for sample: ${totalDays}`);
     }
-    
+
     const year = 1000 + Math.floor(totalDays / 365);
     const dayInYear = totalDays % 365;
     Logger.debug('Calculated year and day in year', { year, dayInYear });
-    
+
     let remainingDays = dayInYear;
     let monthIndex = 0;
-    
+
     // Find the month
     for (let i = 0; i < calendar.months.length; i++) {
       const monthDays = calendar.months[i].days;
@@ -266,16 +277,24 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       }
       remainingDays -= monthDays;
     }
-    
+
     const month = calendar.months[monthIndex];
     const day = Math.max(1, remainingDays);
     const weekdayIndex = (dayOffset - 1) % calendar.weekdays.length;
     const weekday = calendar.weekdays[weekdayIndex];
-    
+
     // Format using calendar's translation
-    const monthLabel = CalendarLocalization.getCalendarTranslation(calendar, `months.${month.id || month.name}`, month.name);
-    const weekdayLabel = CalendarLocalization.getCalendarTranslation(calendar, `weekdays.${weekday.id || weekday.name}`, weekday.name);
-    
+    const monthLabel = CalendarLocalization.getCalendarTranslation(
+      calendar,
+      `months.${month.id || month.name}`,
+      month.name
+    );
+    const weekdayLabel = CalendarLocalization.getCalendarTranslation(
+      calendar,
+      `weekdays.${weekday.id || weekday.name}`,
+      weekday.name
+    );
+
     return `${weekdayLabel}, ${monthLabel} ${day}, ${year}`;
   }
 
@@ -286,11 +305,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     if (this.selectedCalendarId && this.selectedCalendarId !== this.currentCalendarId) {
       // Switch to the selected calendar
       await game.settings?.set('seasons-and-stars', 'activeCalendar', this.selectedCalendarId);
-      
+
       // Notify user
       const calendar = this.calendars.get(this.selectedCalendarId);
-      const label = calendar ? CalendarLocalization.getCalendarLabel(calendar) : this.selectedCalendarId;
-      
+      const label = calendar
+        ? CalendarLocalization.getCalendarLabel(calendar)
+        : this.selectedCalendarId;
+
       ui.notifications?.info(
         game.i18n.format('SEASONS_STARS.notifications.calendar_changed', { calendar: label })
       );
@@ -302,10 +323,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    */
   async _onSelectCalendar(event: Event, target: HTMLElement): Promise<void> {
     Logger.debug('Calendar card clicked', { event, target });
-    
+
     const calendarId = target.getAttribute('data-calendar-id');
     Logger.debug(`Found calendar ID for selection: ${calendarId}`);
-    
+
     if (calendarId) {
       Logger.debug(`Calling selectCalendarCard with ID: ${calendarId}`);
       this.selectCalendarCard(calendarId);
@@ -319,12 +340,16 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    */
   async _onPreviewCalendar(event: Event, target: HTMLElement): Promise<void> {
     Logger.debug('Preview button clicked', { event, target });
-    Logger.debug('Calendars data', { type: typeof this.calendars, isMap: this.calendars instanceof Map, calendars: this.calendars });
+    Logger.debug('Calendars data', {
+      type: typeof this.calendars,
+      isMap: this.calendars instanceof Map,
+      calendars: this.calendars,
+    });
     event.stopPropagation();
-    
+
     const calendarId = target.closest('[data-calendar-id]')?.getAttribute('data-calendar-id');
     Logger.debug(`Found calendar ID: ${calendarId}`);
-    
+
     if (calendarId) {
       Logger.debug(`Calling showPreview with ID: ${calendarId}`);
       this.showPreview(calendarId);
@@ -360,9 +385,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     }
 
     const calendars = game.seasonsStars.manager.getAllCalendars();
-    Logger.debug('CalendarSelectionDialog.show() - calendars from manager', { type: typeof calendars, isMap: calendars instanceof Map, calendars });
+    Logger.debug('CalendarSelectionDialog.show() - calendars from manager', {
+      type: typeof calendars,
+      isMap: calendars instanceof Map,
+      calendars,
+    });
     const currentCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
-    
+
     if (calendars.size === 0) {
       ui.notifications?.warn(game.i18n.localize('SEASONS_STARS.warnings.no_calendars_available'));
       return;

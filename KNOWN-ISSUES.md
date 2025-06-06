@@ -25,7 +25,7 @@ Users migrating from Simple Calendar to Seasons & Stars lose access to their cus
 #### Missing Import Features
 
 - ❌ **Calendar Definitions**: Custom months, weekdays, seasons, year structures
-- ❌ **Time Configuration**: Custom hour lengths, day/week/month durations  
+- ❌ **Time Configuration**: Custom hour lengths, day/week/month durations
 - ❌ **Weather Settings**: Climate data, seasonal patterns, temperature ranges
 - ❌ **Display Preferences**: Date formats, widget positions, visibility settings
 - ❌ **Permission Settings**: Player access levels, editing rights, visibility rules
@@ -34,6 +34,7 @@ Users migrating from Simple Calendar to Seasons & Stars lose access to their cus
 #### Required for Complete Migration
 
 A comprehensive configuration import system that preserves:
+
 1. **Calendar Structure**: Exact reproduction of custom calendar layouts
 2. **Time Systems**: Preservation of custom time advancement and calculations
 3. **Integration Settings**: Weather, lighting, and other module configurations
@@ -76,6 +77,7 @@ The Seasons & Stars note storage system builds an index of calendar notes during
 ⚠️ **IMPORTANT**: The workarounds below are **theoretical and untested**. They may not actually resolve the issue and could potentially cause other problems. Use at your own risk and test in a backup world first.
 
 ##### Theoretical Console Fix (Untested)
+
 ```javascript
 // WARNING: This workaround is untested and may not work
 // Rebuild storage index and refresh calendar widget
@@ -84,22 +86,27 @@ window.SeasonsStars.CalendarGridWidget.getInstance()?.render();
 ```
 
 **Status**: Untested - may not work due to:
+
 - Notes manager initialization issues
 - Storage system not detecting bridge flags correctly
 - Widget refresh not re-querying storage
 - Missing widget instances or render failures
 
 ##### Diagnostic Script (Recommended)
+
 Before trying the workaround, run the diagnostic script to identify the actual failure point:
+
 ```javascript
 // Copy and paste contents of debug-workaround.js into console
 // This will test each component and identify where the chain breaks
 ```
 
 ##### Foundry Macro (Untested)
+
 Create a macro with the console code above, but be aware it may not work.
 
 ##### Module Reload (Nuclear Option)
+
 Disable and re-enable Seasons & Stars module to trigger full reinitialization. This is the most reliable workaround but requires closing all calendar widgets.
 
 #### Impact Assessment
@@ -113,12 +120,14 @@ Disable and re-enable Seasons & Stars module to trigger full reinitialization. T
 #### Technical Details
 
 **Storage Index Structure:**
+
 - Index Format: `Map<dateKey, Set<noteId>>`
 - Date Key Format: `"YYYY-MM-DD"` (1-based months)
 - Index Population: On initialization via `buildDateIndex()`
 - Bridge Detection: Checks for `foundryvtt-simple-calendar-compat` flags
 
 **Calendar Grid Widget Flow:**
+
 1. `generateMonthData()` calls `notesManager.storage.findNotesByDateSync()`
 2. `findNotesByDateSync()` queries the `dateIndex` Map
 3. Missing index entries = no note indicators in UI
@@ -127,16 +136,19 @@ Disable and re-enable Seasons & Stars module to trigger full reinitialization. T
 #### Planned Resolution
 
 **Phase 1**: Automatic Reindexing (Low effort)
+
 - Bridge modules call `rebuildIndex()` after note creation
 - Addresses new note creation synchronization
 - Does not address existing note migration
 
 **Phase 2**: Migration System (Medium effort)
+
 - Bridge initialization detects and indexes existing notes
 - Provides user-facing migration tools
 - Handles bulk operations and edge cases
 
 **Phase 3**: Real-time Synchronization (High effort)
+
 - Hook-based automatic index updates
 - Bidirectional sync for note updates/deletions
 - Performance optimization for large note collections
@@ -166,7 +178,7 @@ cp fix-note-highlighting.js /path/to/foundry/Data/
 Additional sections will be added as issues are discovered:
 
 - **Calendar Engine Issues**: Date calculation edge cases
-- **UI Component Issues**: Widget positioning and rendering problems  
+- **UI Component Issues**: Widget positioning and rendering problems
 - **API Integration Issues**: Compatibility with other modules
 - **Performance Issues**: Large data set handling
 - **Localization Issues**: Translation and cultural calendar support

@@ -19,7 +19,11 @@ import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
-import type { CalendarDate as ICalendarDate, DateFormatOptions, SeasonsStarsCalendar } from './types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  DateFormatOptions,
+  SeasonsStarsCalendar,
+} from './types/calendar';
 
 // Module instances
 let calendarManager: CalendarManager;
@@ -30,18 +34,17 @@ let notesManager: NotesManager;
  */
 Hooks.once('init', async () => {
   Logger.info('Initializing module');
-  
+
   // Register module settings
   registerSettings();
-  
+
   // Initialize note categories after settings are available
   initializeNoteCategories();
-  
+
   // Initialize managers
   calendarManager = new CalendarManager();
   notesManager = new NotesManager();
-  
-  
+
   Logger.info('Module initialized');
 });
 
@@ -50,7 +53,7 @@ Hooks.once('init', async () => {
  */
 Hooks.once('setupGame', () => {
   Logger.debug('Early setup during setupGame');
-  
+
   // Reserved for future setup needs
 });
 
@@ -59,26 +62,25 @@ Hooks.once('setupGame', () => {
  */
 Hooks.once('ready', async () => {
   Logger.info('Setting up module');
-  
-  
+
   // Load calendars first (without reading settings)
   await calendarManager.loadBuiltInCalendars();
-  
+
   // Register calendar-specific settings now that calendars are loaded
   registerCalendarSettings();
-  
+
   // Complete calendar manager initialization (read settings and set active calendar)
   await calendarManager.completeInitialization();
-  
+
   // Initialize notes manager
   await notesManager.initialize();
-  
+
   // Register with Memory Mage if available
   registerMemoryMageIntegration();
-  
+
   // Expose API
   setupAPI();
-  
+
   // Register with Errors and Echoes if available
   registerErrorsAndEchoes();
 
@@ -94,16 +96,15 @@ Hooks.once('ready', async () => {
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
     CalendarWidget.show();
   }
-  
+
   // Fire ready hook for compatibility modules
   Hooks.callAll('seasons-stars:ready', {
     manager: calendarManager,
-    api: game.seasonsStars?.api
+    api: game.seasonsStars?.api,
   });
 
   Logger.info('Module ready');
 });
-
 
 /**
  * Register module settings
@@ -125,7 +126,7 @@ function registerSettings(): void {
       if (calendarManager) {
         await calendarManager.setActiveCalendar(value);
       }
-    }
+    },
   });
 
   game.settings.register('seasons-and-stars', 'showTimeWidget', {
@@ -134,7 +135,7 @@ function registerSettings(): void {
     scope: 'client',
     config: true,
     type: Boolean,
-    default: true
+    default: true,
   });
 
   game.settings.register('seasons-and-stars', 'showNotifications', {
@@ -143,7 +144,7 @@ function registerSettings(): void {
     scope: 'client',
     config: true,
     type: Boolean,
-    default: true
+    default: true,
   });
 
   // Notes system settings
@@ -153,7 +154,7 @@ function registerSettings(): void {
     scope: 'world',
     config: true,
     type: Boolean,
-    default: false
+    default: false,
   });
 
   game.settings.register('seasons-and-stars', 'defaultPlayerVisible', {
@@ -162,7 +163,7 @@ function registerSettings(): void {
     scope: 'world',
     config: true,
     type: Boolean,
-    default: false
+    default: false,
   });
 
   game.settings.register('seasons-and-stars', 'defaultPlayerEditable', {
@@ -171,7 +172,7 @@ function registerSettings(): void {
     scope: 'world',
     config: true,
     type: Boolean,
-    default: false
+    default: false,
   });
 
   // Note categories configuration - stored as Object for complex data
@@ -181,7 +182,7 @@ function registerSettings(): void {
     scope: 'world',
     config: false, // Not shown in config UI, managed by category system
     type: Object,
-    default: null
+    default: null,
   });
 
   // Development and debugging settings (last for developers)
@@ -191,7 +192,7 @@ function registerSettings(): void {
     scope: 'client',
     config: true,
     type: Boolean,
-    default: false
+    default: false,
   });
 }
 
@@ -204,7 +205,7 @@ function registerCalendarSettings(): void {
   // Get available calendars and create choices
   const calendars = calendarManager.getAllCalendars();
   const choices = CalendarLocalization.createCalendarChoices(calendars);
-  
+
   // Re-register the setting with updated choices to overwrite the basic one
   game.settings.register('seasons-and-stars', 'activeCalendar', {
     name: 'SEASONS_STARS.settings.active_calendar',
@@ -218,9 +219,9 @@ function registerCalendarSettings(): void {
       if (calendarManager) {
         await calendarManager.setActiveCalendar(value);
       }
-    }
+    },
   });
-  
+
   Logger.debug('Updated calendar setting with full choices', { choices });
 }
 
@@ -232,43 +233,46 @@ function setupAPI(): void {
     getCurrentDate: (calendarId?: string): ICalendarDate | null => {
       try {
         Logger.api('getCurrentDate', { calendarId });
-        
+
         // Input validation
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           // Get date from specific calendar
           const calendar = calendarManager.getCalendar(calendarId);
           const engine = calendarManager.getActiveEngine();
-          
+
           if (!calendar || !engine) {
             const error = new Error(`Calendar not found: ${calendarId}`);
             Logger.error('Calendar not found in getCurrentDate', error);
             throw error;
           }
-          
+
           const worldTime = game.time?.worldTime || 0;
           const result = engine.worldTimeToDate(worldTime);
           Logger.api('getCurrentDate', { calendarId }, result);
           return result;
         }
-        
+
         // Get date from active calendar
         const currentDate = calendarManager.getCurrentDate();
         if (!currentDate) {
           Logger.warn('No current date available from calendar manager');
           return null;
         }
-        
+
         const result = currentDate.toObject();
         Logger.api('getCurrentDate', undefined, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get current date', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get current date',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -276,25 +280,32 @@ function setupAPI(): void {
     setCurrentDate: async (date: ICalendarDate): Promise<boolean> => {
       try {
         Logger.api('setCurrentDate', { date });
-        
+
         // Input validation
         if (!date || typeof date !== 'object') {
           const error = new Error('Date must be a valid CalendarDate object');
           Logger.error('Invalid date parameter', error);
           throw error;
         }
-        
-        if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+
+        if (
+          typeof date.year !== 'number' ||
+          typeof date.month !== 'number' ||
+          typeof date.day !== 'number'
+        ) {
           const error = new Error('Date must have numeric year, month, and day properties');
           Logger.error('Invalid date structure', error);
           throw error;
         }
-        
+
         await calendarManager.setCurrentDate(date);
         Logger.api('setCurrentDate', { date }, 'success');
         return true;
       } catch (error) {
-        Logger.error('Failed to set current date', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to set current date',
+          error instanceof Error ? error : new Error(String(error))
+        );
         return false;
       }
     },
@@ -302,20 +313,20 @@ function setupAPI(): void {
     advanceTime: async (amount: number, unit: string): Promise<void> => {
       try {
         Logger.api('advanceTime', { amount, unit });
-        
+
         // Input validation
         if (typeof amount !== 'number' || !isFinite(amount)) {
           const error = new Error('Amount must be a finite number');
           Logger.error('Invalid amount parameter', error);
           throw error;
         }
-        
+
         if (typeof unit !== 'string' || unit.trim() === '') {
           const error = new Error('Unit must be a non-empty string');
           Logger.error('Invalid unit parameter', error);
           throw error;
         }
-        
+
         // Route to appropriate method based on unit
         switch (unit.toLowerCase()) {
           case 'day':
@@ -347,10 +358,13 @@ function setupAPI(): void {
             Logger.error('Unsupported time unit', error);
             throw error;
         }
-        
+
         Logger.api('advanceTime', { amount, unit }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance time', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance time',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -358,30 +372,33 @@ function setupAPI(): void {
     advanceDays: async (days: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceDays', { days, calendarId });
-        
+
         // Input validation
         if (typeof days !== 'number' || !isFinite(days)) {
           const error = new Error('Days must be a finite number');
           Logger.error('Invalid days parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceDays(days);
         Logger.api('advanceDays', { days, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance days', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance days',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -389,30 +406,33 @@ function setupAPI(): void {
     advanceHours: async (hours: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceHours', { hours, calendarId });
-        
+
         // Input validation
         if (typeof hours !== 'number' || !isFinite(hours)) {
           const error = new Error('Hours must be a finite number');
           Logger.error('Invalid hours parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceHours(hours);
         Logger.api('advanceHours', { hours, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance hours', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance hours',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -420,30 +440,33 @@ function setupAPI(): void {
     advanceMinutes: async (minutes: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceMinutes', { minutes, calendarId });
-        
+
         // Input validation
         if (typeof minutes !== 'number' || !isFinite(minutes)) {
           const error = new Error('Minutes must be a finite number');
           Logger.error('Invalid minutes parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceMinutes(minutes);
         Logger.api('advanceMinutes', { minutes, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance minutes', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance minutes',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -451,30 +474,33 @@ function setupAPI(): void {
     advanceWeeks: async (weeks: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceWeeks', { weeks, calendarId });
-        
+
         // Input validation
         if (typeof weeks !== 'number' || !isFinite(weeks)) {
           const error = new Error('Weeks must be a finite number');
           Logger.error('Invalid weeks parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceWeeks(weeks);
         Logger.api('advanceWeeks', { weeks, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance weeks', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance weeks',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -482,30 +508,33 @@ function setupAPI(): void {
     advanceMonths: async (months: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceMonths', { months, calendarId });
-        
+
         // Input validation
         if (typeof months !== 'number' || !isFinite(months)) {
           const error = new Error('Months must be a finite number');
           Logger.error('Invalid months parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceMonths(months);
         Logger.api('advanceMonths', { months, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance months', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance months',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -513,30 +542,33 @@ function setupAPI(): void {
     advanceYears: async (years: number, calendarId?: string): Promise<void> => {
       try {
         Logger.api('advanceYears', { years, calendarId });
-        
+
         // Input validation
         if (typeof years !== 'number' || !isFinite(years)) {
           const error = new Error('Years must be a finite number');
           Logger.error('Invalid years parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         if (calendarId) {
           const error = new Error('Advancing specific calendar time not yet implemented');
           Logger.error('Feature not implemented', error);
           throw error;
         }
-        
+
         await calendarManager.advanceYears(years);
         Logger.api('advanceYears', { years, calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to advance years', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to advance years',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -544,34 +576,41 @@ function setupAPI(): void {
     formatDate: (date: ICalendarDate, options?: DateFormatOptions): string => {
       try {
         Logger.api('formatDate', { date, options });
-        
+
         // Input validation
         if (!date || typeof date !== 'object') {
           const error = new Error('Date must be a valid ICalendarDate object');
           Logger.error('Invalid date parameter', error);
           throw error;
         }
-        
-        if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+
+        if (
+          typeof date.year !== 'number' ||
+          typeof date.month !== 'number' ||
+          typeof date.day !== 'number'
+        ) {
           const error = new Error('Date must have valid year, month, and day numbers');
           Logger.error('Invalid date structure', error);
           throw error;
         }
-        
+
         const activeCalendar = calendarManager.getActiveCalendar();
-        
+
         if (!activeCalendar) {
           const error = new Error('No active calendar set');
           Logger.error('No active calendar for date formatting', error);
           throw error;
         }
-        
+
         const calendarDate = new CalendarDate(date, activeCalendar);
         const result = calendarDate.format(options);
         Logger.api('formatDate', { date, options }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to format date', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to format date',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -579,41 +618,48 @@ function setupAPI(): void {
     dateToWorldTime: (date: ICalendarDate, calendarId?: string): number => {
       try {
         Logger.api('dateToWorldTime', { date, calendarId });
-        
+
         // Input validation
         if (!date || typeof date !== 'object') {
           const error = new Error('Date must be a valid ICalendarDate object');
           Logger.error('Invalid date parameter', error);
           throw error;
         }
-        
-        if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+
+        if (
+          typeof date.year !== 'number' ||
+          typeof date.month !== 'number' ||
+          typeof date.day !== 'number'
+        ) {
           const error = new Error('Date must have valid year, month, and day numbers');
           Logger.error('Invalid date structure', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
-        const engine = calendarId ? 
-          calendarManager.engines?.get(calendarId) : 
-          calendarManager.getActiveEngine();
-        
+
+        const engine = calendarId
+          ? calendarManager.engines?.get(calendarId)
+          : calendarManager.getActiveEngine();
+
         if (!engine) {
           const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
           Logger.error('No engine available for date to world time conversion', error);
           throw error;
         }
-        
+
         const result = engine.dateToWorldTime(date);
         Logger.api('dateToWorldTime', { date, calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to convert date to world time', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to convert date to world time',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -621,35 +667,38 @@ function setupAPI(): void {
     worldTimeToDate: (timestamp: number, calendarId?: string): ICalendarDate => {
       try {
         Logger.api('worldTimeToDate', { timestamp, calendarId });
-        
+
         // Input validation
         if (typeof timestamp !== 'number' || !isFinite(timestamp)) {
           const error = new Error('Timestamp must be a finite number');
           Logger.error('Invalid timestamp parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
-        const engine = calendarId ? 
-          calendarManager.engines?.get(calendarId) : 
-          calendarManager.getActiveEngine();
-        
+
+        const engine = calendarId
+          ? calendarManager.engines?.get(calendarId)
+          : calendarManager.getActiveEngine();
+
         if (!engine) {
           const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
           Logger.error('No engine available for world time to date conversion', error);
           throw error;
         }
-        
+
         const result = engine.worldTimeToDate(timestamp);
         Logger.api('worldTimeToDate', { timestamp, calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to convert world time to date', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to convert world time to date',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -661,7 +710,10 @@ function setupAPI(): void {
         Logger.api('getActiveCalendar', undefined, result?.id || 'none');
         return result;
       } catch (error) {
-        Logger.error('Failed to get active calendar', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get active calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -669,18 +721,21 @@ function setupAPI(): void {
     setActiveCalendar: async (calendarId: string): Promise<void> => {
       try {
         Logger.api('setActiveCalendar', { calendarId });
-        
+
         // Input validation
         if (typeof calendarId !== 'string' || calendarId.trim() === '') {
           const error = new Error('Calendar ID must be a non-empty string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         await calendarManager.setActiveCalendar(calendarId);
         Logger.api('setActiveCalendar', { calendarId }, 'success');
       } catch (error) {
-        Logger.error('Failed to set active calendar', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to set active calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -692,7 +747,10 @@ function setupAPI(): void {
         Logger.api('getAvailableCalendars', undefined, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get available calendars', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get available calendars',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -700,24 +758,27 @@ function setupAPI(): void {
     loadCalendar: (data: any): void => {
       try {
         Logger.api('loadCalendar', { calendarId: data?.id || 'unknown' });
-        
+
         // Input validation
         if (!data || typeof data !== 'object') {
           const error = new Error('Calendar data must be a valid object');
           Logger.error('Invalid calendar data parameter', error);
           throw error;
         }
-        
+
         if (!data.id || typeof data.id !== 'string') {
           const error = new Error('Calendar data must have a valid id string');
           Logger.error('Invalid calendar data structure', error);
           throw error;
         }
-        
+
         calendarManager.loadCalendar(data);
         Logger.api('loadCalendar', { calendarId: data.id }, 'success');
       } catch (error) {
-        Logger.error('Failed to load calendar', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to load calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -726,28 +787,31 @@ function setupAPI(): void {
     getMonthNames: (calendarId?: string): string[] => {
       try {
         Logger.api('getMonthNames', { calendarId });
-        
+
         // Input validation
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
-        const calendar = calendarId ? 
-          calendarManager.getCalendar(calendarId) : 
-          calendarManager.getActiveCalendar();
-        
+
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
         if (!calendar?.months) {
           Logger.warn(`No months found for calendar: ${calendarId || 'active'}`);
           return [];
         }
-        
+
         const result = calendar.months.map(month => month.name);
         Logger.api('getMonthNames', { calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get month names', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get month names',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -755,57 +819,66 @@ function setupAPI(): void {
     getWeekdayNames: (calendarId?: string): string[] => {
       try {
         Logger.api('getWeekdayNames', { calendarId });
-        
+
         // Input validation
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
-        const calendar = calendarId ? 
-          calendarManager.getCalendar(calendarId) : 
-          calendarManager.getActiveCalendar();
-        
+
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
         if (!calendar?.weekdays) {
           Logger.warn(`No weekdays found for calendar: ${calendarId || 'active'}`);
           return [];
         }
-        
+
         const result = calendar.weekdays.map(day => day.name);
         Logger.api('getWeekdayNames', { calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get weekday names', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get weekday names',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
 
     // Optional enhanced features (basic implementations)
-    getSunriseSunset: (date: ICalendarDate, calendarId?: string): { sunrise: number; sunset: number } => {
+    getSunriseSunset: (
+      date: ICalendarDate,
+      calendarId?: string
+    ): { sunrise: number; sunset: number } => {
       try {
         Logger.api('getSunriseSunset', { date, calendarId });
-        
+
         // Input validation
         if (!date || typeof date !== 'object') {
           const error = new Error('Date must be a valid ICalendarDate object');
           Logger.error('Invalid date parameter', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
+
         // Basic implementation - can be enhanced with calendar-specific data later
         // For now, return reasonable defaults (6 AM sunrise, 6 PM sunset)
         const result = { sunrise: 6, sunset: 18 };
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get sunrise/sunset', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get sunrise/sunset',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -813,37 +886,45 @@ function setupAPI(): void {
     getSeasonInfo: (date: ICalendarDate, calendarId?: string): { name: string; icon: string } => {
       try {
         Logger.api('getSeasonInfo', { date, calendarId });
-        
+
         // Input validation
         if (!date || typeof date !== 'object') {
           const error = new Error('Date must be a valid ICalendarDate object');
           Logger.error('Invalid date parameter', error);
           throw error;
         }
-        
-        if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+
+        if (
+          typeof date.year !== 'number' ||
+          typeof date.month !== 'number' ||
+          typeof date.day !== 'number'
+        ) {
           const error = new Error('Date must have valid year, month, and day numbers');
           Logger.error('Invalid date structure', error);
           throw error;
         }
-        
+
         if (calendarId !== undefined && typeof calendarId !== 'string') {
           const error = new Error('Calendar ID must be a string');
           Logger.error('Invalid calendar ID parameter', error);
           throw error;
         }
-        
-        const calendar = calendarId ? 
-          calendarManager.getCalendar(calendarId) : 
-          calendarManager.getActiveCalendar();
-        
-        if (!calendar || !(calendar as SeasonsStarsCalendar).seasons || (calendar as SeasonsStarsCalendar).seasons!.length === 0) {
+
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
+        if (
+          !calendar ||
+          !(calendar as SeasonsStarsCalendar).seasons ||
+          (calendar as SeasonsStarsCalendar).seasons!.length === 0
+        ) {
           Logger.warn(`No seasons found for calendar: ${calendarId || 'active'}`);
           const result = { name: 'Unknown', icon: 'none' };
           Logger.api('getSeasonInfo', { date, calendarId }, result);
           return result;
         }
-        
+
         // Basic season detection - find season containing this date
         // This is a simple implementation that can be enhanced later
         const currentSeason = (calendar as SeasonsStarsCalendar).seasons!.find(season => {
@@ -854,29 +935,32 @@ function setupAPI(): void {
           }
           return false;
         });
-        
+
         if (currentSeason) {
-          const result = { 
-            name: currentSeason.name, 
-            icon: currentSeason.icon || currentSeason.name.toLowerCase() 
+          const result = {
+            name: currentSeason.name,
+            icon: currentSeason.icon || currentSeason.name.toLowerCase(),
           };
           Logger.api('getSeasonInfo', { date, calendarId }, result);
           return result;
         }
-        
+
         // Fallback: use first season or default
         const fallbackSeason = (calendar as SeasonsStarsCalendar).seasons![0];
-        const result = { 
-          name: fallbackSeason?.name || 'Unknown', 
-          icon: fallbackSeason?.icon || fallbackSeason?.name?.toLowerCase() || 'none' 
+        const result = {
+          name: fallbackSeason?.name || 'Unknown',
+          icon: fallbackSeason?.icon || fallbackSeason?.name?.toLowerCase() || 'none',
         };
         Logger.api('getSeasonInfo', { date, calendarId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to get season info', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get season info',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
-    }
+    },
   };
 
   // Expose API to global game object
@@ -886,7 +970,7 @@ function setupAPI(): void {
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: SeasonsStarsIntegration.detect()
+      integration: SeasonsStarsIntegration.detect(),
     };
   }
 
@@ -899,17 +983,13 @@ function setupAPI(): void {
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,
-    CalendarSelectionDialog
+    CalendarSelectionDialog,
   };
 
   Logger.debug('API and bridge integration exposed');
-  
+
   Logger.info('Module initialization complete');
 }
-
-
-
-
 
 /**
  * Register with Errors and Echoes if available
@@ -923,21 +1003,23 @@ function registerErrorsAndEchoes(): void {
 
   try {
     Logger.info('Registering with Errors and Echoes');
-    
+
     (window as any).ErrorsAndEchoesAPI.register({
       moduleId: 'seasons-and-stars',
-      
+
       // Context provider - adds useful debugging information
       contextProvider: () => {
         const context: Record<string, any> = {};
-        
+
         // Add calendar information
         if (calendarManager) {
           try {
             const currentDate = calendarManager.getCurrentDate();
             const activeCalendar = calendarManager.getActiveCalendar();
-            
-            context.currentDate = currentDate ? `${currentDate.year}-${currentDate.month}-${currentDate.day}` : 'unknown';
+
+            context.currentDate = currentDate
+              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
+              : 'unknown';
             context.activeCalendarId = activeCalendar?.id || 'unknown';
             context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
             context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
@@ -945,7 +1027,7 @@ function registerErrorsAndEchoes(): void {
             context.calendarError = 'Could not read calendar state';
           }
         }
-        
+
         // Add notes information
         if (notesManager) {
           try {
@@ -955,82 +1037,98 @@ function registerErrorsAndEchoes(): void {
             context.notesError = 'Could not read notes state';
           }
         }
-        
+
         // Add current scene information
         if (game.scenes?.active) {
           const scene = game.scenes.active;
           context.sceneId = scene.id;
           context.sceneName = scene.name;
         }
-        
+
         // Add system information
         context.gameSystem = game.system?.id || 'unknown';
         context.systemVersion = game.system?.version || 'unknown';
         context.foundryVersion = game.version || 'unknown';
-        
+
         // Add key module settings that might affect behavior
         try {
-          context.showTimeWidget = game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
+          context.showTimeWidget =
+            game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
           context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
-          context.showNotifications = game.settings?.get('seasons-and-stars', 'showNotifications') || false;
+          context.showNotifications =
+            game.settings?.get('seasons-and-stars', 'showNotifications') || false;
         } catch (e) {
           context.settingsError = 'Could not read module settings';
         }
-        
+
         return context;
       },
-      
+
       // Error filter - only report errors that are likely S&S related
       errorFilter: (error: Error) => {
         const stack = error.stack || '';
         const message = error.message || '';
-        
+
         // Report errors that mention our module
-        if (stack.includes('seasons-and-stars') || 
-            message.includes('seasons-and-stars') ||
-            message.includes('S&S') ||
-            stack.includes('CalendarManager') ||
-            stack.includes('CalendarWidget') ||
-            stack.includes('CalendarEngine') ||
-            stack.includes('NotesManager')) {
+        if (
+          stack.includes('seasons-and-stars') ||
+          message.includes('seasons-and-stars') ||
+          message.includes('S&S') ||
+          stack.includes('CalendarManager') ||
+          stack.includes('CalendarWidget') ||
+          stack.includes('CalendarEngine') ||
+          stack.includes('NotesManager')
+        ) {
           return false; // Don't filter (report this error)
         }
-        
+
         // Report calendar or time-related errors that might affect us
-        if (message.includes('calendar') ||
-            message.includes('worldTime') ||
-            message.includes('time') && (stack.includes('updateWorldTime') || stack.includes('game.time'))) {
+        if (
+          message.includes('calendar') ||
+          message.includes('worldTime') ||
+          (message.includes('time') &&
+            (stack.includes('updateWorldTime') || stack.includes('game.time')))
+        ) {
           return false; // Don't filter (might be relevant)
         }
-        
+
         // Filter out errors that are clearly from other modules
         const otherModules = [
-          'simple-calendar', 'foundryvtt-simple-calendar', 'smalltime',
-          'dice-so-nice', 'lib-wrapper', 'socketlib', 'journeys-and-jamborees'
+          'simple-calendar',
+          'foundryvtt-simple-calendar',
+          'smalltime',
+          'dice-so-nice',
+          'lib-wrapper',
+          'socketlib',
+          'journeys-and-jamborees',
         ];
-        
+
         for (const module of otherModules) {
           if (stack.includes(module) && !stack.includes('seasons-and-stars')) {
             return true; // Filter out (don't report)
           }
         }
-        
+
         // Report core Foundry errors that might affect our module
-        if (stack.includes('foundry.js') || 
-            stack.includes('ClientDatabaseBackend') ||
-            stack.includes('Application') && message.includes('render')) {
+        if (
+          stack.includes('foundry.js') ||
+          stack.includes('ClientDatabaseBackend') ||
+          (stack.includes('Application') && message.includes('render'))
+        ) {
           return false; // Don't filter (these might affect us)
         }
-        
+
         // Filter out most other errors unless they seem related
         return true;
-      }
+      },
     });
-    
+
     Logger.info('Successfully registered with Errors and Echoes');
-    
   } catch (error) {
-    Logger.error('Failed to register with Errors and Echoes', error instanceof Error ? error : new Error(String(error)));
+    Logger.error(
+      'Failed to register with Errors and Echoes',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -1039,13 +1137,12 @@ function registerErrorsAndEchoes(): void {
  */
 Hooks.once('destroy', () => {
   Logger.info('Module shutting down');
-  
-  
+
   // Clean up global references
   if (game.seasonsStars) {
     delete game.seasonsStars;
   }
-  
+
   if ((window as any).SeasonsStars) {
     delete (window as any).SeasonsStars;
   }
@@ -1070,22 +1167,22 @@ function registerMemoryMageIntegration(): void {
       const optimizer = notesManager?.getPerformanceOptimizer?.();
       const widgetMemory = calculateWidgetMemory();
       const calendarMemory = calculateCalendarMemory();
-      
+
       return {
         estimatedMB: (optimizer?.getMemoryUsage() || 0) + widgetMemory + calendarMemory,
         details: {
           notesCache: optimizer?.getMetrics()?.totalNotes || 0,
           activeWidgets: getActiveWidgetCount(),
           loadedCalendars: calendarManager?.getLoadedCalendars()?.length || 0,
-          cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0
-        }
+          cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0,
+        },
       };
     });
 
     // Register cleanup handler for memory pressure
     memoryMage.registerCleanupHandler('seasons-and-stars', (level: 'warning' | 'critical') => {
       Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
-      
+
       if (level === 'warning') {
         // Light cleanup
         const optimizer = notesManager?.getPerformanceOptimizer?.();
@@ -1098,12 +1195,12 @@ function registerMemoryMageIntegration(): void {
         if (optimizer) {
           optimizer.relieveMemoryPressure();
         }
-        
+
         // Clear other caches if available
         if (calendarManager?.clearCaches) {
           calendarManager.clearCaches();
         }
-        
+
         // Force close widgets if memory is critically low
         if (level === 'critical') {
           CalendarWidget.closeAll?.();
@@ -1123,11 +1220,11 @@ function registerMemoryMageIntegration(): void {
  */
 function calculateWidgetMemory(): number {
   let memory = 0;
-  
+
   // Base widget overhead (small)
   const activeWidgets = getActiveWidgetCount();
   memory += activeWidgets * 0.05; // 50KB per widget
-  
+
   return memory;
 }
 
@@ -1144,10 +1241,10 @@ function calculateCalendarMemory(): number {
  */
 function getActiveWidgetCount(): number {
   let count = 0;
-  
+
   if (CalendarWidget.getInstance?.()?.rendered) count++;
   if (CalendarMiniWidget.getInstance?.()?.rendered) count++;
   if (CalendarGridWidget.getInstance?.()?.rendered) count++;
-  
+
   return count;
 }

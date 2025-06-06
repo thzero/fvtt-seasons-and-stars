@@ -15,7 +15,7 @@ export class Logger {
   }
 
   /**
-   * Log informational messages 
+   * Log informational messages
    */
   static info(message: string, data?: any): void {
     console.log(`[S&S] ${message}`, data || '');

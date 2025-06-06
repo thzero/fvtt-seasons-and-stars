@@ -17,7 +17,7 @@ export default {
     scss({
       fileName: 'styles/seasons-and-stars.css',
       outputStyle: 'compressed',
-      watch: 'src/styles'
+      watch: 'src/styles',
     }),
     copy({
       targets: [

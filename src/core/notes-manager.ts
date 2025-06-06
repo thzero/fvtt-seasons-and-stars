@@ -39,20 +39,20 @@ export interface CalendarNoteFlags {
   'seasons-and-stars': {
     calendarNote: true;
     version: string;
-    dateKey: string;           // "2024-12-25" (1-based storage)
+    dateKey: string; // "2024-12-25" (1-based storage)
     startDate: ICalendarDate;
     endDate?: ICalendarDate;
     allDay: boolean;
     calendarId: string;
     category?: string;
     tags?: string[];
-    recurring?: RecurringPattern;  // Recurring pattern if applicable
-    isRecurringParent?: boolean;   // True if this is the master recurring note
-    recurringParentId?: string;    // ID of parent note for generated occurrences
-    created: number;           // timestamp
-    modified: number;          // timestamp
+    recurring?: RecurringPattern; // Recurring pattern if applicable
+    isRecurringParent?: boolean; // True if this is the master recurring note
+    recurringParentId?: string; // ID of parent note for generated occurrences
+    created: number; // timestamp
+    modified: number; // timestamp
   };
-  [moduleId: string]: any;     // Module-specific data
+  [moduleId: string]: any; // Module-specific data
 }
 
 /**
@@ -79,22 +79,22 @@ export class NotesManager {
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
-    
+
     Logger.info('Initializing Notes Manager');
-    
+
     // Initialize storage system
     this.storage.initialize();
-    
+
     // Initialize notes folder
     await this.initializeNotesFolder();
-    
+
     // Check if we have a large collection and optimize accordingly
     const noteCount = this.getAllCalendarNotes().length;
     if (noteCount > 500) {
       Logger.info(`Large note collection detected (${noteCount} notes) - applying optimizations`);
       await this.storage.optimizeForLargeCollections();
     }
-    
+
     this.initialized = true;
     Logger.info('Notes Manager initialized');
   }
@@ -132,9 +132,9 @@ export class NotesManager {
           recurring: data.recurring,
           isRecurringParent: !!data.recurring,
           created: Date.now(),
-          modified: Date.now()
-        }
-      }
+          modified: Date.now(),
+        },
+      },
     });
 
     if (!journal) {
@@ -142,11 +142,13 @@ export class NotesManager {
     }
 
     // Create content page using v13 pages system
-    await journal.createEmbeddedDocuments("JournalEntryPage", [{
-      type: 'text',
-      name: 'Content',
-      text: { content: data.content }
-    }]);
+    await journal.createEmbeddedDocuments('JournalEntryPage', [
+      {
+        type: 'text',
+        name: 'Content',
+        text: { content: data.content },
+      },
+    ]);
 
     // Add to storage system
     await this.storage.storeNote(journal, data.startDate);
@@ -188,7 +190,7 @@ export class NotesManager {
 
     // Update flags
     const flagUpdates: any = {
-      modified: Date.now()
+      modified: Date.now(),
     };
 
     if (data.startDate !== undefined) {
@@ -204,9 +206,9 @@ export class NotesManager {
 
     // Update ownership if visibility changed
     if (data.playerVisible !== undefined) {
-      updateData.ownership = data.playerVisible ? 
-        { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER } : 
-        {};
+      updateData.ownership = data.playerVisible
+        ? { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER }
+        : {};
     }
 
     await journal.update(updateData);
@@ -218,7 +220,7 @@ export class NotesManager {
         const contentPage = pages.values().next().value;
         if (contentPage?.update) {
           await contentPage.update({
-            'text.content': data.content
+            'text.content': data.content,
           });
         }
       }
@@ -303,7 +305,7 @@ export class NotesManager {
     }
 
     await journal.setFlag(moduleId, 'data', data);
-    
+
     // Update modification timestamp
     await journal.setFlag('seasons-and-stars', 'modified', Date.now());
   }
@@ -330,9 +332,10 @@ export class NotesManager {
    */
   async getOrCreateNotesFolder(): Promise<Folder> {
     // Try to find existing folder
-    const existingFolder = game.folders?.find(f => 
-      f.type === 'JournalEntry' && 
-      (f as any).getFlag?.('seasons-and-stars', 'notesFolder') === true
+    const existingFolder = game.folders?.find(
+      f =>
+        f.type === 'JournalEntry' &&
+        (f as any).getFlag?.('seasons-and-stars', 'notesFolder') === true
     );
 
     if (existingFolder) {
@@ -347,9 +350,9 @@ export class NotesManager {
       flags: {
         'seasons-and-stars': {
           notesFolder: true,
-          version: '1.0'
-        }
-      }
+          version: '1.0',
+        },
+      },
     });
 
     if (!folder) {
@@ -484,9 +487,9 @@ export class NotesManager {
       query,
       limit,
       sortBy: 'created',
-      sortOrder: 'desc'
+      sortOrder: 'desc',
     });
-    
+
     return result.notes;
   }
 
@@ -498,28 +501,32 @@ export class NotesManager {
       categories: [category],
       limit,
       sortBy: 'date',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     });
-    
+
     return result.notes;
   }
 
   /**
    * Get notes with specific tags
    */
-  async getNotesByTags(tags: string[], matchAll: boolean = true, limit?: number): Promise<JournalEntry[]> {
+  async getNotesByTags(
+    tags: string[],
+    matchAll: boolean = true,
+    limit?: number
+  ): Promise<JournalEntry[]> {
     const searchCriteria: NoteSearchCriteria = {
       limit,
       sortBy: 'date',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     };
-    
+
     if (matchAll) {
       searchCriteria.tags = tags;
     } else {
       searchCriteria.anyTags = tags;
     }
-    
+
     const result = await this.searchNotes(searchCriteria);
     return result.notes;
   }
@@ -530,14 +537,14 @@ export class NotesManager {
   async getUpcomingNotes(limit: number = 20): Promise<JournalEntry[]> {
     const currentDate = game.seasonsStars?.manager?.getCurrentDate();
     if (!currentDate) return [];
-    
+
     const result = await this.searchNotes({
       dateFrom: currentDate.toObject(),
       limit,
       sortBy: 'date',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     });
-    
+
     return result.notes;
   }
 
@@ -548,9 +555,9 @@ export class NotesManager {
     const result = await this.searchNotes({
       limit,
       sortBy: 'created',
-      sortOrder: 'desc'
+      sortOrder: 'desc',
     });
-    
+
     return result.notes;
   }
 
@@ -558,8 +565,8 @@ export class NotesManager {
    * Generate recurring occurrences for a note
    */
   private async generateRecurringOccurrences(
-    parentNote: JournalEntry, 
-    pattern: RecurringPattern, 
+    parentNote: JournalEntry,
+    pattern: RecurringPattern,
     startDate: ICalendarDate
   ): Promise<void> {
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -571,14 +578,14 @@ export class NotesManager {
     // Generate occurrences for next 2 years to start
     const currentDate = game.seasonsStars?.manager?.getCurrentDate();
     if (!currentDate) return;
-    
+
     const rangeStart = currentDate.toObject();
     const rangeEnd: ICalendarDate = {
       year: rangeStart.year + 2,
       month: rangeStart.month,
       day: rangeStart.day,
       weekday: rangeStart.weekday,
-      time: rangeStart.time
+      time: rangeStart.time,
     };
 
     const occurrences = NoteRecurrence.generateOccurrences(
@@ -605,7 +612,7 @@ export class NotesManager {
    * Create a single recurring occurrence note
    */
   private async createRecurringOccurrence(
-    parentNote: JournalEntry, 
+    parentNote: JournalEntry,
     occurrenceDate: ICalendarDate
   ): Promise<JournalEntry> {
     const noteFolder = await this.getOrCreateNotesFolder();
@@ -631,9 +638,9 @@ export class NotesManager {
           recurringParentId: parentNote.id,
           isRecurringParent: false,
           created: Date.now(),
-          modified: Date.now()
-        }
-      }
+          modified: Date.now(),
+        },
+      },
     });
 
     if (!journal) {
@@ -641,11 +648,13 @@ export class NotesManager {
     }
 
     // Create content page
-    await journal.createEmbeddedDocuments("JournalEntryPage", [{
-      type: 'text',
-      name: 'Content',
-      text: { content: parentContent }
-    }]);
+    await journal.createEmbeddedDocuments('JournalEntryPage', [
+      {
+        type: 'text',
+        name: 'Content',
+        text: { content: parentContent },
+      },
+    ]);
 
     // Add to storage system
     await this.storage.storeNote(journal, occurrenceDate);
@@ -679,7 +688,7 @@ export class NotesManager {
 
     // Get all occurrences
     const occurrences = this.getRecurringOccurrences(parentNoteId);
-    
+
     // Delete all occurrences first
     for (const occurrence of occurrences) {
       await this.deleteNote(occurrence.id);
@@ -687,17 +696,14 @@ export class NotesManager {
 
     // Delete the parent note
     await this.deleteNote(parentNoteId);
-    
+
     Logger.info(`Deleted recurring note and ${occurrences.length} occurrences`);
   }
 
   /**
    * Update recurring pattern for a note
    */
-  async updateRecurringPattern(
-    parentNoteId: string, 
-    newPattern: RecurringPattern
-  ): Promise<void> {
+  async updateRecurringPattern(parentNoteId: string, newPattern: RecurringPattern): Promise<void> {
     const parentNote = game.journal?.get(parentNoteId);
     if (!parentNote) {
       throw new Error(`Parent note ${parentNoteId} not found`);
@@ -721,7 +727,7 @@ export class NotesManager {
     // Generate new occurrences
     const startDate = parentNote.flags['seasons-and-stars'].startDate;
     await this.generateRecurringOccurrences(parentNote, newPattern, startDate);
-    
+
     Logger.info('Updated recurring pattern and regenerated occurrences');
   }
 
@@ -731,7 +737,7 @@ export class NotesManager {
   isRecurringParent(noteId: string): boolean {
     const journal = game.journal?.get(noteId);
     if (!journal) return false;
-    
+
     const flags = journal.flags?.['seasons-and-stars'];
     return flags?.calendarNote && flags?.isRecurringParent === true;
   }
@@ -742,7 +748,7 @@ export class NotesManager {
   isRecurringOccurrence(noteId: string): boolean {
     const journal = game.journal?.get(noteId);
     if (!journal) return false;
-    
+
     const flags = journal.flags?.['seasons-and-stars'];
     return flags?.calendarNote && !!flags?.recurringParentId;
   }
@@ -753,10 +759,10 @@ export class NotesManager {
   getRecurringParent(occurrenceId: string): JournalEntry | null {
     const occurrence = game.journal?.get(occurrenceId);
     if (!occurrence) return null;
-    
+
     const parentId = occurrence.flags?.['seasons-and-stars']?.recurringParentId;
     if (!parentId) return null;
-    
+
     return game.journal?.get(parentId) || null;
   }
 
@@ -765,7 +771,7 @@ export class NotesManager {
    */
   private getAllCalendarNotes(): JournalEntry[] {
     if (!game.journal) return [];
-    
+
     return game.journal.filter(journal => {
       const flags = journal.flags?.['seasons-and-stars'];
       return flags?.calendarNote === true;
@@ -784,12 +790,12 @@ export class NotesManager {
    */
   async optimizePerformance(): Promise<void> {
     Logger.info('Starting notes system optimization...');
-    
+
     await this.storage.optimizeForLargeCollections();
-    
+
     // Clean up any orphaned data
     await this.cleanupOrphanedData();
-    
+
     Logger.info('Notes system optimization completed');
   }
 
@@ -799,10 +805,10 @@ export class NotesManager {
   private async cleanupOrphanedData(): Promise<void> {
     const allNotes = this.getAllCalendarNotes();
     let orphanedCount = 0;
-    
+
     for (const note of allNotes) {
       const flags = note.flags?.['seasons-and-stars'];
-      
+
       // Check for recurring orphans
       if (flags?.recurringParentId) {
         const parent = game.journal?.get(flags.recurringParentId);
@@ -813,7 +819,7 @@ export class NotesManager {
         }
       }
     }
-    
+
     if (orphanedCount > 0) {
       Logger.info(`Found ${orphanedCount} orphaned notes during cleanup`);
     }

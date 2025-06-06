@@ -29,22 +29,26 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 ### Development Setup
 
 1. **Fork and Clone**
+
    ```bash
    git clone https://github.com/your-username/fvtt-seasons-and-stars.git
    cd fvtt-seasons-and-stars
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Build the Module**
+
    ```bash
    npm run build
    ```
 
 4. **Link to Foundry** (optional)
+
    ```bash
    ./link-module.sh
    ```
@@ -59,6 +63,7 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 ### Branch Naming
 
 Use descriptive branch names:
+
 - `feature/calendar-widget-enhancement`
 - `fix/smalltime-integration-positioning`
 - `docs/api-reference-update`
@@ -66,6 +71,7 @@ Use descriptive branch names:
 ### Commit Messages
 
 Follow conventional commit format:
+
 ```
 type(scope): description
 
@@ -81,21 +87,25 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 ### Pull Request Process
 
 1. **Create Feature Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. **Make Your Changes**
+
    - Follow coding standards
    - Add/update tests
    - Update documentation
 
 3. **Test Your Changes**
+
    ```bash
    npm run validate  # Runs tests, build, and typecheck
    ```
 
 4. **Commit and Push**
+
    ```bash
    git add .
    git commit -m "feat(scope): description"
@@ -163,6 +173,7 @@ test/          # Unit tests
 ### Integration Testing
 
 Test module integration points:
+
 - Simple Calendar Compatibility Bridge
 - Simple Weather integration
 - SmallTime positioning
@@ -202,6 +213,7 @@ npm run coverage      # Generate coverage report
 ### Bug Reports
 
 Use the Bug Report template and include:
+
 - Steps to reproduce
 - Expected vs actual behavior
 - Console errors
@@ -211,6 +223,7 @@ Use the Bug Report template and include:
 ### Feature Requests
 
 Use the Feature Request template and include:
+
 - Problem or use case
 - Proposed solution
 - Alternative approaches considered
@@ -219,6 +232,7 @@ Use the Feature Request template and include:
 ### Bridge Integration Issues
 
 Use the Bridge Integration template for:
+
 - Simple Calendar Compatibility Bridge issues
 - Simple Weather integration problems
 - Module compatibility concerns
@@ -240,6 +254,7 @@ Use the Bridge Integration template for:
 ## Release Process
 
 Releases follow semantic versioning:
+
 - **Major** (v1.0.0): Breaking changes
 - **Minor** (v0.1.0): New features, backward compatible
 - **Patch** (v0.1.1): Bug fixes, backward compatible

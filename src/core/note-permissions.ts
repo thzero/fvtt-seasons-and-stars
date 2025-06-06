@@ -6,16 +6,18 @@
  * Manages permissions and access control for calendar notes
  */
 export class NotePermissions {
-  
   /**
    * Check if a user can create calendar notes
    */
   canCreateNote(user: User): boolean {
     // GMs can always create notes
     if (user.isGM) return true;
-    
+
     // Check if players are allowed to create notes via setting
-    const allowPlayerCreation = game.settings?.get('seasons-and-stars', 'allowPlayerNotes') as boolean;
+    const allowPlayerCreation = game.settings?.get(
+      'seasons-and-stars',
+      'allowPlayerNotes'
+    ) as boolean;
     return allowPlayerCreation || false;
   }
 
@@ -25,11 +27,12 @@ export class NotePermissions {
   canEditNote(user: User, note: JournalEntry): boolean {
     // GMs can always edit notes
     if (user.isGM) return true;
-    
+
     // Check ownership level
     const ownership = note.ownership;
-    const userLevel = ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+    const userLevel =
+      ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
   }
 
@@ -39,11 +42,12 @@ export class NotePermissions {
   canDeleteNote(user: User, note: JournalEntry): boolean {
     // GMs can always delete notes
     if (user.isGM) return true;
-    
+
     // Check ownership level (same as edit for now)
     const ownership = note.ownership;
-    const userLevel = ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+    const userLevel =
+      ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
   }
 
@@ -53,11 +57,12 @@ export class NotePermissions {
   canViewNote(user: User, note: JournalEntry): boolean {
     // GMs can always view notes
     if (user.isGM) return true;
-    
+
     // Check ownership level
     const ownership = note.ownership;
-    const userLevel = ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+    const userLevel =
+      ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
   }
 
@@ -67,11 +72,11 @@ export class NotePermissions {
   canManagePermissions(user: User, note: JournalEntry): boolean {
     // Only GMs can manage permissions
     if (user.isGM) return true;
-    
+
     // Note creators with owner level can manage their own notes
     const ownership = note.ownership;
     const userLevel = ownership[user.id] || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+
     return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
   }
 
@@ -87,7 +92,7 @@ export class NotePermissions {
    */
   async setGMOnly(note: JournalEntry): Promise<void> {
     await this.setNoteOwnership(note, {
-      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE
+      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE,
     });
   }
 
@@ -96,7 +101,7 @@ export class NotePermissions {
    */
   async setPlayerVisible(note: JournalEntry): Promise<void> {
     await this.setNoteOwnership(note, {
-      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER,
     });
   }
 
@@ -105,7 +110,7 @@ export class NotePermissions {
    */
   async setPlayerEditable(note: JournalEntry): Promise<void> {
     await this.setNoteOwnership(note, {
-      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
+      default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
     });
   }
 
@@ -116,9 +121,9 @@ export class NotePermissions {
     const currentOwnership = note.ownership || {};
     const newOwnership = {
       ...currentOwnership,
-      [userId]: level
+      [userId]: level,
     };
-    
+
     await this.setNoteOwnership(note, newOwnership);
   }
 
@@ -129,7 +134,7 @@ export class NotePermissions {
     const currentOwnership = note.ownership || {};
     const newOwnership = { ...currentOwnership };
     delete newOwnership[userId];
-    
+
     await this.setNoteOwnership(note, newOwnership);
   }
 
@@ -138,7 +143,7 @@ export class NotePermissions {
    */
   getUserPermissionLevel(user: User, note: JournalEntry): number {
     if (user.isGM) return CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
-    
+
     const ownership = note.ownership;
     return ownership[user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
   }
@@ -171,9 +176,9 @@ export class NotePermissions {
       'edit-any-note',
       'view-private-notes',
       'bulk-operations',
-      'import-export'
+      'import-export',
     ];
-    
+
     return gmOnlyActions.includes(action);
   }
 
@@ -188,7 +193,11 @@ export class NotePermissions {
   /**
    * Filter notes based on user permissions
    */
-  filterNotesByPermission(notes: JournalEntry[], user: User, requiredLevel: number = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER): JournalEntry[] {
+  filterNotesByPermission(
+    notes: JournalEntry[],
+    user: User,
+    requiredLevel: number = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+  ): JournalEntry[] {
     return notes.filter(note => {
       const userLevel = this.getUserPermissionLevel(user, note);
       return userLevel >= requiredLevel;
@@ -199,10 +208,11 @@ export class NotePermissions {
    * Get all notes the user can view
    */
   getViewableNotes(user: User): JournalEntry[] {
-    const allNotes = game.journal?.filter(journal => {
-      const flags = journal.flags?.['seasons-and-stars'];
-      return flags?.calendarNote === true;
-    }) || [];
+    const allNotes =
+      game.journal?.filter(journal => {
+        const flags = journal.flags?.['seasons-and-stars'];
+        return flags?.calendarNote === true;
+      }) || [];
 
     return this.filterNotesByPermission(allNotes, user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER);
   }
@@ -211,10 +221,11 @@ export class NotePermissions {
    * Get all notes the user can edit
    */
   getEditableNotes(user: User): JournalEntry[] {
-    const allNotes = game.journal?.filter(journal => {
-      const flags = journal.flags?.['seasons-and-stars'];
-      return flags?.calendarNote === true;
-    }) || [];
+    const allNotes =
+      game.journal?.filter(journal => {
+        const flags = journal.flags?.['seasons-and-stars'];
+        return flags?.calendarNote === true;
+      }) || [];
 
     return this.filterNotesByPermission(allNotes, user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER);
   }
@@ -222,26 +233,30 @@ export class NotePermissions {
   /**
    * Check if the current user has sufficient permissions for an operation
    */
-  checkPermission(operation: 'create' | 'view' | 'edit' | 'delete' | 'manage', note?: JournalEntry, user?: User): boolean {
+  checkPermission(
+    operation: 'create' | 'view' | 'edit' | 'delete' | 'manage',
+    note?: JournalEntry,
+    user?: User
+  ): boolean {
     const currentUser = user || game.user;
     if (!currentUser) return false;
 
     switch (operation) {
       case 'create':
         return this.canCreateNote(currentUser);
-      
+
       case 'view':
         return note ? this.canViewNote(currentUser, note) : false;
-      
+
       case 'edit':
         return note ? this.canEditNote(currentUser, note) : false;
-      
+
       case 'delete':
         return note ? this.canDeleteNote(currentUser, note) : false;
-      
+
       case 'manage':
         return note ? this.canManagePermissions(currentUser, note) : false;
-      
+
       default:
         return false;
     }
@@ -251,11 +266,17 @@ export class NotePermissions {
    * Create ownership object for new notes based on settings
    */
   getDefaultOwnership(creatorId: string): any {
-    const playerVisible = game.settings?.get('seasons-and-stars', 'defaultPlayerVisible') as boolean;
-    const playerEditable = game.settings?.get('seasons-and-stars', 'defaultPlayerEditable') as boolean;
-    
+    const playerVisible = game.settings?.get(
+      'seasons-and-stars',
+      'defaultPlayerVisible'
+    ) as boolean;
+    const playerEditable = game.settings?.get(
+      'seasons-and-stars',
+      'defaultPlayerEditable'
+    ) as boolean;
+
     let defaultLevel: OwnershipLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-    
+
     if (playerEditable) {
       defaultLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
     } else if (playerVisible) {
@@ -264,7 +285,7 @@ export class NotePermissions {
 
     return {
       [creatorId]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
-      default: defaultLevel
+      default: defaultLevel,
     };
   }
 
@@ -273,7 +294,7 @@ export class NotePermissions {
    */
   validateOwnership(ownership: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!ownership || typeof ownership !== 'object') {
       errors.push('Ownership must be an object');
       return { isValid: false, errors };
@@ -290,7 +311,7 @@ export class NotePermissions {
     // Check user-specific levels
     for (const [userId, level] of Object.entries(ownership)) {
       if (userId === 'default') continue;
-      
+
       const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as OwnershipLevel[];
       if (!validLevels.includes(level as OwnershipLevel)) {
         errors.push(`Invalid ownership level for user ${userId}: ${level}`);
@@ -319,7 +340,7 @@ export class NotePermissions {
       canEdit: this.canEditNote(currentUser, note),
       canDelete: this.canDeleteNote(currentUser, note),
       canManage: this.canManagePermissions(currentUser, note),
-      ownership: note.ownership
+      ownership: note.ownership,
     };
   }
 }

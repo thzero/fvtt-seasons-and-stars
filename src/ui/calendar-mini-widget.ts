@@ -6,9 +6,16 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
-export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   private static activeInstance: CalendarMiniWidget | null = null;
-  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
+  private sidebarButtons: Array<{
+    name: string;
+    icon: string;
+    tooltip: string;
+    callback: Function;
+  }> = [];
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -18,25 +25,25 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       frame: false,
       positioned: true,
       minimizable: false,
-      resizable: false
+      resizable: false,
     },
     position: {
       width: 'auto' as const,
       height: 'auto' as const,
-      top: -1000,  // Start off-screen to minimize flash
-      left: -1000
+      top: -1000, // Start off-screen to minimize flash
+      left: -1000,
     },
     actions: {
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
-      openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection
-    }
+      openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
+    },
   };
 
   static PARTS = {
     main: {
       id: 'main',
-      template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs'
-    }
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs',
+    },
   };
 
   /**
@@ -44,34 +51,34 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
-    
+
     const manager = game.seasonsStars?.manager;
-    
+
     if (!manager) {
       return Object.assign(context, {
         error: 'Calendar not available',
-        shortDate: 'N/A'
+        shortDate: 'N/A',
       });
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
-    
+
     if (!activeCalendar || !currentDate) {
       return Object.assign(context, {
         error: 'No calendar active',
-        shortDate: 'N/A'
+        shortDate: 'N/A',
       });
     }
-    
+
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
-    
+
     return Object.assign(context, {
       shortDate: currentDate.toDateString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
-      isGM: game.user?.isGM || false
+      isGM: game.user?.isGM || false,
     });
   }
 
@@ -80,13 +87,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onRender(context: any, options: any): Promise<void> {
     await super._onRender(context, options);
-    
+
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
-    
+
     // Render any existing sidebar buttons
     this.renderExistingSidebarButtons();
-    
+
     // Position widget after render (SmallTime approach)
     this.positionWidget();
   }
@@ -98,14 +105,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element) return;
 
     const smallTimeElement = this.findSmallTimeElement();
-    
+
     if (smallTimeElement) {
       // Check if SmallTime is pinned/docked in DOM or floating
       if (this.isSmallTimeDocked(smallTimeElement)) {
         // SmallTime is docked - use DOM positioning
         this.dockAboveSmallTime(smallTimeElement);
       } else {
-        // SmallTime is floating - use fixed positioning  
+        // SmallTime is floating - use fixed positioning
         this.positionAboveSmallTime(smallTimeElement);
       }
     } else {
@@ -129,14 +136,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (CalendarMiniWidget.activeInstance === this) {
       CalendarMiniWidget.activeInstance = null;
     }
-    
+
     // Clean up mutation observer
     const observer = (this as any)._playerListObserver;
     if (observer) {
       observer.disconnect();
       delete (this as any)._playerListObserver;
     }
-    
+
     return super.close(options);
   }
 
@@ -218,7 +225,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (index !== -1) {
       this.sidebarButtons.splice(index, 1);
       Logger.debug(`Removed sidebar button "${name}" from mini widget`);
-      
+
       // Remove from DOM if rendered
       if (this.rendered && this.element) {
         const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -240,11 +247,16 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Render a sidebar button in the mini widget DOM
    */
-  private renderSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+  private renderSidebarButton(
+    name: string,
+    icon: string,
+    tooltip: string,
+    callback: Function
+  ): void {
     if (!this.element) return;
 
     const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-    
+
     // Don't add if already exists in DOM
     if (this.element.querySelector(`#${buttonId}`)) {
       return;
@@ -256,8 +268,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Create header if it doesn't exist
       headerArea = document.createElement('div');
       headerArea.className = 'mini-widget-header';
-      headerArea.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
-      
+      headerArea.style.cssText =
+        'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
+
       // Insert at the beginning of the widget
       this.element.insertBefore(headerArea, this.element.firstChild);
     }
@@ -281,7 +294,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     `;
 
     // Add click handler
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
       try {
@@ -328,10 +341,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onAdvanceTime(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'hours';
-    
+
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
@@ -349,7 +362,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           Logger.warn(`Unknown time unit: ${unit}`);
           return;
       }
-      
     } catch (error) {
       Logger.error('Error advancing time', error as Error);
       ui.notifications?.error('Failed to advance time');
@@ -361,7 +373,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
@@ -391,11 +403,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if SmallTime UI elements are present in the DOM
     const selectors = [
       '#smalltime-app',
-      '.smalltime-app', 
+      '.smalltime-app',
       '#timeDisplay',
       '#slideContainer',
       '[id*="smalltime"]',
-      '.form:has(#timeDisplay)'
+      '.form:has(#timeDisplay)',
     ];
 
     for (const selector of selectors) {
@@ -420,10 +432,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const attemptPositioning = (attempts = 0) => {
       const maxAttempts = 10;
       const smallTimeElement = this.findSmallTimeElement();
-      
+
       if (smallTimeElement && this.element && this.rendered) {
         // Both elements exist and we're rendered, proceed with positioning
-        Logger.debug(`Auto-positioning mini widget relative to SmallTime (attempt ${attempts + 1})`);
+        Logger.debug(
+          `Auto-positioning mini widget relative to SmallTime (attempt ${attempts + 1})`
+        );
         this.positionRelativeToSmallTime('above'); // Default to above instead of below
       } else if (attempts < maxAttempts) {
         // Retry after a short delay
@@ -462,11 +476,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Usually bottom-right area of UI
       position = {
         top: window.innerHeight - 150, // Typical player list area
-        left: window.innerWidth - 240   // Typical player list left edge
+        left: window.innerWidth - 240, // Typical player list left edge
       };
-      
-      Logger.debug('Player list not found, using typical location', position);
 
+      Logger.debug('Player list not found, using typical location', position);
     } catch (error) {
       Logger.warn('Error in standalone positioning, using fallback', error);
     }
@@ -480,7 +493,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Add a class to indicate standalone mode
     this.element.classList.add('standalone-mode');
-    this.element.classList.remove('above-smalltime', 'below-smalltime', 'beside-smalltime', 'docked-mode');
+    this.element.classList.remove(
+      'above-smalltime',
+      'below-smalltime',
+      'beside-smalltime',
+      'docked-mode'
+    );
   }
 
   /**
@@ -489,12 +507,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private findSmallTimeElement(): HTMLElement | null {
     // Try multiple selectors to find SmallTime
     const selectors = [
-      '#smalltime-app',           // Primary ID
-      '.smalltime-app',           // Class variant
-      '#timeDisplay',             // From the HTML you provided
-      '#slideContainer',          // Another element from your HTML
-      '[id*="smalltime"]',        // Any element with smalltime in ID
-      '.form:has(#timeDisplay)'   // Form containing timeDisplay
+      '#smalltime-app', // Primary ID
+      '.smalltime-app', // Class variant
+      '#timeDisplay', // From the HTML you provided
+      '#slideContainer', // Another element from your HTML
+      '[id*="smalltime"]', // Any element with smalltime in ID
+      '.form:has(#timeDisplay)', // Form containing timeDisplay
     ];
 
     for (const selector of selectors) {
@@ -504,8 +522,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           Logger.debug(`Found SmallTime using selector: ${selector}`);
           // If we found timeDisplay, get its parent form/container
           if (selector === '#timeDisplay' || selector === '#slideContainer') {
-            const container = element.closest('form') || element.closest('.form') || element.parentElement;
-            return container as HTMLElement || element;
+            const container =
+              element.closest('form') || element.closest('.form') || element.parentElement;
+            return (container as HTMLElement) || element;
           }
           return element;
         }
@@ -536,39 +555,39 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Wait for the mini widget to be properly rendered before getting dimensions
     requestAnimationFrame(() => {
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
-      
+
       // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
       const estimatedMiniHeight = 32; // Match the CSS height (24px) + padding (4px + 4px)
-      
+
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
-      
+
       let newPosition: { top: number; left: number };
 
       switch (position) {
         case 'above':
           newPosition = {
             top: smallTimeRect.top - estimatedMiniHeight - 8,
-            left: smallTimeRect.left
+            left: smallTimeRect.left,
           };
           this.element?.classList.add('above-smalltime');
           this.element?.classList.remove('below-smalltime', 'beside-smalltime');
           break;
-          
+
         case 'beside':
           newPosition = {
             top: smallTimeRect.top,
-            left: smallTimeRect.right + 8
+            left: smallTimeRect.right + 8,
           };
           this.element?.classList.add('beside-smalltime');
           this.element?.classList.remove('above-smalltime', 'below-smalltime');
           break;
-          
+
         case 'below':
         default:
           newPosition = {
             top: smallTimeRect.bottom + 8,
-            left: smallTimeRect.left
+            left: smallTimeRect.left,
           };
           this.element?.classList.add('below-smalltime');
           this.element?.classList.remove('above-smalltime', 'beside-smalltime');
@@ -583,12 +602,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         this.element.style.top = `${newPosition.top}px`;
         this.element.style.left = `${newPosition.left}px`;
         this.element.style.zIndex = '95';
-        
+
         // Try to match SmallTime's actual background color
         this.matchSmallTimeBackground(smallTimeElement);
-        
+
         Logger.debug('Applied CSS positioning directly');
-        
+
         // Verify final position
         setTimeout(() => {
           const finalRect = this.element?.getBoundingClientRect();
@@ -604,21 +623,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private matchSmallTimeBackground(smallTimeElement: HTMLElement): void {
     try {
       // Find SmallTime's content area
-      const smallTimeContent = smallTimeElement.querySelector('.window-content') || 
-                              smallTimeElement.querySelector('form') ||
-                              smallTimeElement;
-      
+      const smallTimeContent =
+        smallTimeElement.querySelector('.window-content') ||
+        smallTimeElement.querySelector('form') ||
+        smallTimeElement;
+
       if (smallTimeContent && this.element) {
         const computedStyle = getComputedStyle(smallTimeContent as HTMLElement);
         const miniContent = this.element.querySelector('.calendar-mini-content') as HTMLElement;
-        
+
         if (miniContent) {
           // Try to match the background
           const background = computedStyle.backgroundColor;
           const backgroundImage = computedStyle.backgroundImage;
-          
+
           Logger.debug('SmallTime background', { background, backgroundImage });
-          
+
           if (background && background !== 'rgba(0, 0, 0, 0)') {
             miniContent.style.background = background;
           }
@@ -693,14 +713,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           CalendarMiniWidget.activeInstance.handlePlayerListChange();
         }
       });
-      
+
       observer.observe(playerList, {
         attributes: true,
         attributeFilter: ['class', 'style'],
         childList: true,
-        subtree: true
+        subtree: true,
       });
-      
+
       // Store observer for cleanup
       (CalendarMiniWidget.activeInstance as any)._playerListObserver = observer;
     }
@@ -719,13 +739,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private handlePlayerListChange(): void {
     const playerList = document.getElementById('players');
-    
+
     // Check if player list is expanded using the same approach as SmallTime
     const isExpanded = playerList?.classList.contains('expanded') || false;
 
     if (this.element) {
       this.element.classList.toggle('player-list-expanded', isExpanded);
-      
+
       // Use SmallTime-style positioning - insert before player list when not with SmallTime
       if (!this.findSmallTimeElement()) {
         this.positionRelativeToPlayerList();
@@ -749,17 +769,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       if (uiLeft && !uiLeft.contains(this.element)) {
         // Move to ui-left container and position before players list
         playerList.parentElement?.insertBefore(this.element, playerList);
-        
+
         // Style as pinned/docked (similar to SmallTime)
         this.element.style.position = 'relative';
         this.element.style.top = 'auto';
         this.element.style.left = 'auto';
         this.element.style.zIndex = '95';
-        this.element.style.margin = '0 0 8px 0';  // Small gap above player list
-        
+        this.element.style.margin = '0 0 8px 0'; // Small gap above player list
+
         this.element.classList.add('docked-mode');
-        this.element.classList.remove('standalone-mode', 'above-smalltime', 'below-smalltime', 'beside-smalltime');
-        
+        this.element.classList.remove(
+          'standalone-mode',
+          'above-smalltime',
+          'below-smalltime',
+          'beside-smalltime'
+        );
+
         Logger.debug('Mini widget docked above player list (SmallTime style)');
       }
     } catch (error) {
@@ -776,15 +801,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     const smallTimeRect = smallTimeElement.getBoundingClientRect();
     const estimatedMiniHeight = 32;
-    
+
     // Position above SmallTime
     this.element.style.position = 'fixed';
     this.element.style.top = `${smallTimeRect.top - estimatedMiniHeight - 8}px`;
     this.element.style.left = `${smallTimeRect.left}px`;
     this.element.style.zIndex = '95';
-    
+
     this.element.classList.add('above-smalltime');
-    this.element.classList.remove('below-smalltime', 'beside-smalltime', 'standalone-mode', 'docked-mode');
+    this.element.classList.remove(
+      'below-smalltime',
+      'beside-smalltime',
+      'standalone-mode',
+      'docked-mode'
+    );
   }
 
   /**
@@ -795,13 +825,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (smallTimeElement.classList.contains('pinned')) {
       return true;
     }
-    
+
     // Also check if it's positioned in ui-left (where pinned widgets go)
     const uiLeft = document.getElementById('ui-left');
     if (uiLeft && uiLeft.contains(smallTimeElement)) {
       return true;
     }
-    
+
     // Check if position is relative (docked) vs fixed (floating)
     const computedStyle = getComputedStyle(smallTimeElement);
     return computedStyle.position === 'relative';
@@ -815,14 +845,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Insert before SmallTime in the DOM (like SmallTime does with players)
     $(smallTimeElement).before(this.element);
-    
+
     // Style for docked mode above SmallTime
     this.element.style.position = 'relative';
     this.element.style.top = 'auto';
     this.element.style.left = 'auto';
     this.element.style.zIndex = '95';
     this.element.style.margin = '0 0 8px 0'; // Small gap below us, above SmallTime
-    
+
     this.element.classList.add('above-smalltime', 'docked-mode');
     this.element.classList.remove('below-smalltime', 'beside-smalltime', 'standalone-mode');
   }
@@ -838,15 +868,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Exactly like SmallTime: $('#players').before(app.element)
     $(playerList).before(this.element);
-    
+
     // Style for docked mode
     this.element.style.position = 'relative';
     this.element.style.top = 'auto';
     this.element.style.left = 'auto';
     this.element.style.zIndex = '95';
     this.element.style.margin = '0 0 8px 0';
-    
+
     this.element.classList.add('docked-mode');
-    this.element.classList.remove('standalone-mode', 'above-smalltime', 'below-smalltime', 'beside-smalltime');
+    this.element.classList.remove(
+      'standalone-mode',
+      'above-smalltime',
+      'below-smalltime',
+      'beside-smalltime'
+    );
   }
 }

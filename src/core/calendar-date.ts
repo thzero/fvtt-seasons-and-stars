@@ -2,10 +2,10 @@
  * Calendar date representation and formatting for Seasons & Stars
  */
 
-import type { 
-  CalendarDate as ICalendarDate, 
-  SeasonsStarsCalendar, 
-  DateFormatOptions 
+import type {
+  CalendarDate as ICalendarDate,
+  SeasonsStarsCalendar,
+  DateFormatOptions,
 } from '../types/calendar';
 import { CalendarLocalization } from './calendar-localization';
 
@@ -41,10 +41,10 @@ export class CalendarDate implements ICalendarDate {
       includeTime = false,
       includeWeekday = true,
       includeYear = true,
-      format = 'long'
+      format = 'long',
     } = options;
 
-    let parts: string[] = [];
+    const parts: string[] = [];
 
     // Add weekday if requested and not an intercalary day
     if (includeWeekday && !this.intercalary) {
@@ -59,7 +59,7 @@ export class CalendarDate implements ICalendarDate {
       // Regular date formatting
       const dayStr = this.getDayString(format);
       const monthStr = this.getMonthName(format);
-      
+
       if (format === 'numeric') {
         parts.push(`${this.month}/${this.day}`);
       } else {
@@ -86,10 +86,10 @@ export class CalendarDate implements ICalendarDate {
    * Get a short format string (for UI display)
    */
   toShortString(): string {
-    return this.format({ 
-      includeTime: false, 
-      includeWeekday: false, 
-      format: 'short' 
+    return this.format({
+      includeTime: false,
+      includeWeekday: false,
+      format: 'short',
     });
   }
 
@@ -97,11 +97,11 @@ export class CalendarDate implements ICalendarDate {
    * Get a full format string (for detailed display)
    */
   toLongString(): string {
-    return this.format({ 
-      includeTime: true, 
-      includeWeekday: true, 
-      includeYear: true, 
-      format: 'long' 
+    return this.format({
+      includeTime: true,
+      includeWeekday: true,
+      includeYear: true,
+      format: 'long',
     });
   }
 
@@ -109,11 +109,11 @@ export class CalendarDate implements ICalendarDate {
    * Get just the date portion (no time)
    */
   toDateString(): string {
-    return this.format({ 
-      includeTime: false, 
-      includeWeekday: true, 
-      includeYear: true, 
-      format: 'long' 
+    return this.format({
+      includeTime: false,
+      includeWeekday: true,
+      includeYear: true,
+      format: 'long',
     });
   }
 
@@ -135,7 +135,7 @@ export class CalendarDate implements ICalendarDate {
     if (format === 'short' && weekday.abbreviation) {
       return weekday.abbreviation;
     }
-    
+
     return weekday.name;
   }
 
@@ -149,7 +149,7 @@ export class CalendarDate implements ICalendarDate {
     if (format === 'short' && month.abbreviation) {
       return month.abbreviation;
     }
-    
+
     return month.name;
   }
 
@@ -184,12 +184,12 @@ export class CalendarDate implements ICalendarDate {
     if (!this.time) return '';
 
     const { hour, minute, second } = this.time;
-    
+
     // Use 24-hour format by default
     const hourStr = hour.toString().padStart(2, '0');
     const minuteStr = minute.toString().padStart(2, '0');
     const secondStr = second.toString().padStart(2, '0');
-    
+
     return `${hourStr}:${minuteStr}:${secondStr}`;
   }
 
@@ -222,14 +222,17 @@ export class CalendarDate implements ICalendarDate {
    * Clone this date with optional modifications
    */
   clone(modifications: Partial<ICalendarDate> = {}): CalendarDate {
-    return new CalendarDate({
-      year: modifications.year ?? this.year,
-      month: modifications.month ?? this.month,
-      day: modifications.day ?? this.day,
-      weekday: modifications.weekday ?? this.weekday,
-      intercalary: modifications.intercalary ?? this.intercalary,
-      time: modifications.time ?? (this.time ? { ...this.time } : undefined)
-    }, this.calendar);
+    return new CalendarDate(
+      {
+        year: modifications.year ?? this.year,
+        month: modifications.month ?? this.month,
+        day: modifications.day ?? this.day,
+        weekday: modifications.weekday ?? this.weekday,
+        intercalary: modifications.intercalary ?? this.intercalary,
+        time: modifications.time ?? (this.time ? { ...this.time } : undefined),
+      },
+      this.calendar
+    );
   }
 
   /**
@@ -239,14 +242,14 @@ export class CalendarDate implements ICalendarDate {
     if (this.year !== other.year) return this.year - other.year;
     if (this.month !== other.month) return this.month - other.month;
     if (this.day !== other.day) return this.day - other.day;
-    
+
     // Compare time if both have it
     if (this.time && other.time) {
       if (this.time.hour !== other.time.hour) return this.time.hour - other.time.hour;
       if (this.time.minute !== other.time.minute) return this.time.minute - other.time.minute;
       if (this.time.second !== other.time.second) return this.time.second - other.time.second;
     }
-    
+
     return 0;
   }
 
@@ -281,7 +284,7 @@ export class CalendarDate implements ICalendarDate {
       day: this.day,
       weekday: this.weekday,
       intercalary: this.intercalary,
-      time: this.time ? { ...this.time } : undefined
+      time: this.time ? { ...this.time } : undefined,
     };
   }
 

@@ -1,15 +1,11 @@
 /**
  * Seasons & Stars Specific Type Extensions
- * 
+ *
  * These extend the base Foundry types with module-specific functionality.
  * Core Foundry types are provided by foundry-v13-essentials.d.ts
  */
 
-import type { 
-  SeasonsStarsCalendar, 
-  CalendarDate, 
-  DateFormatOptions 
-} from './calendar';
+import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from '../core/bridge-integration';
 import type { NoteCategories } from '../core/note-categories';
 
@@ -73,5 +69,3 @@ export interface NotesManagerInterface {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
   };
 }
-
-

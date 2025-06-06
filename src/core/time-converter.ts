@@ -23,7 +23,7 @@ export class TimeConverter {
   private registerFoundryHooks(): void {
     // Hook into Foundry's world time updates
     Hooks.on('updateWorldTime', this.onWorldTimeUpdate.bind(this));
-    
+
     // Hook into initial setup
     Hooks.on('ready', this.onFoundryReady.bind(this));
   }
@@ -35,7 +35,7 @@ export class TimeConverter {
     // Initialize with current world time
     if (game.time?.worldTime !== undefined) {
       this.lastKnownTime = game.time.worldTime;
-      
+
       // Check if this is a new world (worldTime = 0) and we're using Gregorian calendar
       if (this.lastKnownTime === 0 && this.engine.getCalendar().id === 'gregorian') {
         // Set to current real-world date for Gregorian calendar
@@ -59,12 +59,12 @@ export class TimeConverter {
       time: {
         hour: now.getHours(),
         minute: now.getMinutes(),
-        second: now.getSeconds()
-      }
+        second: now.getSeconds(),
+      },
     };
-    
+
     Logger.info('Initializing Gregorian calendar with current date:', realWorldDate);
-    
+
     // Only set if user is GM (GMs control world time)
     if (game.user?.isGM) {
       try {
@@ -86,13 +86,13 @@ export class TimeConverter {
   private onWorldTimeUpdate(newTime: number, delta: number): void {
     this.lastKnownTime = newTime;
     this.lastKnownDate = this.engine.worldTimeToDate(newTime);
-    
+
     // Emit custom hook for other modules
     Hooks.callAll('seasons-stars:dateChanged', {
       newDate: this.lastKnownDate,
       oldTime: newTime - delta,
       newTime: newTime,
-      delta: delta
+      delta: delta,
     });
   }
 
@@ -110,11 +110,11 @@ export class TimeConverter {
    */
   async setCurrentDate(date: ICalendarDate): Promise<void> {
     const worldTime = this.engine.dateToWorldTime(date);
-    
+
     if (game.user?.isGM) {
       await game.time?.advance(worldTime - (game.time?.worldTime || 0));
     } else {
-      ui.notifications?.warn("Only GMs can change the world time.");
+      ui.notifications?.warn('Only GMs can change the world time.');
     }
   }
 
@@ -131,14 +131,14 @@ export class TimeConverter {
    * Advance time by a number of hours
    */
   async advanceHours(hours: number): Promise<void> {
-    const secondsPerHour = this.engine.getCalendar().time.minutesInHour * 
-                          this.engine.getCalendar().time.secondsInMinute;
+    const secondsPerHour =
+      this.engine.getCalendar().time.minutesInHour * this.engine.getCalendar().time.secondsInMinute;
     const deltaSeconds = hours * secondsPerHour;
-    
+
     if (game.user?.isGM) {
       await game.time?.advance(deltaSeconds);
     } else {
-      ui.notifications?.warn("Only GMs can change the world time.");
+      ui.notifications?.warn('Only GMs can change the world time.');
     }
   }
 
@@ -147,11 +147,11 @@ export class TimeConverter {
    */
   async advanceMinutes(minutes: number): Promise<void> {
     const deltaSeconds = minutes * this.engine.getCalendar().time.secondsInMinute;
-    
+
     if (game.user?.isGM) {
       await game.time?.advance(deltaSeconds);
     } else {
-      ui.notifications?.warn("Only GMs can change the world time.");
+      ui.notifications?.warn('Only GMs can change the world time.');
     }
   }
 
@@ -188,10 +188,10 @@ export class TimeConverter {
    */
   async setTimeOfDay(hour: number, minute: number = 0, second: number = 0): Promise<void> {
     const currentDate = this.getCurrentDate().toObject();
-    
+
     // Update the time component
     currentDate.time = { hour, minute, second };
-    
+
     await this.setCurrentDate(currentDate);
   }
 
@@ -200,20 +200,20 @@ export class TimeConverter {
    */
   getDayProgress(): number {
     const currentDate = this.getCurrentDate();
-    
+
     if (!currentDate.time) {
       return 0;
     }
 
     const calendar = this.engine.getCalendar();
-    const totalSecondsInDay = calendar.time.hoursInDay * 
-                             calendar.time.minutesInHour * 
-                             calendar.time.secondsInMinute;
-    
-    const currentSecondsInDay = currentDate.time.hour * calendar.time.minutesInHour * calendar.time.secondsInMinute +
-                               currentDate.time.minute * calendar.time.secondsInMinute +
-                               currentDate.time.second;
-    
+    const totalSecondsInDay =
+      calendar.time.hoursInDay * calendar.time.minutesInHour * calendar.time.secondsInMinute;
+
+    const currentSecondsInDay =
+      currentDate.time.hour * calendar.time.minutesInHour * calendar.time.secondsInMinute +
+      currentDate.time.minute * calendar.time.secondsInMinute +
+      currentDate.time.second;
+
     return currentSecondsInDay / totalSecondsInDay;
   }
 
@@ -222,11 +222,11 @@ export class TimeConverter {
    */
   isDaytime(dawnHour: number = 6, duskHour: number = 18): boolean {
     const currentDate = this.getCurrentDate();
-    
+
     if (!currentDate.time) {
       return true; // Default to daytime if no time component
     }
-    
+
     return currentDate.time.hour >= dawnHour && currentDate.time.hour < duskHour;
   }
 
@@ -237,7 +237,7 @@ export class TimeConverter {
   getCurrentSeason(): number {
     const currentDate = this.getCurrentDate();
     const calendar = this.engine.getCalendar();
-    
+
     // Simple approximation: divide year into 4 equal seasons
     const monthsPerSeason = calendar.months.length / 4;
     return Math.floor((currentDate.month - 1) / monthsPerSeason);
@@ -249,11 +249,12 @@ export class TimeConverter {
   daysBetween(date1: ICalendarDate, date2: ICalendarDate): number {
     const time1 = this.engine.dateToWorldTime(date1);
     const time2 = this.engine.dateToWorldTime(date2);
-    
-    const secondsPerDay = this.engine.getCalendar().time.hoursInDay * 
-                         this.engine.getCalendar().time.minutesInHour * 
-                         this.engine.getCalendar().time.secondsInMinute;
-    
+
+    const secondsPerDay =
+      this.engine.getCalendar().time.hoursInDay *
+      this.engine.getCalendar().time.minutesInHour *
+      this.engine.getCalendar().time.secondsInMinute;
+
     return Math.floor((time2 - time1) / secondsPerDay);
   }
 
@@ -277,13 +278,13 @@ export class TimeConverter {
   scheduleCallback(targetDate: ICalendarDate, callback: () => void): void {
     const targetTime = this.engine.dateToWorldTime(targetDate);
     const currentTime = game.time?.worldTime || 0;
-    
+
     if (targetTime <= currentTime) {
       // Target is in the past or now, execute immediately
       callback();
       return;
     }
-    
+
     // Set up a one-time hook to watch for the target time
     const hookId = Hooks.on('updateWorldTime', (newTime: number) => {
       if (newTime >= targetTime) {
@@ -298,7 +299,7 @@ export class TimeConverter {
    */
   updateEngine(engine: CalendarEngine): void {
     this.engine = engine;
-    
+
     // Recalculate current date with new calendar
     if (game.time?.worldTime !== undefined) {
       this.lastKnownTime = game.time.worldTime;
@@ -312,7 +313,7 @@ export class TimeConverter {
   getDebugInfo(): any {
     const currentDate = this.getCurrentDate();
     const worldTime = game.time?.worldTime || 0;
-    
+
     return {
       worldTime,
       calendarDate: currentDate.toObject(),
@@ -321,7 +322,7 @@ export class TimeConverter {
       isDaytime: this.isDaytime(),
       season: this.getCurrentSeason(),
       lastKnownTime: this.lastKnownTime,
-      lastKnownDate: this.lastKnownDate
+      lastKnownDate: this.lastKnownDate,
     };
   }
 }

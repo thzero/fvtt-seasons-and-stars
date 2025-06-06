@@ -2,11 +2,11 @@
  * Calendar JSON format validation for Seasons & Stars
  */
 
-import type { 
-  SeasonsStarsCalendar, 
-  CalendarMonth, 
-  CalendarWeekday, 
-  CalendarIntercalary 
+import type {
+  SeasonsStarsCalendar,
+  CalendarMonth,
+  CalendarWeekday,
+  CalendarIntercalary,
 } from '../types/calendar';
 
 export interface ValidationResult {
@@ -16,7 +16,6 @@ export interface ValidationResult {
 }
 
 export class CalendarValidator {
-  
   /**
    * Validate a complete calendar configuration
    */
@@ -24,7 +23,7 @@ export class CalendarValidator {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     // Check if input is an object
@@ -36,7 +35,7 @@ export class CalendarValidator {
 
     // Validate required root fields
     this.validateRequiredFields(calendar, result);
-    
+
     // Validate data types and constraints
     if (result.errors.length === 0) {
       this.validateDataTypes(calendar, result);
@@ -53,7 +52,7 @@ export class CalendarValidator {
    */
   private static validateRequiredFields(calendar: any, result: ValidationResult): void {
     const requiredFields = ['id', 'translations', 'months', 'weekdays'];
-    
+
     for (const field of requiredFields) {
       if (!(field in calendar)) {
         result.errors.push(`Missing required field: ${field}`);
@@ -141,11 +140,11 @@ export class CalendarValidator {
     if (!Array.isArray(calendar.months)) {
       result.errors.push('Months must be an array');
     }
-    
+
     if (!Array.isArray(calendar.weekdays)) {
       result.errors.push('Weekdays must be an array');
     }
-    
+
     if (calendar.intercalary && !Array.isArray(calendar.intercalary)) {
       result.errors.push('Intercalary days must be an array');
     }
@@ -168,19 +167,19 @@ export class CalendarValidator {
     if (year.epoch !== undefined && typeof year.epoch !== 'number') {
       result.errors.push('Year epoch must be a number');
     }
-    
+
     if (year.currentYear !== undefined && typeof year.currentYear !== 'number') {
       result.errors.push('Year currentYear must be a number');
     }
-    
+
     if (year.prefix !== undefined && typeof year.prefix !== 'string') {
       result.errors.push('Year prefix must be a string');
     }
-    
+
     if (year.suffix !== undefined && typeof year.suffix !== 'string') {
       result.errors.push('Year suffix must be a string');
     }
-    
+
     if (year.startDay !== undefined && typeof year.startDay !== 'number') {
       result.errors.push('Year startDay must be a number');
     }
@@ -203,11 +202,11 @@ export class CalendarValidator {
     if (leapYear.interval !== undefined && typeof leapYear.interval !== 'number') {
       result.errors.push('Leap year interval must be a number');
     }
-    
+
     if (leapYear.month !== undefined && typeof leapYear.month !== 'string') {
       result.errors.push('Leap year month must be a string');
     }
-    
+
     if (leapYear.extraDays !== undefined && typeof leapYear.extraDays !== 'number') {
       result.errors.push('Leap year extraDays must be a number');
     }
@@ -225,11 +224,11 @@ export class CalendarValidator {
     if (time.hoursInDay !== undefined && typeof time.hoursInDay !== 'number') {
       result.errors.push('Time hoursInDay must be a number');
     }
-    
+
     if (time.minutesInHour !== undefined && typeof time.minutesInHour !== 'number') {
       result.errors.push('Time minutesInHour must be a number');
     }
-    
+
     if (time.secondsInMinute !== undefined && typeof time.secondsInMinute !== 'number') {
       result.errors.push('Time secondsInMinute must be a number');
     }
@@ -241,7 +240,9 @@ export class CalendarValidator {
   private static validateConstraints(calendar: any, result: ValidationResult): void {
     // Validate ID format
     if (calendar.id && !/^[a-zA-Z0-9_-]+$/.test(calendar.id)) {
-      result.errors.push('Calendar ID must contain only alphanumeric characters, hyphens, and underscores');
+      result.errors.push(
+        'Calendar ID must contain only alphanumeric characters, hyphens, and underscores'
+      );
     }
 
     // Validate months
@@ -278,11 +279,11 @@ export class CalendarValidator {
       if (calendar.time.hoursInDay !== undefined && calendar.time.hoursInDay < 1) {
         result.errors.push('Time hoursInDay must be at least 1');
       }
-      
+
       if (calendar.time.minutesInHour !== undefined && calendar.time.minutesInHour < 1) {
         result.errors.push('Time minutesInHour must be at least 1');
       }
-      
+
       if (calendar.time.secondsInMinute !== undefined && calendar.time.secondsInMinute < 1) {
         result.errors.push('Time secondsInMinute must be at least 1');
       }
@@ -304,7 +305,7 @@ export class CalendarValidator {
     if (Array.isArray(calendar.months)) {
       const monthNames = calendar.months.map((m: any) => m.name).filter(Boolean);
       const uniqueNames = new Set(monthNames);
-      
+
       if (monthNames.length !== uniqueNames.size) {
         result.errors.push('Month names must be unique');
       }
@@ -314,7 +315,7 @@ export class CalendarValidator {
     if (Array.isArray(calendar.weekdays)) {
       const weekdayNames = calendar.weekdays.map((w: any) => w.name).filter(Boolean);
       const uniqueNames = new Set(weekdayNames);
-      
+
       if (weekdayNames.length !== uniqueNames.size) {
         result.errors.push('Weekday names must be unique');
       }
@@ -323,9 +324,11 @@ export class CalendarValidator {
     // Validate leap year month reference
     if (calendar.leapYear?.month && Array.isArray(calendar.months)) {
       const monthExists = calendar.months.some((m: any) => m.name === calendar.leapYear.month);
-      
+
       if (!monthExists) {
-        result.errors.push(`Leap year month '${calendar.leapYear.month}' does not exist in months list`);
+        result.errors.push(
+          `Leap year month '${calendar.leapYear.month}' does not exist in months list`
+        );
       }
     }
 
@@ -334,9 +337,11 @@ export class CalendarValidator {
       calendar.intercalary.forEach((intercalary: any, index: number) => {
         if (intercalary.after) {
           const monthExists = calendar.months.some((m: any) => m.name === intercalary.after);
-          
+
           if (!monthExists) {
-            result.errors.push(`Intercalary day ${index + 1} references non-existent month '${intercalary.after}'`);
+            result.errors.push(
+              `Intercalary day ${index + 1} references non-existent month '${intercalary.after}'`
+            );
           }
         }
       });
@@ -353,15 +358,15 @@ export class CalendarValidator {
     if (calendar.year?.epoch === undefined) {
       result.warnings.push('Year epoch not specified, defaulting to 0');
     }
-    
+
     if (calendar.year?.currentYear === undefined) {
       result.warnings.push('Current year not specified, defaulting to 1');
     }
-    
+
     if (!calendar.time) {
       result.warnings.push('Time configuration not specified, using 24-hour day');
     }
-    
+
     if (!calendar.leapYear) {
       result.warnings.push('Leap year configuration not specified, no leap years will occur');
     }

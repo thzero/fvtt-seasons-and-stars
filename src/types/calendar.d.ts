@@ -11,7 +11,7 @@ export interface SeasonsStarsCalendar {
       setting?: string;
     };
   };
-  
+
   year: {
     epoch: number;
     currentYear: number;
@@ -19,19 +19,19 @@ export interface SeasonsStarsCalendar {
     suffix: string;
     startDay: number;
   };
-  
+
   leapYear: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number;
     month?: string;
     extraDays?: number;
   };
-  
+
   months: CalendarMonth[];
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[];
   seasons?: CalendarSeason[];
-  
+
   time: {
     hoursInDay: number;
     minutesInHour: number;

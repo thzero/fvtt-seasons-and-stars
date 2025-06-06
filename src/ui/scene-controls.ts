@@ -7,7 +7,6 @@ import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
 
 export class SeasonsStarsSceneControls {
-  
   /**
    * Register scene controls
    */
@@ -15,7 +14,7 @@ export class SeasonsStarsSceneControls {
     Hooks.on('getSceneControlButtons', (controls: any[]) => {
       // Find the token controls group to add our button
       const tokenControls = controls.find(c => c.name === 'token');
-      
+
       if (tokenControls) {
         tokenControls.tools.push({
           name: 'seasons-stars-widget',
@@ -24,7 +23,7 @@ export class SeasonsStarsSceneControls {
           onClick: () => CalendarWidget.toggle(),
           toggle: true,
           active: false,
-          button: true
+          button: true,
         });
       }
     });
@@ -74,7 +73,7 @@ export class SeasonsStarsSceneControls {
       positionMiniAboveSmallTime: () => CalendarMiniWidget.positionAboveSmallTime(),
       positionMiniBelowSmallTime: () => CalendarMiniWidget.positionBelowSmallTime(),
       positionMiniBesideSmallTime: () => CalendarMiniWidget.positionBesideSmallTime(),
-      
+
       // Time advancement functions for macros
       advanceMinutes: async (minutes: number) => {
         const manager = game.seasonsStars?.manager;
@@ -99,7 +98,7 @@ export class SeasonsStarsSceneControls {
       advanceYears: async (years: number) => {
         const manager = game.seasonsStars?.manager;
         if (manager) await manager.advanceYears(years);
-      }
+      },
     });
 
     Logger.info('Macro functions registered');

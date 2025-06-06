@@ -12,22 +12,22 @@ globalThis.game = {
   user: { isGM: true },
   settings: {
     get: vi.fn().mockReturnValue({}),
-    set: vi.fn()
-  }
+    set: vi.fn(),
+  },
 } as any;
 
 globalThis.ui = {
   notifications: {
     warn: vi.fn(),
     error: vi.fn(),
-    info: vi.fn()
-  }
+    info: vi.fn(),
+  },
 } as any;
 
 globalThis.Hooks = {
   on: vi.fn(),
   call: vi.fn(),
-  callAll: vi.fn()
+  callAll: vi.fn(),
 } as any;
 
 // Mock calendar data
@@ -37,14 +37,14 @@ const mockCalendar = {
   year: { epoch: 2024, currentYear: 2024, prefix: '', suffix: '', startDay: 0 },
   months: [{ name: 'January', days: 31 }],
   weekdays: [{ name: 'Monday' }],
-  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 }
+  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
 } as any;
 
 const mockDate = {
   year: 2024,
   month: 1,
   day: 1,
-  weekday: 0
+  weekday: 0,
 } as any;
 
 describe('CalendarWidget API', () => {
@@ -53,7 +53,7 @@ describe('CalendarWidget API', () => {
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
-    
+
     // Create widget instance
     widget = new CalendarWidget(mockCalendar, mockDate);
   });
@@ -61,33 +61,33 @@ describe('CalendarWidget API', () => {
   describe('addSidebarButton', () => {
     it('should add a sidebar button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(true);
     });
 
     it('should store button with correct properties', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      
+
       const buttons = (widget as any).sidebarButtons;
       expect(buttons).toHaveLength(1);
       expect(buttons[0]).toEqual({
         name: 'test-button',
-        icon: 'fas fa-star', 
+        icon: 'fas fa-star',
         tooltip: 'Test Button',
-        callback
+        callback,
       });
     });
 
     it('should not add duplicate buttons', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-      
+
       const buttons = (widget as any).sidebarButtons;
       expect(buttons).toHaveLength(1);
       expect(buttons[0].icon).toBe('fas fa-star'); // Should keep original
@@ -97,10 +97,10 @@ describe('CalendarWidget API', () => {
   describe('removeSidebarButton', () => {
     it('should remove existing button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       expect(widget.hasSidebarButton('test-button')).toBe(true);
-      
+
       widget.removeSidebarButton('test-button');
       expect(widget.hasSidebarButton('test-button')).toBe(false);
     });
@@ -113,12 +113,12 @@ describe('CalendarWidget API', () => {
 
     it('should only remove specified button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('button1', 'fas fa-star', 'Button 1', callback);
       widget.addSidebarButton('button2', 'fas fa-heart', 'Button 2', callback);
-      
+
       widget.removeSidebarButton('button1');
-      
+
       expect(widget.hasSidebarButton('button1')).toBe(false);
       expect(widget.hasSidebarButton('button2')).toBe(true);
     });
@@ -132,7 +132,7 @@ describe('CalendarWidget API', () => {
     it('should return true for existing button', () => {
       const callback = vi.fn();
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(true);
     });
 
@@ -140,7 +140,7 @@ describe('CalendarWidget API', () => {
       const callback = vi.fn();
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       widget.removeSidebarButton('test-button');
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(false);
     });
   });
@@ -157,18 +157,18 @@ describe('CalendarMiniWidget API', () => {
   describe('addSidebarButton', () => {
     it('should add a sidebar button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(true);
     });
 
     it('should not add duplicate buttons', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-      
+
       const buttons = (widget as any).sidebarButtons;
       expect(buttons).toHaveLength(1);
     });
@@ -177,10 +177,10 @@ describe('CalendarMiniWidget API', () => {
   describe('removeSidebarButton', () => {
     it('should remove existing button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       widget.removeSidebarButton('test-button');
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(false);
     });
 
@@ -194,12 +194,12 @@ describe('CalendarMiniWidget API', () => {
   describe('hasSidebarButton', () => {
     it('should correctly identify existing buttons', () => {
       const callback = vi.fn();
-      
+
       expect(widget.hasSidebarButton('test-button')).toBe(false);
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       expect(widget.hasSidebarButton('test-button')).toBe(true);
-      
+
       widget.removeSidebarButton('test-button');
       expect(widget.hasSidebarButton('test-button')).toBe(false);
     });
@@ -217,9 +217,9 @@ describe('CalendarGridWidget API', () => {
   describe('addSidebarButton', () => {
     it('should add a sidebar button', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      
+
       // Check internal storage
       const buttons = (widget as any).sidebarButtons;
       expect(buttons).toHaveLength(1);
@@ -228,10 +228,10 @@ describe('CalendarGridWidget API', () => {
 
     it('should prevent duplicate buttons', () => {
       const callback = vi.fn();
-      
+
       widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
       widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-      
+
       const buttons = (widget as any).sidebarButtons;
       expect(buttons).toHaveLength(1);
     });

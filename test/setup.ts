@@ -8,19 +8,19 @@
   time: undefined,
   user: undefined,
   i18n: {
-    lang: 'en'
-  }
+    lang: 'en',
+  },
 };
 
 (globalThis as any).ui = {
-  notifications: undefined
+  notifications: undefined,
 };
 
 (globalThis as any).Hooks = {
   once: () => {},
   on: () => 1,
   off: () => {},
-  callAll: () => {}
+  callAll: () => {},
 };
 
 // Mock Foundry application framework
@@ -31,15 +31,24 @@
         static DEFAULT_OPTIONS = {};
         static PARTS = {};
         constructor() {}
-        render() { return Promise.resolve(); }
-        close() { return Promise.resolve(); }
+        render() {
+          return Promise.resolve();
+        }
+        close() {
+          return Promise.resolve();
+        }
       },
-      HandlebarsApplicationMixin: (base: any) => class extends base {
-        _prepareContext() { return {}; }
-        _onRender() { return Promise.resolve(); }
-      }
-    }
-  }
+      HandlebarsApplicationMixin: (base: any) =>
+        class extends base {
+          _prepareContext() {
+            return {};
+          }
+          _onRender() {
+            return Promise.resolve();
+          }
+        },
+    },
+  },
 };
 
 // Mock ApplicationV2 directly for imports

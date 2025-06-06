@@ -7,6 +7,7 @@ This roadmap outlines planned features and development priorities for Seasons & 
 ## 🎯 Project Vision
 
 Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar solution for Foundry VTT with:
+
 - Clean, intuitive user interface built for Foundry v13+
 - Comprehensive Simple Calendar compatibility for existing modules
 - Rich calendar format supporting diverse fantasy settings
@@ -15,6 +16,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 ## 📋 Current Status: Alpha Release
 
 **What's Working Now:**
+
 - ✅ **Core Calendar System**: Date calculations, multiple calendars, Foundry time integration
 - ✅ **Modern UI**: Calendar widget, mini widget, grid view, calendar selection
 - ✅ **12 Built-in Calendars**: Gregorian, D&D settings, PF2e Golarion, Critical Role, and more
@@ -23,6 +25,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - ✅ **SmallTime Integration**: Auto-positioning and visual consistency
 
 **Testing Status:**
+
 - 🧪 **Alpha Quality**: Core features implemented and functional
 - 🔍 **Seeking Feedback**: User testing and bug reports welcome
 - 📊 **Test Coverage**: 38/38 automated tests passing
@@ -30,6 +33,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 ## 🚀 Planned Development
 
 ### **v0.2.0 - Enhanced Compatibility** (Next Release)
+
 **Focus**: Improve module integration and user experience
 
 - **Enhanced Error Reporting**: Optional integration with error reporting tools
@@ -38,6 +42,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - **Bug Fixes**: Based on alpha feedback and testing
 
 ### **v0.3.0 - Advanced Calendar Features** (Future)
+
 **Focus**: Calendar creation and customization
 
 - **Calendar Editor**: In-app tool for creating custom calendars
@@ -46,6 +51,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - **Performance Improvements**: Optimizations for large campaigns
 
 ### **v0.4.0 - Enhanced Module Integration** (Future)
+
 **Focus**: Deeper integration with the Foundry ecosystem
 
 - **Weather Module Support**: Enhanced integration with weather systems
@@ -54,6 +60,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - **Module Templates**: Examples for module developers
 
 ### **v1.0.0 - Stable Release** (Future)
+
 **Focus**: Production stability and feature completeness
 
 - **Feature Parity**: Complete Simple Calendar compatibility
@@ -64,6 +71,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 ## 🎮 Game System Support
 
 ### **Current Support**
+
 All features work with any Foundry VTT game system, with built-in calendars for:
 
 - **Universal**: Gregorian calendar for modern/sci-fi campaigns
@@ -73,17 +81,20 @@ All features work with any Foundry VTT game system, with built-in calendars for:
 - **Generic Fantasy**: Vale Reckoning calendar
 
 ### **Planned Support**
+
 Future releases may include enhanced system-specific features and additional calendar formats based on community requests.
 
 ## 🐛 Known Limitations
 
 **Current Alpha Limitations:**
+
 - Limited testing with all possible module combinations
 - Calendar creation requires JSON editing (editor planned for future)
 - Some advanced Simple Calendar features not yet implemented
 - Error handling could be more user-friendly
 
 **Compatibility Notes:**
+
 - Designed for Foundry VTT v13+ (may work with v12 but not officially supported)
 - Not compatible with Simple Calendar running simultaneously
 - Some weather modules may need updates for full compatibility
@@ -91,12 +102,14 @@ Future releases may include enhanced system-specific features and additional cal
 ## 📈 Success Metrics
 
 **Alpha Goals:**
+
 - ✅ Core functionality stable and usable
 - ✅ Basic Simple Calendar compatibility working
 - 🔍 Community feedback and bug reports
 - 🔍 Module developer interest and adoption
 
 **Future Goals:**
+
 - Positive community reception and adoption
 - Successful migration path for Simple Calendar users
 - Active module developer ecosystem
@@ -105,18 +118,21 @@ Future releases may include enhanced system-specific features and additional cal
 ## 🤝 How to Contribute
 
 ### **For Users**
+
 - **Test and Report**: Try the module and report any issues you find
 - **Provide Feedback**: Share your use cases and feature needs
 - **Documentation**: Help improve user guides with your experiences
 - **Community Support**: Help other users in GitHub discussions
 
 ### **For Module Developers**
+
 - **Integration Testing**: Test your modules with Seasons & Stars
 - **API Feedback**: Report missing Simple Calendar compatibility features
 - **Code Contributions**: Submit bug fixes and improvements
 - **Documentation**: Create integration examples and guides
 
 ### **For Content Creators**
+
 - **Calendar Design**: Create calendars for different fantasy settings
 - **Testing**: Validate calendar accuracy and cultural authenticity
 - **Tutorials**: Create video guides and documentation
@@ -125,11 +141,13 @@ Future releases may include enhanced system-specific features and additional cal
 ## 📞 Getting Involved
 
 ### **Feedback & Support**
+
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: General questions and community chat
 - **Documentation**: [User Guide](docs/USER-GUIDE.md) and [Developer Guide](docs/DEVELOPER-GUIDE.md)
 
 ### **Development**
+
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup
 - **Code of Conduct**: Respectful, inclusive community participation
 - **License**: MIT license for open source collaboration

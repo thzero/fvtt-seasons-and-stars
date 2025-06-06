@@ -8,10 +8,17 @@ import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
-export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   private updateInterval: number | null = null;
   private static activeInstance: CalendarWidget | null = null;
-  private sidebarButtons: Array<{name: string, icon: string, tooltip: string, callback: Function}> = [];
+  private sidebarButtons: Array<{
+    name: string;
+    icon: string;
+    tooltip: string;
+    callback: Function;
+  }> = [];
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-widget',
@@ -23,26 +30,26 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       title: 'SEASONS_STARS.calendar.current_date',
       icon: 'fa-solid fa-calendar-alt',
       minimizable: false,
-      resizable: false
+      resizable: false,
     },
     position: {
       width: 280,
-      height: 'auto' as const
+      height: 'auto' as const,
     },
     actions: {
       openCalendarSelection: CalendarWidget.prototype._onOpenCalendarSelection,
       openDetailedView: CalendarWidget.prototype._onOpenDetailedView,
       advanceDate: CalendarWidget.prototype._onAdvanceDate,
       openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance,
-      clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton
-    }
+      clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton,
+    },
   };
 
   static PARTS = {
     main: {
       id: 'main',
-      template: 'modules/seasons-and-stars/templates/calendar-widget.hbs'
-    }
+      template: 'modules/seasons-and-stars/templates/calendar-widget.hbs',
+    },
   };
 
   /**
@@ -50,35 +57,35 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
-    
+
     const manager = game.seasonsStars?.manager;
-    
+
     if (!manager) {
       return Object.assign(context, {
         error: 'Calendar manager not initialized',
         calendar: null,
         currentDate: null,
-        formattedDate: 'Not Available'
+        formattedDate: 'Not Available',
       });
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
-    
+
     if (!activeCalendar || !currentDate) {
       return Object.assign(context, {
         error: 'No active calendar',
         calendar: null,
         currentDate: null,
-        formattedDate: 'No Calendar Active'
+        formattedDate: 'No Calendar Active',
       });
     }
 
     const calendarInfo = CalendarLocalization.getLocalizedCalendarInfo(activeCalendar);
-    
+
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
-    
+
     return Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -89,10 +96,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime, // Only show time controls if SmallTime is not available
-      sidebarButtons: this.sidebarButtons // Include sidebar buttons for template
+      sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
   }
-
 
   /**
    * Attach event listeners to rendered parts
@@ -102,7 +108,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Register this as the active instance
     CalendarWidget.activeInstance = this;
-    
+
     // Start auto-update after rendering
     this.startAutoUpdate();
   }
@@ -120,7 +126,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onOpenDetailedView(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const manager = game.seasonsStars?.manager;
     if (!manager) {
       ui.notifications?.error('Calendar manager not available');
@@ -137,10 +143,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onAdvanceDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'days';
-    
+
     const manager = game.seasonsStars?.manager;
     if (!manager) return;
 
@@ -172,12 +178,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
 
       // Show success notification for larger advances
-      if ((unit === 'weeks' && amount >= 2) || 
-          (unit === 'months' && amount >= 1) || 
-          (unit === 'years' && amount >= 1)) {
+      if (
+        (unit === 'weeks' && amount >= 2) ||
+        (unit === 'months' && amount >= 1) ||
+        (unit === 'years' && amount >= 1)
+      ) {
         ui.notifications?.info(`Advanced time by ${amount} ${unit}`);
       }
-      
     } catch (error) {
       Logger.error('Error advancing date', error as Error);
       ui.notifications?.error('Failed to advance date');
@@ -189,7 +196,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onOpenBulkAdvance(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     // Show placeholder for now - will implement proper dialog later
     ui.notifications?.info('Bulk time advancement coming soon!');
   }
@@ -199,13 +206,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const buttonName = target.dataset.buttonName;
     if (!buttonName) {
       Logger.warn('Sidebar button clicked without button name');
       return;
     }
-    
+
     // Find the button in our array and execute its callback
     const button = this.sidebarButtons.find(btn => btn.name === buttonName);
     if (button && typeof button.callback === 'function') {
@@ -232,11 +239,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if SmallTime UI elements are present in the DOM
     const selectors = [
       '#smalltime-app',
-      '.smalltime-app', 
+      '.smalltime-app',
       '#timeDisplay',
       '#slideContainer',
       '[id*="smalltime"]',
-      '.form:has(#timeDisplay)'
+      '.form:has(#timeDisplay)',
     ];
 
     for (const selector of selectors) {
@@ -284,12 +291,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async close(options: any = {}): Promise<this> {
     this.stopAutoUpdate();
-    
+
     // Clear active instance if this is it
     if (CalendarWidget.activeInstance === this) {
       CalendarWidget.activeInstance = null;
     }
-    
+
     return super.close(options);
   }
 
@@ -366,10 +373,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.debug(`Button "${name}" already exists in widget`);
       return;
     }
-    
+
     // Store the button
     this.sidebarButtons.push({ name, icon, tooltip, callback });
-    
+
     // If rendered, re-render to include the new button
     if (this.rendered) {
       this.render();
@@ -383,7 +390,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const index = this.sidebarButtons.findIndex(btn => btn.name === name);
     if (index !== -1) {
       this.sidebarButtons.splice(index, 1);
-      
+
       // Re-render to remove the button
       if (this.rendered) {
         this.render();
@@ -397,5 +404,4 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   hasSidebarButton(name: string): boolean {
     return this.sidebarButtons.some(btn => btn.name === name);
   }
-
 }

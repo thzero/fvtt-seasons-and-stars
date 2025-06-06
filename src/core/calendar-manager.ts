@@ -22,10 +22,10 @@ export class CalendarManager {
    */
   async initialize(): Promise<void> {
     Logger.info('Initializing Calendar Manager');
-    
+
     // Load built-in calendars
     await this.loadBuiltInCalendars();
-    
+
     // Complete initialization after settings are registered
     await this.completeInitialization();
   }
@@ -35,10 +35,10 @@ export class CalendarManager {
    */
   async completeInitialization(): Promise<void> {
     Logger.info('Completing Calendar Manager initialization');
-    
+
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
-    
+
     if (savedCalendarId && this.calendars.has(savedCalendarId)) {
       await this.setActiveCalendar(savedCalendarId);
     } else {
@@ -48,7 +48,7 @@ export class CalendarManager {
         await this.setActiveCalendar(firstCalendarId);
       }
     }
-    
+
     Logger.info(`Loaded ${this.calendars.size} calendars`);
   }
 
@@ -57,12 +57,12 @@ export class CalendarManager {
    */
   async loadBuiltInCalendars(): Promise<void> {
     const builtInCalendars = BUILT_IN_CALENDARS;
-    
+
     for (const calendarId of builtInCalendars) {
       try {
         // Try to load from module's calendars directory
         const response = await fetch(`modules/seasons-and-stars/calendars/${calendarId}.json`);
-        
+
         if (response.ok) {
           const calendarData = await response.json();
           this.loadCalendar(calendarData);
@@ -81,7 +81,7 @@ export class CalendarManager {
   loadCalendar(calendarData: SeasonsStarsCalendar): boolean {
     // Validate the calendar data
     const validation = CalendarValidator.validate(calendarData);
-    
+
     if (!validation.isValid) {
       Logger.error(`Invalid calendar data for ${calendarData.id}: ${validation.errors.join(', ')}`);
       return false;
@@ -94,11 +94,11 @@ export class CalendarManager {
 
     // Store the calendar
     this.calendars.set(calendarData.id, calendarData);
-    
+
     // Create engine for this calendar
     const engine = new CalendarEngine(calendarData);
     this.engines.set(calendarData.id, engine);
-    
+
     const label = CalendarLocalization.getCalendarLabel(calendarData);
     Logger.info(`Loaded calendar: ${label} (${calendarData.id})`);
     return true;
@@ -114,10 +114,10 @@ export class CalendarManager {
     }
 
     this.activeCalendarId = calendarId;
-    
+
     // Update time converter with new engine
     const engine = this.engines.get(calendarId)!;
-    
+
     if (this.timeConverter) {
       this.timeConverter.updateEngine(engine);
     } else {
@@ -132,7 +132,7 @@ export class CalendarManager {
     // Emit hook for calendar change
     Hooks.callAll('seasons-stars:calendarChanged', {
       newCalendarId: calendarId,
-      calendar: this.calendars.get(calendarId)
+      calendar: this.calendars.get(calendarId),
     });
 
     Logger.info(`Active calendar set to: ${calendarId}`);
@@ -190,7 +190,7 @@ export class CalendarManager {
     try {
       const text = await file.text();
       const calendarData = JSON.parse(text);
-      
+
       return this.loadCalendar(calendarData);
     } catch (error) {
       Logger.error('Error importing calendar', error as Error);
@@ -204,7 +204,7 @@ export class CalendarManager {
    */
   exportCalendar(calendarId: string): string | null {
     const calendar = this.calendars.get(calendarId);
-    
+
     if (!calendar) {
       Logger.error(`Calendar not found for export: ${calendarId}`);
       return null;
@@ -223,7 +223,7 @@ export class CalendarManager {
    */
   removeCalendar(calendarId: string): boolean {
     const builtInCalendars = ['gregorian', 'vale-reckoning'];
-    
+
     if (builtInCalendars.includes(calendarId)) {
       Logger.warn(`Cannot remove built-in calendar: ${calendarId}`);
       return false;
@@ -242,7 +242,7 @@ export class CalendarManager {
 
     this.calendars.delete(calendarId);
     this.engines.delete(calendarId);
-    
+
     Logger.info(`Removed calendar: ${calendarId}`);
     return true;
   }
@@ -262,7 +262,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceDays(days);
   }
 
@@ -273,7 +273,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceHours(hours);
   }
 
@@ -284,7 +284,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceWeeks(weeks);
   }
 
@@ -295,7 +295,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceMonths(months);
   }
 
@@ -306,7 +306,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceYears(years);
   }
 
@@ -317,7 +317,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.advanceMinutes(minutes);
   }
 
@@ -328,7 +328,7 @@ export class CalendarManager {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
-    
+
     await this.timeConverter.setCurrentDate(date);
   }
 
@@ -340,7 +340,7 @@ export class CalendarManager {
       activeCalendarId: this.activeCalendarId,
       availableCalendars: this.getAvailableCalendars(),
       currentDate: this.getCurrentDate()?.toLongString(),
-      timeConverter: this.timeConverter?.getDebugInfo()
+      timeConverter: this.timeConverter?.getDebugInfo(),
     };
   }
 
@@ -349,11 +349,11 @@ export class CalendarManager {
    */
   validateAllCalendars(): { [calendarId: string]: any } {
     const results: { [calendarId: string]: any } = {};
-    
+
     for (const [calendarId, calendar] of this.calendars.entries()) {
       results[calendarId] = CalendarValidator.validateWithHelp(calendar);
     }
-    
+
     return results;
   }
 }

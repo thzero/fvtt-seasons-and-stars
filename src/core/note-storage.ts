@@ -21,12 +21,12 @@ export class NoteStorage {
    */
   initialize(): void {
     this.performanceOptimizer = NotePerformanceOptimizer.getInstance({
-      cacheSize: this.cacheSize
+      cacheSize: this.cacheSize,
     });
-    
+
     this.buildDateIndex();
     this.indexBuilt = true;
-    
+
     Logger.info('Note storage initialized with performance optimization');
   }
 
@@ -40,7 +40,7 @@ export class NoteStorage {
 
     const dateKey = this.getDateKey(date);
     this.addToDateIndex(dateKey, note.id);
-    
+
     // Add to cache
     this.addToCache(note.id, note);
   }
@@ -70,7 +70,7 @@ export class NoteStorage {
 
     const dateKey = this.getDateKey(date);
     const noteIds = this.dateIndex.get(dateKey) || new Set();
-    
+
     const notes: JournalEntry[] = [];
     for (const noteId of noteIds) {
       const note = this.getFromCache(noteId) || game.journal?.get(noteId);
@@ -96,7 +96,7 @@ export class NoteStorage {
 
     const dateKey = this.getDateKey(date);
     const noteIds = this.dateIndex.get(dateKey) || new Set();
-    
+
     const notes: JournalEntry[] = [];
     for (const noteId of noteIds) {
       const note = this.getFromCache(noteId) || game.journal?.get(noteId);
@@ -144,7 +144,7 @@ export class NoteStorage {
         const ssFlags = note.flags?.['seasons-and-stars'];
         const bridgeFlags = note.flags?.['foundryvtt-simple-calendar-compat'];
         const startDate = ssFlags?.startDate || bridgeFlags?.startDate;
-        
+
         if (startDate && this.isDateInRange(startDate, start, end)) {
           notes.push(note);
           // Add to cache if retrieved from game
@@ -160,7 +160,7 @@ export class NoteStorage {
 
   /**
    * Rebuild the date index (call when notes are created/updated outside storage)
-   * 
+   *
    * NOTE: This is a workaround for bridge integration synchronization issues.
    * When external modules (like Simple Weather) create notes through the Simple Calendar
    * Compatibility Bridge, those notes don't automatically appear in calendar highlighting
@@ -187,7 +187,7 @@ export class NoteStorage {
   getCacheStats(): { size: number; maxSize: number; hitRate?: number } {
     return {
       size: this.noteCache.size,
-      maxSize: this.cacheSize
+      maxSize: this.cacheSize,
     };
   }
 
@@ -198,7 +198,7 @@ export class NoteStorage {
     if (!this.performanceOptimizer) {
       return null;
     }
-    
+
     return this.performanceOptimizer.getMetrics();
   }
 
@@ -212,18 +212,18 @@ export class NoteStorage {
     }
 
     Logger.info('Optimizing storage for large collections...');
-    
+
     // Clear cache and rebuild index
     this.clearCache();
     this.rebuildIndex();
-    
+
     // Update configuration for large collections
     this.performanceOptimizer.updateConfig({
       cacheSize: Math.min(500, Math.max(200, this.dateIndex.size * 2)),
       maxSearchResults: 500,
-      enablePagination: true
+      enablePagination: true,
     });
-    
+
     Logger.info('Storage optimization completed');
   }
 
@@ -232,21 +232,21 @@ export class NoteStorage {
    */
   private buildDateIndex(): void {
     this.dateIndex.clear();
-    
+
     if (!game.journal) {
       Logger.warn('Game journal not available for indexing');
       return;
     }
 
     let indexedCount = 0;
-    
+
     game.journal.forEach(journal => {
       if (this.isCalendarNote(journal)) {
         // Try to get dateKey from S&S flags first, then bridge flags
         const ssFlags = journal.flags?.['seasons-and-stars'];
         const bridgeFlags = journal.flags?.['foundryvtt-simple-calendar-compat'];
         const dateKey = ssFlags?.dateKey || bridgeFlags?.dateKey;
-        
+
         if (dateKey) {
           this.addToDateIndex(dateKey, journal.id);
           indexedCount++;
@@ -323,7 +323,7 @@ export class NoteStorage {
     if (ssFlags?.calendarNote === true) {
       return true;
     }
-    
+
     // Check for bridge flags (Simple Calendar compatibility)
     const bridgeFlags = journal.flags?.['foundryvtt-simple-calendar-compat'];
     return bridgeFlags?.isCalendarNote === true;
@@ -355,10 +355,10 @@ export class NoteStorage {
       const aBridgeFlags = a.flags?.['foundryvtt-simple-calendar-compat'];
       const bSSFlags = b.flags?.['seasons-and-stars'];
       const bBridgeFlags = b.flags?.['foundryvtt-simple-calendar-compat'];
-      
+
       const aCreated = aSSFlags?.created || aBridgeFlags?.created || 0;
       const bCreated = bSSFlags?.created || bBridgeFlags?.created || 0;
-      
+
       return aCreated - bCreated;
     });
   }
@@ -373,18 +373,18 @@ export class NoteStorage {
       const aBridgeFlags = a.flags?.['foundryvtt-simple-calendar-compat'];
       const bSSFlags = b.flags?.['seasons-and-stars'];
       const bBridgeFlags = b.flags?.['foundryvtt-simple-calendar-compat'];
-      
+
       const aDate = aSSFlags?.startDate || aBridgeFlags?.startDate;
       const bDate = bSSFlags?.startDate || bBridgeFlags?.startDate;
-      
+
       if (aDate && bDate) {
         const comparison = this.compareDates(aDate, bDate);
         if (comparison !== 0) return comparison;
       }
-      
+
       const aCreated = aSSFlags?.created || aBridgeFlags?.created || 0;
       const bCreated = bSSFlags?.created || bBridgeFlags?.created || 0;
-      
+
       return aCreated - bCreated;
     });
   }

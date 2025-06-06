@@ -5,6 +5,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 ## 🌟 Features
 
 ### ✅ **Available Now (Alpha)**
+
 - **Modern UI**: Clean, responsive calendar interface with ApplicationV2 architecture
 - **Multiple Calendar Views**: Full calendar widget, compact mini widget, and monthly grid view
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
@@ -14,6 +15,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Multiple Calendar Support**: Switch between Gregorian, Vale Reckoning, and custom calendars
 
 ### 🚧 **Coming Soon**
+
 - **Notes System**: Full calendar event and note management with Journal integration
 - **Weather Module Support**: Comprehensive notes API for weather modules and other integrations
 - **Advanced Configuration**: In-app calendar editor and migration tools
@@ -24,16 +26,19 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 ### Installation
 
 **Option 1: Foundry Module Browser**
+
 1. Install from Foundry VTT module browser: "Seasons & Stars"
 2. Enable the module in your world
 3. Configure your preferred calendar in module settings
 
 **Option 2: Manual Installation (Pre-Registry)**
+
 1. In Foundry VTT, go to Add-on Modules → Install Module
 2. Use manifest URL: `https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json`
 3. Enable the module in your world
 
 ### Basic Usage
+
 - **Open Calendar**: Click the calendar button in scene controls
 - **Change Date**: GMs can click on calendar dates to set world time
 - **Quick Time Controls**: Use the mini widget for rapid time advancement
@@ -50,11 +55,13 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 ## 🎯 Who Should Use This
 
 ### **Beta Testers**
+
 - Module developers wanting to integrate calendar functionality
 - GMs who need reliable timekeeping with clean UI
 - Communities wanting to test cutting-edge calendar features
 
 ### **Migration Candidates**
+
 - Users seeking a modern calendar solution for Foundry v13+
 - Users wanting better SmallTime integration
 - Communities needing custom calendar support
@@ -72,7 +79,7 @@ const worldTime = game.seasonsStars.api.dateToWorldTime(currentDate);
 const formatted = game.seasonsStars.api.formatDate(currentDate);
 
 // Hook integration for module updates
-Hooks.on('seasons-stars:dateChanged', (data) => {
+Hooks.on('seasons-stars:dateChanged', data => {
   // Respond to date changes in your module
   console.log('Date changed:', data.newDate);
 });
@@ -89,13 +96,14 @@ Hooks.on('seasons-stars:dateChanged', (data) => {
 ## 🔧 Development
 
 ### For Module Developers
+
 ```javascript
 // Access the Seasons & Stars API
 const currentDate = game.seasonsStars.api.getCurrentDate();
 await game.seasonsStars.api.advanceDays(1);
 
 // Listen for date changes
-Hooks.on('seasons-stars:dateChanged', (data) => {
+Hooks.on('seasons-stars:dateChanged', data => {
   console.log('Date changed:', data.newDate);
 });
 ```
@@ -103,6 +111,7 @@ Hooks.on('seasons-stars:dateChanged', (data) => {
 See the [Developer Guide](./docs/DEVELOPER-GUIDE.md) for complete API reference.
 
 ### Build from Source
+
 ```bash
 git clone https://github.com/rayners/fvtt-seasons-and-stars
 cd fvtt-seasons-and-stars
@@ -112,17 +121,20 @@ npm run build
 
 ## 🗺️ Roadmap
 
-### **Phase 1: Core Foundation** ✅ *Complete*
+### **Phase 1: Core Foundation** ✅ _Complete_
+
 - Basic calendar system and UI
 - Simple Calendar compatibility layer
 - Essential user features
 
-### **Phase 2: Notes & Integration** 🚧 *Next (Q1 2025)*
+### **Phase 2: Notes & Integration** 🚧 _Next (Q1 2025)_
+
 - Full notes system with Journal integration
 - Complete weather module support
 - Advanced hook system
 
-### **Phase 3: Advanced Features** 📅 *Q2 2025*
+### **Phase 3: Advanced Features** 📅 _Q2 2025_
+
 - Calendar editor and creation tools
 - Migration assistant from Simple Calendar
 - Enhanced theming and customization
