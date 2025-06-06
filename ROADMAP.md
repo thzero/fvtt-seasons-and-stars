@@ -13,49 +13,62 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - Rich calendar format supporting diverse fantasy settings
 - Performance-optimized architecture for large campaigns
 
-## 📋 Current Status: Alpha Release
+## 📋 Current Status: v0.2.1 Alpha Release
 
 **What's Working Now:**
 
 - ✅ **Core Calendar System**: Date calculations, multiple calendars, Foundry time integration
 - ✅ **Modern UI**: Calendar widget, mini widget, grid view, calendar selection
 - ✅ **12 Built-in Calendars**: Gregorian, D&D settings, PF2e Golarion, Critical Role, and more
-- ✅ **Simple Calendar Compatibility**: Basic API compatibility for existing modules
-- 🚧 **Notes System**: Planned calendar notes with categories, search, and permissions
+- ✅ **Simple Calendar Compatibility**: API compatibility via separate bridge module
 - ✅ **SmallTime Integration**: Auto-positioning and visual consistency
+- 🧪 **Notes System**: Implemented but alpha testing - categories, recurring events, search, permissions
+- 🧪 **Error Reporting**: Optional Errors and Echoes integration (when module available)
+- 🧪 **Memory Integration**: Optional Memory Mage integration (pre-release development module)
 
 **Testing Status:**
 
-- 🧪 **Alpha Quality**: Core features implemented and functional
-- 🔍 **Seeking Feedback**: User testing and bug reports welcome
-- 📊 **Test Coverage**: 38/38 automated tests passing
+- 🧪 **Alpha Quality**: Core calendar features tested and functional
+- ⚠️ **Notes System**: Implemented but limited testing - feedback needed
+- 📊 **Test Coverage**: 38/38 automated tests passing (calendar engine and widgets only)
+- 🔍 **Seeking Feedback**: User testing and bug reports welcome, especially for notes system
+- ⚠️ **Known Limitations**: See [Known Issues](KNOWN-ISSUES.md) for current limitations
 
 ## 🚀 Planned Development
 
-### **v0.2.0 - Enhanced Compatibility** (Next Release)
+### **v0.2.2 - Stability & Testing** (Next Release)
 
-**Focus**: Improve module integration and user experience
+**Focus**: Bug fixes and production readiness
 
-- **Enhanced Error Reporting**: Optional integration with error reporting tools
-- **Improved Documentation**: Better user guides and troubleshooting
-- **Module Compatibility**: Testing with popular calendar-dependent modules
-- **Bug Fixes**: Based on alpha feedback and testing
+- **Critical Fixes**: Memory Mage integration and runtime error resolution
+- **Notes System Testing**: Comprehensive testing and bug fixes for notes features
+- **Documentation Updates**: Accurate reflection of current capabilities
+- **Module Compatibility**: Continued testing with popular calendar-dependent modules
 
-### **v0.3.0 - Advanced Calendar Features** (Future)
+### **v0.3.0 - Enhanced User Experience** (Future)
+
+**Focus**: Polish and usability improvements
+
+- **Notes System Polish**: User interface improvements and workflow optimization
+- **Testing Coverage**: Comprehensive test suite for all features including notes
+- **Performance Optimization**: Large dataset handling and memory efficiency
+- **User Documentation**: Enhanced guides and tutorials
+
+### **v0.4.0 - Advanced Calendar Features** (Future)
 
 **Focus**: Calendar creation and customization
 
 - **Calendar Editor**: In-app tool for creating custom calendars
 - **Import/Export**: Tools for migrating Simple Calendar configurations
 - **Additional Calendars**: More fantasy settings and historical calendars
-- **Performance Improvements**: Optimizations for large campaigns
+- **Advanced Calendar Features**: Enhanced customization and localization
 
-### **v0.4.0 - Enhanced Module Integration** (Future)
+### **v0.5.0 - Enhanced Module Integration** (Future)
 
 **Focus**: Deeper integration with the Foundry ecosystem
 
 - **Weather Module Support**: Enhanced integration with weather systems
-- **Event Management**: Advanced recurring events and reminders
+- **Advanced Event Management**: Improved recurring events and reminders
 - **API Expansion**: More comprehensive developer APIs
 - **Module Templates**: Examples for module developers
 
