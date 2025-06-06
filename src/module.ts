@@ -1039,16 +1039,16 @@ function registerErrorsAndEchoes(): void {
         }
 
         // Add current scene information
-        if (game.scenes?.active) {
-          const scene = game.scenes.active;
+        if ((game as any).scenes?.active) {
+          const scene = (game as any).scenes.active;
           context.sceneId = scene.id;
           context.sceneName = scene.name;
         }
 
         // Add system information
-        context.gameSystem = game.system?.id || 'unknown';
-        context.systemVersion = game.system?.version || 'unknown';
-        context.foundryVersion = game.version || 'unknown';
+        context.gameSystem = (game as any).system?.id || 'unknown';
+        context.systemVersion = (game as any).system?.version || 'unknown';
+        context.foundryVersion = (game as any).version || 'unknown';
 
         // Add key module settings that might affect behavior
         try {
@@ -1164,7 +1164,7 @@ function registerMemoryMageIntegration(): void {
   try {
     // Register self-reporting memory usage
     memoryMage.registerModule('seasons-and-stars', () => {
-      const optimizer = notesManager?.getPerformanceOptimizer?.();
+      const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
       const widgetMemory = calculateWidgetMemory();
       const calendarMemory = calculateCalendarMemory();
 
@@ -1173,7 +1173,7 @@ function registerMemoryMageIntegration(): void {
         details: {
           notesCache: optimizer?.getMetrics()?.totalNotes || 0,
           activeWidgets: getActiveWidgetCount(),
-          loadedCalendars: calendarManager?.getLoadedCalendars()?.length || 0,
+          loadedCalendars: (calendarManager as any)?.getLoadedCalendars?.()?.length || 0,
           cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0,
         },
       };
@@ -1185,26 +1185,26 @@ function registerMemoryMageIntegration(): void {
 
       if (level === 'warning') {
         // Light cleanup
-        const optimizer = notesManager?.getPerformanceOptimizer?.();
+        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
         if (optimizer) {
           optimizer.relieveMemoryPressure();
         }
       } else if (level === 'critical') {
         // Aggressive cleanup
-        const optimizer = notesManager?.getPerformanceOptimizer?.();
+        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
         if (optimizer) {
           optimizer.relieveMemoryPressure();
         }
 
         // Clear other caches if available
-        if (calendarManager?.clearCaches) {
-          calendarManager.clearCaches();
+        if ((calendarManager as any)?.clearCaches) {
+          (calendarManager as any).clearCaches();
         }
 
         // Force close widgets if memory is critically low
         if (level === 'critical') {
-          CalendarWidget.closeAll?.();
-          CalendarGridWidget.closeAll?.();
+          (CalendarWidget as any).closeAll?.();
+          (CalendarGridWidget as any).closeAll?.();
         }
       }
     });
@@ -1232,7 +1232,7 @@ function calculateWidgetMemory(): number {
  * Calculate estimated memory usage of loaded calendars
  */
 function calculateCalendarMemory(): number {
-  const loadedCalendars = calendarManager?.getLoadedCalendars()?.length || 0;
+  const loadedCalendars = (calendarManager as any)?.getLoadedCalendars?.()?.length || 0;
   return loadedCalendars * 0.02; // 20KB per calendar
 }
 
