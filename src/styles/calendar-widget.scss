@@ -41,25 +41,46 @@
       align-items: center;
       gap: 6px;
       cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 3px;
-      transition: background-color 0.2s;
+      padding: 6px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
       font-weight: 600;
       color: var(--color-text-light-primary);
+      border: 1px solid var(--color-border-light-primary);
+      background: var(--color-bg-alt);
 
-      &:hover {
-        background: var(--color-bg-alt);
+      &.clickable:hover {
+        background: var(--color-bg-option);
+        border-color: var(--color-border-light-secondary);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       i:first-child {
         color: var(--color-text-light-heading);
       }
 
-      i:last-child {
+      .dropdown-icon {
         margin-left: auto;
         font-size: 0.8em;
-        opacity: 0.7;
+        opacity: 0.8;
+        transition: transform 0.2s;
       }
+
+      &.clickable:hover .dropdown-icon {
+        transform: translateY(1px);
+        opacity: 1;
+      }
+    }
+
+    .calendar-hint {
+      font-size: 0.75em;
+      color: var(--color-text-light-secondary);
+      margin-top: 4px;
+      padding: 2px 8px;
+      text-align: center;
+      opacity: 0.8;
+      font-style: italic;
     }
 
     .calendar-setting {

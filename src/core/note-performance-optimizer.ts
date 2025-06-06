@@ -1,5 +1,8 @@
 /**
  * Performance optimization utilities for the notes system
+ * 
+ * Note: Memory monitoring has been moved to the Memory Mage module.
+ * This optimizer now focuses on search performance and caching only.
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
@@ -10,7 +13,6 @@ export interface PerformanceMetrics {
   indexBuildTime: number;
   searchTime: number;
   cacheHitRate: number;
-  memoryUsage: number;
   totalNotes: number;
   indexedDates: number;
 }
@@ -28,10 +30,6 @@ export interface OptimizationConfig {
   // Index settings
   lazyIndexing: boolean;      // Build index on demand
   indexRebuildThreshold: number; // Notes threshold to trigger rebuild
-  
-  // Memory management
-  enableMemoryPressureRelief: boolean;
-  memoryWarningThreshold: number; // MB
 }
 
 /**
@@ -41,7 +39,6 @@ export class NotePerformanceOptimizer {
   private static instance: NotePerformanceOptimizer;
   private config: OptimizationConfig;
   private metrics: PerformanceMetrics;
-  private isMonitoring = false;
   
   // LRU cache implementation
   private lruCache: Map<string, { note: JournalEntry; lastAccess: number }> = new Map();
@@ -56,8 +53,6 @@ export class NotePerformanceOptimizer {
       enablePagination: true,
       lazyIndexing: true,
       indexRebuildThreshold: 500,
-      enableMemoryPressureRelief: true,
-      memoryWarningThreshold: 100,
       ...config
     };
     
@@ -65,7 +60,6 @@ export class NotePerformanceOptimizer {
       indexBuildTime: 0,
       searchTime: 0,
       cacheHitRate: 0,
-      memoryUsage: 0,
       totalNotes: 0,
       indexedDates: 0
     };
@@ -76,34 +70,6 @@ export class NotePerformanceOptimizer {
       this.instance = new NotePerformanceOptimizer(config);
     }
     return this.instance;
-  }
-  
-  /**
-   * Initialize performance monitoring
-   */
-  startMonitoring(): void {
-    if (this.isMonitoring) return;
-    
-    this.isMonitoring = true;
-    
-    // Monitor memory usage every 30 seconds
-    setInterval(() => {
-      this.updateMemoryMetrics();
-      
-      if (this.config.enableMemoryPressureRelief) {
-        this.checkMemoryPressure();
-      }
-    }, 30000);
-    
-    Logger.info('Performance monitoring started');
-  }
-  
-  /**
-   * Stop performance monitoring
-   */
-  stopMonitoring(): void {
-    this.isMonitoring = false;
-    Logger.info('Performance monitoring stopped');
   }
   
   /**
@@ -207,17 +173,13 @@ export class NotePerformanceOptimizer {
   
   /**
    * Memory pressure relief - clean up caches and rebuild indexes
+   * Called by Memory Mage during memory pressure events
    */
   relieveMemoryPressure(): void {
     Logger.info('Relieving memory pressure...');
     
     // Clear cache partially (keep most recent 50%)
     this.clearOldCacheEntries(0.5);
-    
-    // Force garbage collection if available
-    if (global.gc) {
-      global.gc();
-    }
     
     Logger.info('Memory pressure relief completed');
   }
@@ -226,7 +188,7 @@ export class NotePerformanceOptimizer {
    * Get current performance metrics
    */
   getMetrics(): PerformanceMetrics {
-    this.updateMemoryMetrics();
+    this.updateMetrics();
     return { ...this.metrics };
   }
   
@@ -240,6 +202,20 @@ export class NotePerformanceOptimizer {
     if (newConfig.cacheSize && newConfig.cacheSize < this.lruCache.size) {
       this.clearOldCacheEntries(1 - (newConfig.cacheSize / this.lruCache.size));
     }
+  }
+  
+  /**
+   * Get estimated memory usage for Memory Mage
+   */
+  getMemoryUsage(): number {
+    // Estimate cache memory usage
+    const avgNoteSize = 0.01; // Estimate 10KB per cached note
+    const cacheMemory = this.lruCache.size * avgNoteSize;
+    
+    // Add small baseline for the optimizer itself
+    const baseMemory = 0.1;
+    
+    return cacheMemory + baseMemory;
   }
   
   /**
@@ -516,11 +492,7 @@ export class NotePerformanceOptimizer {
     }
   }
   
-  private updateMemoryMetrics(): void {
-    if (typeof performance !== 'undefined' && performance.memory) {
-      this.metrics.memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024; // MB
-    }
-    
+  private updateMetrics(): void {
     this.metrics.totalNotes = this.getAllCalendarNotes().length;
     this.metrics.cacheHitRate = this.calculateCacheHitRate();
   }
@@ -528,12 +500,5 @@ export class NotePerformanceOptimizer {
   private calculateCacheHitRate(): number {
     // Would need to track hits/misses in production
     return 0.85; // Placeholder
-  }
-  
-  private checkMemoryPressure(): void {
-    if (this.metrics.memoryUsage > this.config.memoryWarningThreshold) {
-      Logger.warn(`High memory usage: ${this.metrics.memoryUsage.toFixed(1)}MB`);
-      this.relieveMemoryPressure();
-    }
   }
 }

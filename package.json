@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
   "main": "dist/module.js",
@@ -18,7 +18,10 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "link-electron": "node ../foundry-dev-tools/scripts/link-module.js ~/Library/Application\\ Support/FoundryVTT/Data/modules",
+    "link-node": "node ../foundry-dev-tools/scripts/link-module.js ~/foundry-versions/13.344-data/modules",
+    "link-copy": "node ../foundry-dev-tools/scripts/link-module.js --copy"
   },
   "author": "David Raynes",
   "license": "MIT",

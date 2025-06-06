@@ -8,11 +8,12 @@
   {{else}}
     {{!-- Calendar Header --}}
     <div class="calendar-header">
-      <div class="calendar-title" data-action="openCalendarSelection" title="Click to change calendar">
+      <div class="calendar-title clickable" data-action="openCalendarSelection" title="Click to change calendar system">
         <i class="fas fa-calendar-alt"></i>
         <span>{{calendar.label}}</span>
-        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-down dropdown-icon"></i>
       </div>
+      <div class="calendar-hint">Click above to change calendar</div>
       {{#if calendar.setting}}
         <div class="calendar-setting">{{calendar.setting}}</div>
       {{/if}}

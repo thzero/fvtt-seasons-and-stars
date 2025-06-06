@@ -173,7 +173,7 @@
     },
     {
       "name": "Shieldmeet",
-      "after": "Midsummer",
+      "after": "Flamerule",
       "leapYearOnly": true,
       "countsForWeekdays": false,
       "description": "Occurs only once every four years, the day after Midsummer. A grand festival of unity, oaths, and great celebrations. Political alliances are often forged on this day."

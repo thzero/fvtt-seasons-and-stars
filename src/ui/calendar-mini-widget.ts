@@ -27,7 +27,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       left: -1000
     },
     actions: {
-      advanceTime: CalendarMiniWidget.prototype._onAdvanceTime
+      advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
+      openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection
     }
   };
 
@@ -352,6 +353,28 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       Logger.error('Error advancing time', error as Error);
       ui.notifications?.error('Failed to advance time');
+    }
+  }
+
+  /**
+   * Handle opening calendar selection dialog
+   */
+  async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    
+    const manager = game.seasonsStars?.manager;
+    if (!manager) return;
+
+    try {
+      const calendars = manager.getAllCalendars();
+      const activeCalendar = manager.getActiveCalendar();
+      const currentCalendarId = activeCalendar?.id || 'gregorian';
+
+      const { CalendarSelectionDialog } = await import('./calendar-selection-dialog');
+      new CalendarSelectionDialog(calendars, currentCalendarId).render(true);
+    } catch (error) {
+      Logger.error('Error opening calendar selection', error as Error);
+      ui.notifications?.error('Failed to open calendar selection');
     }
   }
 

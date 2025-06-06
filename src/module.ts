@@ -73,6 +73,9 @@ Hooks.once('ready', async () => {
   // Initialize notes manager
   await notesManager.initialize();
   
+  // Register with Memory Mage if available
+  registerMemoryMageIntegration();
+  
   // Expose API
   setupAPI();
   
@@ -108,28 +111,35 @@ Hooks.once('ready', async () => {
 function registerSettings(): void {
   if (!game.settings) return;
 
-  // Development and debugging settings
-  game.settings.register('seasons-and-stars', 'debugMode', {
-    name: 'Debug Mode',
-    hint: 'Enable debug logging for troubleshooting (developers only)',
-    scope: 'client',
+  // Core user settings (most important first)
+  // Calendar setting registered early with basic choices, updated later when calendars load
+  game.settings.register('seasons-and-stars', 'activeCalendar', {
+    name: 'SEASONS_STARS.settings.active_calendar',
+    hint: 'SEASONS_STARS.settings.active_calendar_hint',
+    scope: 'world',
     config: true,
-    type: Boolean,
-    default: false
+    type: String,
+    default: 'gregorian',
+    choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
+    onChange: async (value: string) => {
+      if (calendarManager) {
+        await calendarManager.setActiveCalendar(value);
+      }
+    }
   });
 
-  game.settings.register('seasons-and-stars', 'showNotifications', {
-    name: 'Show Notifications',
-    hint: 'Display warning and error notifications in the UI',
+  game.settings.register('seasons-and-stars', 'showTimeWidget', {
+    name: 'Show Time Widget',
+    hint: 'Display a small time widget on the UI',
     scope: 'client',
     config: true,
     type: Boolean,
     default: true
   });
 
-  game.settings.register('seasons-and-stars', 'showTimeWidget', {
-    name: 'Show Time Widget',
-    hint: 'Display a small time widget on the UI',
+  game.settings.register('seasons-and-stars', 'showNotifications', {
+    name: 'Show Notifications',
+    hint: 'Display warning and error notifications in the UI',
     scope: 'client',
     config: true,
     type: Boolean,
@@ -173,10 +183,20 @@ function registerSettings(): void {
     type: Object,
     default: null
   });
+
+  // Development and debugging settings (last for developers)
+  game.settings.register('seasons-and-stars', 'debugMode', {
+    name: 'Debug Mode',
+    hint: 'Enable debug logging for troubleshooting (developers only)',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false
+  });
 }
 
 /**
- * Register calendar-specific settings after calendars are loaded
+ * Update calendar setting choices after calendars are loaded
  */
 function registerCalendarSettings(): void {
   if (!game.settings) return;
@@ -185,6 +205,7 @@ function registerCalendarSettings(): void {
   const calendars = calendarManager.getAllCalendars();
   const choices = CalendarLocalization.createCalendarChoices(calendars);
   
+  // Re-register the setting with updated choices to overwrite the basic one
   game.settings.register('seasons-and-stars', 'activeCalendar', {
     name: 'SEASONS_STARS.settings.active_calendar',
     hint: 'SEASONS_STARS.settings.active_calendar_hint',
@@ -199,6 +220,8 @@ function registerCalendarSettings(): void {
       }
     }
   });
+  
+  Logger.debug('Updated calendar setting with full choices', { choices });
 }
 
 /**
@@ -1027,3 +1050,104 @@ Hooks.once('destroy', () => {
     delete (window as any).SeasonsStars;
   }
 });
+
+/**
+ * Register with Memory Mage module if available
+ */
+function registerMemoryMageIntegration(): void {
+  // Check if Memory Mage is available
+  const memoryMage = (globalThis as any).memoryMage;
+  if (!memoryMage) {
+    Logger.info('Memory Mage not available - skipping memory monitoring integration');
+    return;
+  }
+
+  Logger.info('Registering with Memory Mage for memory monitoring');
+
+  try {
+    // Register self-reporting memory usage
+    memoryMage.registerModule('seasons-and-stars', () => {
+      const optimizer = notesManager?.getPerformanceOptimizer?.();
+      const widgetMemory = calculateWidgetMemory();
+      const calendarMemory = calculateCalendarMemory();
+      
+      return {
+        estimatedMB: (optimizer?.getMemoryUsage() || 0) + widgetMemory + calendarMemory,
+        details: {
+          notesCache: optimizer?.getMetrics()?.totalNotes || 0,
+          activeWidgets: getActiveWidgetCount(),
+          loadedCalendars: calendarManager?.getLoadedCalendars()?.length || 0,
+          cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0
+        }
+      };
+    });
+
+    // Register cleanup handler for memory pressure
+    memoryMage.registerCleanupHandler('seasons-and-stars', (level: 'warning' | 'critical') => {
+      Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
+      
+      if (level === 'warning') {
+        // Light cleanup
+        const optimizer = notesManager?.getPerformanceOptimizer?.();
+        if (optimizer) {
+          optimizer.relieveMemoryPressure();
+        }
+      } else if (level === 'critical') {
+        // Aggressive cleanup
+        const optimizer = notesManager?.getPerformanceOptimizer?.();
+        if (optimizer) {
+          optimizer.relieveMemoryPressure();
+        }
+        
+        // Clear other caches if available
+        if (calendarManager?.clearCaches) {
+          calendarManager.clearCaches();
+        }
+        
+        // Force close widgets if memory is critically low
+        if (level === 'critical') {
+          CalendarWidget.closeAll?.();
+          CalendarGridWidget.closeAll?.();
+        }
+      }
+    });
+
+    Logger.info('Memory Mage integration registered successfully');
+  } catch (error) {
+    Logger.warn('Failed to register with Memory Mage:', error);
+  }
+}
+
+/**
+ * Calculate estimated memory usage of active widgets
+ */
+function calculateWidgetMemory(): number {
+  let memory = 0;
+  
+  // Base widget overhead (small)
+  const activeWidgets = getActiveWidgetCount();
+  memory += activeWidgets * 0.05; // 50KB per widget
+  
+  return memory;
+}
+
+/**
+ * Calculate estimated memory usage of loaded calendars
+ */
+function calculateCalendarMemory(): number {
+  const loadedCalendars = calendarManager?.getLoadedCalendars()?.length || 0;
+  return loadedCalendars * 0.02; // 20KB per calendar
+}
+
+/**
+ * Get count of active widgets
+ */
+function getActiveWidgetCount(): number {
+  let count = 0;
+  
+  if (CalendarWidget.getInstance?.()?.rendered) count++;
+  if (CalendarMiniWidget.getInstance?.()?.rendered) count++;
+  if (CalendarGridWidget.getInstance?.()?.rendered) count++;
+  
+  return count;
+}

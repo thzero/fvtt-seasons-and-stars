@@ -21,16 +21,11 @@ export class NoteStorage {
    */
   initialize(): void {
     this.performanceOptimizer = NotePerformanceOptimizer.getInstance({
-      cacheSize: this.cacheSize,
-      enableMemoryPressureRelief: true,
-      memoryWarningThreshold: 150 // MB
+      cacheSize: this.cacheSize
     });
     
     this.buildDateIndex();
     this.indexBuilt = true;
-    
-    // Start performance monitoring
-    this.performanceOptimizer.startMonitoring();
     
     Logger.info('Note storage initialized with performance optimization');
   }

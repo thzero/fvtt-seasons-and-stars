@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-06-05
+
+### Added
+- **Security Policy**: Added comprehensive SECURITY.md with vulnerability reporting guidelines
+- **Repository Infrastructure**: Enhanced repository with proper description, topics, and branch protection
+
+### Changed
+- **Memory Management**: Removed memory size checking in favor of dedicated Memory Mage module in development
+- **Performance Monitoring**: Simplified note performance optimizer to focus on core functionality
+
+### Enhanced
+- **Code Quality**: Improved TypeScript definitions and cleaned up dependencies
+- **UI Polish**: Minor styling improvements and template refinements
+- **Localization**: Updated language strings for better user experience
+
+### Fixed
+- **Performance**: Optimized note storage systems and reduced memory overhead
+- **Styling**: Enhanced calendar widget responsive design and visual consistency
+
 ## [0.2.0] - 2025-06-05
 
 ### Added

@@ -17,13 +17,13 @@
     },
     "dialog": {
       "calendar_selection": {
-        "title": "Choose Calendar",
-        "choose_calendar": "Choose a Calendar",
-        "choose_hint": "Select a calendar system to use for date display and time tracking.",
-        "select": "Select Calendar",
-        "cancel": "Cancel",
+        "title": "📅 Change Calendar System",
+        "choose_calendar": "Choose Your Calendar System",
+        "choose_hint": "Select which calendar system to use for date display and time tracking in your world. This affects how dates are displayed and calculated throughout the game.",
+        "select": "Use This Calendar",
+        "cancel": "Keep Current",
         "switch_to": "Switch to {calendar}",
-        "current": "Current",
+        "current": "Currently Active",
         "sample": "Sample",
         "preview": "Preview",
         "preview_tooltip": "View calendar details and sample dates",
@@ -38,8 +38,8 @@
       "close": "Close"
     },
     "settings": {
-      "active_calendar": "Active Calendar",
-      "active_calendar_hint": "Which calendar system to use for date display and calculations",
+      "active_calendar": "📅 Active Calendar System",
+      "active_calendar_hint": "Choose which calendar system to use for date display and time tracking. This is the primary setting for configuring your world's calendar.",
       "current_date": "Current Date",
       "current_date_hint": "The current in-game date (managed automatically)"
     },
