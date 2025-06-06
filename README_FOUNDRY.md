@@ -86,6 +86,10 @@ Provides API for other module developers to integrate calendar functionality.
 
 **Alpha Release**: This module is in active development. Features and APIs may change. Please report issues and provide feedback through GitHub.
 
+## Support Development
+
+Love this module? Consider supporting continued development on **[Patreon](https://patreon.com/rayners)**. Your support helps fund new features, bug fixes, and comprehensive documentation.
+
 ---
 
 _A calendar solution for Foundry VTT v13+ games_

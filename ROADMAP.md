@@ -151,6 +151,18 @@ Future releases may include enhanced system-specific features and additional cal
 - **Tutorials**: Create video guides and documentation
 - **Community Building**: Share with your gaming communities
 
+## 💖 Support Development
+
+Your Patreon support directly helps prioritize roadmap features and accelerate development:
+
+[![Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=for-the-badge&logo=patreon)](https://patreon.com/rayners)
+
+**How Patreon support helps:**
+- 🚀 **Feature Prioritization**: Patron requests get priority in the roadmap
+- ⚡ **Faster Development**: More time dedicated to module development
+- 🔧 **Better Testing**: Resources for comprehensive compatibility testing
+- 📚 **Enhanced Documentation**: Professional guides and video tutorials
+
 ## 📞 Getting Involved
 
 ### **Feedback & Support**

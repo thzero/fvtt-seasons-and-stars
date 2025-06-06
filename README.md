@@ -141,6 +141,18 @@ npm run build
 
 See the complete [Roadmap](./docs/ROADMAP.md) for detailed timelines.
 
+## 💖 Support This Project
+
+Love using Seasons & Stars? Consider supporting continued development:
+
+[![Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=for-the-badge&logo=patreon)](https://patreon.com/rayners)
+
+Your support helps fund:
+- 🚀 **New Features**: Advanced calendar tools and integrations
+- 🐛 **Bug Fixes**: Faster resolution of issues and compatibility updates  
+- 📚 **Documentation**: Comprehensive guides and tutorials
+- 🎯 **Community Requests**: Implementation of user-requested features
+
 ## 📄 License
 
 [MIT License](./LICENSE) - Free for personal and commercial use.

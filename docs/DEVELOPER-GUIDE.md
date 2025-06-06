@@ -601,6 +601,14 @@ function addDaysToDate(date, days) {
 }
 ```
 
+## 💖 Support This Project
+
+Enjoying Seasons & Stars? Consider supporting continued development:
+
+[![Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=for-the-badge&logo=patreon)](https://patreon.com/rayners)
+
+Your support helps fund new features, bug fixes, and comprehensive documentation.
+
 ## 🎯 Best Practices
 
 ### Error Handling

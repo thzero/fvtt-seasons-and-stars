@@ -31,5 +31,11 @@
   "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.zip",
   "documentation": "https://docs.rayners.dev/seasons-and-stars",
   "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues",
-  "changelog": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CHANGELOG.md"
+  "changelog": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CHANGELOG.md",
+  "funding": [
+    {
+      "type": "patreon",
+      "url": "https://patreon.com/rayners"
+    }
+  ]
 }
