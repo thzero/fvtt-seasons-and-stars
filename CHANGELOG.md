@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.2.3] - 2025-06-07
+
+### Added
+
+- **Enhanced Note Creation UI**: Better note creation interface with tag support
+  - **Tag Autocompletion**: Autocomplete for note categories when typing tags
+  - **Visual Tag Indicators**: Color-coded tag chips with category icons
+  - **Helpful Tooltips**: Hover tooltips showing category descriptions
+  - **Real-time Validation**: Validation with clear error messages
+  - **Category Integration**: Works with existing note categories and custom tags
+
+### Enhanced
+
+- **Scene Control Integration**: Scene control button for widget management
+  - **GM-Only Controls**: Scene control button shows only for GameMasters
+  - **Default Widget Setting**: Choose which widget opens with scene control
+  - **Keyboard Integration**: Scene control works with keyboard shortcuts
+- **Documentation Updates**: Updated docs to match actual implementation
+  - **Honest Limitations**: Clear documentation of note editing limitations
+  - **Timeline Updates**: Updated roadmap from Q1/Q2 to Q3/Q4 2025
+  - **Test Coverage**: Fixed test coverage reporting (~11% actual coverage)
+- **Build System**: Updated GitHub Actions to fix deprecation warnings
+  - **Modern Actions**: Replaced deprecated version extraction action
+  - **Clean Builds**: Fixed TypeScript linting issues
+
+### Fixed
+
+- **TypeScript Compliance**: Fixed linting error in base-widget-manager.ts
+- **Build Pipeline**: Clean builds with zero errors
+- **Documentation Accuracy**: Docs now match actual feature capabilities
+
 ## [0.2.2] - 2025-06-06
 
 ### Added
