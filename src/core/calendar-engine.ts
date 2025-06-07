@@ -20,9 +20,12 @@ export class CalendarEngine {
 
   /**
    * Convert Foundry world time (seconds) to calendar date
+   * Now supports both epoch-based and real-time-based interpretation
    */
   worldTimeToDate(worldTime: number): CalendarDate {
-    const totalSeconds = Math.floor(worldTime);
+    const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
+    
+    const totalSeconds = Math.floor(adjustedWorldTime);
     const secondsPerDay =
       this.calendar.time.hoursInDay *
       this.calendar.time.minutesInHour *
@@ -52,6 +55,7 @@ export class CalendarEngine {
 
   /**
    * Convert calendar date to Foundry world time (seconds)
+   * Handles both interpretation modes
    */
   dateToWorldTime(date: CalendarDate): number {
     const totalDays = this.dateToDays(date);
@@ -70,7 +74,7 @@ export class CalendarEngine {
       totalSeconds += date.time.second;
     }
 
-    return totalSeconds;
+    return this.adjustWorldTimeFromInterpretation(totalSeconds);
   }
 
   /**
@@ -203,6 +207,50 @@ export class CalendarEngine {
     }
 
     return result;
+  }
+
+  /**
+   * Adjust worldTime based on calendar's interpretation mode
+   */
+  private adjustWorldTimeForInterpretation(worldTime: number): number {
+    const worldTimeConfig = this.calendar.worldTime;
+    
+    if (!worldTimeConfig || worldTimeConfig.interpretation === 'epoch-based') {
+      // Default behavior: worldTime represents seconds since calendar epoch
+      return worldTime;
+    }
+    
+    if (worldTimeConfig.interpretation === 'real-time-based') {
+      // Real-time mode: worldTime=0 should map to currentYear, not epochYear
+      const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
+      const secondsPerYear = 365.25 * 24 * 60 * 60; // Average seconds per year
+      const epochOffset = yearDifference * secondsPerYear;
+      
+      return worldTime + epochOffset;
+    }
+    
+    return worldTime;
+  }
+  
+  /**
+   * Convert internal seconds back to worldTime based on interpretation mode
+   */
+  private adjustWorldTimeFromInterpretation(internalSeconds: number): number {
+    const worldTimeConfig = this.calendar.worldTime;
+    
+    if (!worldTimeConfig || worldTimeConfig.interpretation === 'epoch-based') {
+      return internalSeconds;
+    }
+    
+    if (worldTimeConfig.interpretation === 'real-time-based') {
+      const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
+      const secondsPerYear = 365.25 * 24 * 60 * 60;
+      const epochOffset = yearDifference * secondsPerYear;
+      
+      return internalSeconds - epochOffset;
+    }
+    
+    return internalSeconds;
   }
 
   /**

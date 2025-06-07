@@ -12,6 +12,13 @@ export interface SeasonsStarsCalendar {
     };
   };
 
+  // NEW: WorldTime interpretation configuration
+  worldTime?: {
+    interpretation: 'epoch-based' | 'real-time-based';
+    epochYear: number;
+    currentYear: number;
+  };
+
   year: {
     epoch: number;
     currentYear: number;

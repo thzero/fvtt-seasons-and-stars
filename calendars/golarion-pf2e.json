@@ -7,10 +7,16 @@
       "setting": "Pathfinder 2e"
     }
   },
+
+  "worldTime": {
+    "interpretation": "real-time-based",
+    "epochYear": 2700,
+    "currentYear": 4725
+  },
   
   "year": {
     "epoch": 2700,
-    "currentYear": 4710,
+    "currentYear": 4725,
     "prefix": "",
     "suffix": " AR",
     "startDay": 6
