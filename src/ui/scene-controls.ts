@@ -6,15 +6,16 @@ import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
+import type { SceneControl } from '../types/widget-types';
 
 export class SeasonsStarsSceneControls {
   /**
    * Register scene controls
    */
   static registerControls(): void {
-    Logger.info('SeasonsStarsSceneControls.registerControls() called - registering getSceneControlButtons hook');
+    Logger.debug('SeasonsStarsSceneControls.registerControls() called - registering getSceneControlButtons hook');
     
-    Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    Hooks.on('getSceneControlButtons', (controls: Record<string, SceneControl>) => {
       Logger.debug('getSceneControlButtons hook fired', {
         userExists: !!game.user,
         isGM: game.user?.isGM,
@@ -156,6 +157,6 @@ export class SeasonsStarsSceneControls {
       },
     });
 
-    Logger.info('Macro functions registered');
+    Logger.debug('Macro functions registered');
   }
 }

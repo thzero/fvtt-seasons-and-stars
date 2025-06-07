@@ -14,12 +14,21 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **SmallTime Integration**: Seamless positioning and visual consistency
 - **Multiple Calendar Support**: Switch between Gregorian, Vale Reckoning, and custom calendars
 
+### ✅ **Notes System (Basic Creation)**
+
+- **Note Creation**: Functional note creation interface via calendar grid (GMs only - click plus button)
+- **Visual Indicators**: Calendar shows colored borders for days with notes
+- **Backend API**: Complete CRUD operations available for module developers
+- **Simple Calendar Compatibility**: API compatibility via separate compatibility bridge module
+
+⚠️ **Current Limitations**: Notes can be created but **not viewed, edited, or managed** through the UI. Users must access underlying Journal entries directly to read note content.
+
 ### 🚧 **Coming Soon**
 
-- **Notes System**: Full calendar event and note management with Journal integration
-- **Weather Module Support**: Comprehensive notes API for weather modules and other integrations
-- **Advanced Configuration**: In-app calendar editor and migration tools
-- **Extended Integrations**: Enhanced module compatibility and hook system
+- **Complete Notes UI**: Note viewing, editing, and management interface
+- **Calendar Import/Creation**: In-app calendar editor and Simple Calendar migration tools
+- **Advanced Configuration**: Enhanced calendar customization and validation
+- **Extended Integrations**: Additional module compatibility and hook enhancements
 
 ## 🚀 Quick Start
 

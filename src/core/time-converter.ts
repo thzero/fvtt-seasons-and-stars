@@ -3,9 +3,11 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { DebugInfo } from '../types/widget-types';
 import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';
 import { Logger } from './logger';
+import { TIME_CONSTANTS } from './constants';
 
 export class TimeConverter {
   private engine: CalendarEngine;
@@ -63,7 +65,7 @@ export class TimeConverter {
       },
     };
 
-    Logger.info('Initializing Gregorian calendar with current date:', realWorldDate);
+    Logger.debug('Initializing Gregorian calendar with current date:', realWorldDate);
 
     // Only set if user is GM (GMs control world time)
     if (game.user?.isGM) {
@@ -218,9 +220,9 @@ export class TimeConverter {
   }
 
   /**
-   * Check if it's currently daytime (between 6 AM and 6 PM by default)
+   * Check if it's currently daytime (between dawn and dusk by default)
    */
-  isDaytime(dawnHour: number = 6, duskHour: number = 18): boolean {
+  isDaytime(dawnHour: number = TIME_CONSTANTS.DEFAULT_DAWN_HOUR, duskHour: number = TIME_CONSTANTS.DEFAULT_DUSK_HOUR): boolean {
     const currentDate = this.getCurrentDate();
 
     if (!currentDate.time) {
@@ -310,7 +312,7 @@ export class TimeConverter {
   /**
    * Get debug information about time conversion
    */
-  getDebugInfo(): any {
+  getDebugInfo(): DebugInfo {
     const currentDate = this.getCurrentDate();
     const worldTime = game.time?.worldTime || 0;
 

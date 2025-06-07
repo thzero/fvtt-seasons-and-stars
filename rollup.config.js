@@ -18,6 +18,7 @@ export default {
       fileName: 'styles/seasons-and-stars.css',
       outputStyle: 'compressed',
       watch: 'src/styles',
+      verbose: false, // Reduce log noise
     }),
     copy({
       targets: [

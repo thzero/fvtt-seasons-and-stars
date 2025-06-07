@@ -40,9 +40,9 @@ A comprehensive configuration import system that preserves:
 3. **Integration Settings**: Weather, lighting, and other module configurations
 4. **User Experience**: Familiar interface and workflow preservation
 
-**Priority**: High - Critical for user adoption from Simple Calendar ecosystem.
+**Priority**: High - Critical for user adoption from Simple Calendar ecosystem. Moved to v0.3.0 roadmap as highest priority development item.
 
-**Related**: See [GitHub Issue #3](https://github.com/rayners/fvtt-seasons-and-stars/issues/3) for detailed implementation requirements.
+**Related**: See [ROADMAP.md v0.3.0](ROADMAP.md#v030---calendar-creation-and-import-system-high-priority) for implementation timeline and [GitHub Issue #3](https://github.com/rayners/fvtt-seasons-and-stars/issues/3) for detailed requirements.
 
 ---
 

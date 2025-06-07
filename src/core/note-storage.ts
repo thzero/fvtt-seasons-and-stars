@@ -27,7 +27,7 @@ export class NoteStorage {
     this.buildDateIndex();
     this.indexBuilt = true;
 
-    Logger.info('Note storage initialized with performance optimization');
+    Logger.debug('Note storage initialized with performance optimization');
   }
 
   /**
@@ -211,7 +211,7 @@ export class NoteStorage {
       return;
     }
 
-    Logger.info('Optimizing storage for large collections...');
+    Logger.debug('Optimizing storage for large collections...');
 
     // Clear cache and rebuild index
     this.clearCache();
@@ -224,7 +224,7 @@ export class NoteStorage {
       enablePagination: true,
     });
 
-    Logger.info('Storage optimization completed');
+    Logger.debug('Storage optimization completed');
   }
 
   /**

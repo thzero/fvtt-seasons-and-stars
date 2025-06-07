@@ -13,7 +13,7 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - Rich calendar format supporting diverse fantasy settings
 - Performance-optimized architecture for large campaigns
 
-## 📋 Current Status: v0.2.1 Alpha Release
+## 📋 Current Status: v0.2.2 Alpha Release
 
 **What's Working Now:**
 
@@ -22,46 +22,46 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - ✅ **12 Built-in Calendars**: Gregorian, D&D settings, PF2e Golarion, Critical Role, and more
 - ✅ **Simple Calendar Compatibility**: API compatibility via separate bridge module
 - ✅ **SmallTime Integration**: Auto-positioning and visual consistency
-- 🧪 **Notes System**: Implemented but alpha testing - categories, recurring events, search, permissions
+- ✅ **Notes System**: Backend API complete, basic creation UI functional (GMs can create notes, no viewing/editing UI)
 - 🧪 **Error Reporting**: Optional Errors and Echoes integration (when module available)
 - 🧪 **Memory Integration**: Optional Memory Mage integration (pre-release development module)
 
 **Testing Status:**
 
 - 🧪 **Alpha Quality**: Core calendar features tested and functional
-- ⚠️ **Notes System**: Implemented but limited testing - feedback needed
-- 📊 **Test Coverage**: 38/38 automated tests passing (calendar engine and widgets only)
+- 🚧 **Notes System**: Backend complete but **UI completely non-functional** (creation button doesn't appear, no user interface)
+- 📊 **Test Coverage**: 63/63 automated tests passing (calendar engine, widgets, and UI integration)
 - 🔍 **Seeking Feedback**: User testing and bug reports welcome, especially for notes system
 - ⚠️ **Known Limitations**: See [Known Issues](KNOWN-ISSUES.md) for current limitations
 
 ## 🚀 Planned Development
 
-### **v0.2.2 - Stability & Testing** (Next Release)
+### **v0.2.3 - Notes UI Completion** (Next Release - High Priority)
 
-**Focus**: Bug fixes and production readiness
+**Focus**: Complete the notes system user interface
 
-- **Critical Fixes**: Memory Mage integration and runtime error resolution
-- **Notes System Testing**: Comprehensive testing and bug fixes for notes features
-- **Documentation Updates**: Accurate reflection of current capabilities
-- **Module Compatibility**: Continued testing with popular calendar-dependent modules
+- **Note Viewing Interface**: Click note indicators to view note content  
+- **Note Management UI**: Edit and delete notes through calendar interface
+- **Note List/Browser**: Dedicated interface for browsing and searching notes
+- **Note Details Panel**: Enhanced note viewing with full metadata display
 
-### **v0.3.0 - Enhanced User Experience** (Future)
+### **v0.3.0 - Calendar Creation and Import System** (High Priority)
 
-**Focus**: Polish and usability improvements
-
-- **Notes System Polish**: User interface improvements and workflow optimization
-- **Testing Coverage**: Comprehensive test suite for all features including notes
-- **Performance Optimization**: Large dataset handling and memory efficiency
-- **User Documentation**: Enhanced guides and tutorials
-
-### **v0.4.0 - Advanced Calendar Features** (Future)
-
-**Focus**: Calendar creation and customization
+**Focus**: Calendar creation and migration tools
 
 - **Calendar Editor**: In-app tool for creating custom calendars
-- **Import/Export**: Tools for migrating Simple Calendar configurations
-- **Additional Calendars**: More fantasy settings and historical calendars
-- **Advanced Calendar Features**: Enhanced customization and localization
+- **Simple Calendar Import**: Tools for migrating Simple Calendar configurations and data
+- **Calendar Validation**: Built-in validation for custom calendar definitions
+- **Migration Wizard**: Step-by-step guide for Simple Calendar users
+
+### **v0.4.0 - Advanced Features** (Future)
+
+**Focus**: Enhanced functionality and integrations
+
+- **Advanced Notes Features**: Enhanced search, bulk operations, and note templates
+- **Calendar Customization**: Advanced calendar editing and cultural localization
+- **Module Integration**: Enhanced weather system and third-party module support
+- **Performance Optimization**: Large dataset handling and memory efficiency
 
 ### **v0.5.0 - Enhanced Module Integration** (Future)
 

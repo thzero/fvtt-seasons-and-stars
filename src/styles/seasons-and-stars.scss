@@ -2,12 +2,11 @@
  * Main styles for Seasons & Stars
  */
 
-// Import widget styles
-@import 'calendar-widget';
-@import 'calendar-mini-widget';
-@import 'calendar-grid-widget';
-@import 'calendar-selection-dialog';
-// @import 'time-advance-dialog'; // Temporarily disabled
+// Import widget styles using modern @use syntax
+@use 'calendar-widget';
+@use 'calendar-mini-widget';
+@use 'calendar-grid-widget';
+@use 'calendar-selection-dialog';
 
 // Main module styles
 .seasons-stars {
@@ -89,8 +88,19 @@
   }
   
   .ss-select {
-    @extend .ss-input;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border-light-secondary);
+    background: var(--color-bg);
+    color: var(--color-text-light-primary);
+    border-radius: 3px;
     cursor: pointer;
+    
+    &:focus {
+      outline: none;
+      border-color: var(--color-text-light-highlight);
+      box-shadow: 0 0 0 2px rgba(var(--color-text-light-highlight-rgb), 0.2);
+    }
   }
   
   // Grid layouts

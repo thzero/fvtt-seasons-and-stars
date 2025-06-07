@@ -60,6 +60,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       goToToday: CalendarGridWidget.prototype._onGoToToday,
       setYear: CalendarGridWidget.prototype._onSetYear,
       createNote: CalendarGridWidget.prototype._onCreateNote,
+      viewNotes: CalendarGridWidget.prototype._onViewNotes,
       switchToMain: CalendarGridWidget.prototype._onSwitchToMain,
       switchToMini: CalendarGridWidget.prototype._onSwitchToMini,
     },
@@ -311,11 +312,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) return false;
 
-    const user = game.user;
-    if (!user) return false;
-
-    // Check permission via notes manager
-    return notesManager.permissions?.canCreateNote(user) || false;
+    // Use notes manager's canCreateNote method
+    return notesManager.canCreateNote();
   }
 
   /**
@@ -553,17 +551,31 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     return new Promise(resolve => {
-      const dateStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+      // Ensure we have valid date values
+      const safeDate = {
+        year: date.year || this.viewDate.year || 2024,
+        month: date.month || this.viewDate.month || 1,
+        day: date.day || 1,
+      };
+      
+      // Format date using calendar system
+      const manager = game.seasonsStars?.manager;
+      const activeCalendar = manager?.getActiveCalendar();
+      let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
+      let calendarInfo = '';
+      
+      if (activeCalendar) {
+        const monthName = activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
+        const yearPrefix = activeCalendar.year?.prefix || '';
+        const yearSuffix = activeCalendar.year?.suffix || '';
+        dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
+        calendarInfo = `<div style="text-align: center; margin-bottom: 16px; padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; font-weight: 600; color: var(--color-text-dark-primary);">${dateDisplayStr}</div>`;
+      }
 
       // Build category options from the categories system
       const availableCategories = categories.getCategories();
       const categoryOptions = availableCategories
-        .map(
-          cat =>
-            `<option value="${cat.id}" style="color: ${cat.color};">
-          ${cat.name} ${cat.description ? `- ${cat.description}` : ''}
-        </option>`
-        )
+        .map(cat => `<option value="${cat.id}">${cat.name}</option>`)
         .join('');
 
       // Get predefined tags for suggestions
@@ -572,10 +584,167 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         .map(tag => `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`)
         .join(' ');
 
+      // Get existing tags from notes for autocompletion
+      const notesManager = game.seasonsStars?.notes;
+      const existingTags = new Set<string>();
+      if (notesManager && notesManager.storage) {
+        try {
+          // Check if getAllNotes method exists and is callable
+          if (typeof notesManager.storage.getAllNotes === 'function') {
+            const allNotes = notesManager.storage.getAllNotes() || [];
+            allNotes.forEach(note => {
+              const noteTags = note.flags?.['seasons-and-stars']?.tags || [];
+              noteTags.forEach((tag: string) => existingTags.add(tag));
+            });
+          } else {
+            // Fallback: try to get notes from game.journal if storage method unavailable
+            if (game.journal) {
+              for (const entry of game.journal.values()) {
+                if (entry.flags?.['seasons-and-stars']?.calendarNote === true) {
+                  const noteTags = entry.flags?.['seasons-and-stars']?.tags || [];
+                  noteTags.forEach((tag: string) => existingTags.add(tag));
+                }
+              }
+            }
+          }
+        } catch (error) {
+          // Silent fallback - just use predefined tags if existing tags can't be loaded
+          Logger.debug('Could not load existing tags for autocompletion, using predefined tags only', error);
+        }
+      }
+      
+      // Combine predefined and existing tags for autocompletion
+      const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
+
       new Dialog({
-        title: `Create Note for ${dateStr}`,
+        title: `Create Note`,
         content: `
+          <style>
+            .seasons-stars-note-form {
+              max-width: 600px;
+              font-family: var(--font-primary);
+              overflow: visible;
+            }
+            .seasons-stars-note-form .form-group {
+              margin-bottom: 16px;
+            }
+            .seasons-stars-note-form .form-row {
+              display: flex;
+              gap: 12px;
+            }
+            .seasons-stars-note-form .form-group.half-width {
+              flex: 1;
+            }
+            .seasons-stars-note-form label {
+              display: block;
+              margin-bottom: 4px;
+              font-weight: 600;
+              color: var(--color-text-dark-primary);
+              font-size: 13px;
+            }
+            .seasons-stars-note-form input[type="text"],
+            .seasons-stars-note-form textarea,
+            .seasons-stars-note-form select {
+              width: 100%;
+              padding: 8px 10px;
+              border: 1px solid var(--color-border-dark);
+              border-radius: 4px;
+              background: var(--color-bg-option);
+              color: var(--color-text-dark-primary);
+              font-size: 13px;
+              transition: border-color 0.2s ease, box-shadow 0.2s ease;
+              line-height: 1.4;
+              min-height: 36px;
+            }
+            .seasons-stars-note-form select {
+              padding: 6px 10px;
+              height: auto;
+              min-height: 34px;
+            }
+            .seasons-stars-note-form input[type="text"]:focus,
+            .seasons-stars-note-form textarea:focus,
+            .seasons-stars-note-form select:focus {
+              border-color: var(--color-border-highlight);
+              box-shadow: 0 0 0 2px rgba(var(--color-shadow-highlight), 0.2);
+              outline: none;
+            }
+            .seasons-stars-note-form textarea {
+              resize: vertical;
+              min-height: 80px;
+            }
+            .seasons-stars-note-form .tag-suggestions {
+              margin-top: 6px;
+              max-height: 80px;
+              overflow-y: auto;
+              border: 1px solid var(--color-border-light);
+              border-radius: 4px;
+              padding: 8px;
+              background: rgba(0, 0, 0, 0.1);
+            }
+            .seasons-stars-note-form .tag-suggestions small {
+              display: block;
+              margin-bottom: 6px;
+              color: var(--color-text-dark-secondary);
+              font-weight: 600;
+              font-size: 11px;
+            }
+            .seasons-stars-note-form .tag-suggestion {
+              display: inline-block;
+              background: var(--color-bg-btn);
+              border: 1px solid var(--color-border-dark);
+              border-radius: 12px;
+              padding: 4px 10px;
+              margin: 2px 4px 2px 0;
+              cursor: pointer;
+              font-size: 11px;
+              font-weight: 500;
+              transition: all 0.2s ease;
+              user-select: none;
+            }
+            .seasons-stars-note-form .tag-suggestion:hover {
+              background: var(--color-bg-btn-hover);
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .seasons-stars-note-form .tag-autocomplete {
+              position: relative;
+            }
+            .seasons-stars-note-form .tag-autocomplete-dropdown {
+              position: absolute;
+              top: 100%;
+              left: 0;
+              right: 0;
+              background: var(--color-bg-option);
+              border: 1px solid var(--color-border-dark);
+              border-top: none;
+              border-radius: 0 0 4px 4px;
+              max-height: 120px;
+              overflow-y: auto;
+              z-index: 1000;
+              display: none;
+            }
+            .seasons-stars-note-form .tag-autocomplete-item {
+              padding: 6px 10px;
+              cursor: pointer;
+              font-size: 12px;
+              border-bottom: 1px solid var(--color-border-light);
+              transition: background-color 0.15s ease;
+            }
+            .seasons-stars-note-form .tag-autocomplete-item:hover,
+            .seasons-stars-note-form .tag-autocomplete-item.selected {
+              background: var(--color-bg-btn-hover);
+            }
+            .seasons-stars-note-form .tag-autocomplete-item:last-child {
+              border-bottom: none;
+            }
+            .seasons-stars-note-form .tag-autocomplete-item .tag-match {
+              font-weight: 600;
+              color: var(--color-text-highlight);
+            }
+          </style>
           <form class="seasons-stars-note-form">
+            ${calendarInfo}
+            
             <div class="form-group">
               <label>Title:</label>
               <input type="text" name="title" placeholder="Note title" autofocus />
@@ -602,117 +771,22 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             </div>
             
             <div class="form-group">
-              <label>Tags:</label>
-              <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" />
+              <label>Tags (optional):</label>
+              <div class="tag-autocomplete">
+                <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" autocomplete="off" />
+                <div class="tag-autocomplete-dropdown"></div>
+              </div>
               <div class="tag-suggestions">
-                <small>Suggestions:</small>
+                <small>Click to add:</small>
                 ${tagSuggestions}
               </div>
-            </div>
-            
-            <!-- Recurring Events Section -->
-            <div class="form-group">
-              <label>
-                <input type="checkbox" name="isRecurring" class="recurring-toggle" />
-                Recurring Event
-              </label>
-              
-              <div class="recurring-options" style="display: none; margin-top: 8px; padding: 8px; border: 1px solid var(--color-border-light); border-radius: 3px; background: rgba(255, 255, 255, 0.02);">
-                <div class="form-row">
-                  <div class="form-group half-width">
-                    <label>Frequency:</label>
-                    <select name="frequency" class="frequency-select">
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
-                  </div>
-                  <div class="form-group half-width">
-                    <label>Every:</label>
-                    <input type="number" name="interval" value="1" min="1" max="100" style="width: 60px;" />
-                    <span class="interval-label">day(s)</span>
-                  </div>
-                </div>
-                
-                <div class="form-group">
-                  <label>End Date (optional):</label>
-                  <input type="date" name="endDate" />
-                </div>
-                
-                <div class="weekly-options" style="display: none;">
-                  <label>Days of Week:</label>
-                  <div class="weekday-checkboxes">
-                    <label><input type="checkbox" name="weekdays" value="sunday" /> Sun</label>
-                    <label><input type="checkbox" name="weekdays" value="monday" /> Mon</label>
-                    <label><input type="checkbox" name="weekdays" value="tuesday" /> Tue</label>
-                    <label><input type="checkbox" name="weekdays" value="wednesday" /> Wed</label>
-                    <label><input type="checkbox" name="weekdays" value="thursday" /> Thu</label>
-                    <label><input type="checkbox" name="weekdays" value="friday" /> Fri</label>
-                    <label><input type="checkbox" name="weekdays" value="saturday" /> Sat</label>
-                  </div>
-                </div>
-                
-                <div class="monthly-options" style="display: none;">
-                  <div class="form-row">
-                    <div class="form-group half-width">
-                      <label>
-                        <input type="radio" name="monthlyType" value="day" checked />
-                        Day of Month
-                      </label>
-                      <input type="number" name="monthDay" value="${date.day}" min="1" max="31" style="width: 60px;" />
-                    </div>
-                    <div class="form-group half-width">
-                      <label>
-                        <input type="radio" name="monthlyType" value="weekday" />
-                        Weekday
-                      </label>
-                      <select name="monthWeek" style="width: 70px;">
-                        <option value="1">1st</option>
-                        <option value="2">2nd</option>
-                        <option value="3">3rd</option>
-                        <option value="4">4th</option>
-                      </select>
-                      <select name="monthWeekday">
-                        <option value="sunday">Sunday</option>
-                        <option value="monday">Monday</option>
-                        <option value="tuesday">Tuesday</option>
-                        <option value="wednesday">Wednesday</option>
-                        <option value="thursday">Thursday</option>
-                        <option value="friday">Friday</option>
-                        <option value="saturday">Saturday</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="yearly-options" style="display: none;">
-                  <div class="form-row">
-                    <div class="form-group half-width">
-                      <label>Month:</label>
-                      <input type="number" name="yearMonth" value="${date.month}" min="1" max="12" style="width: 60px;" />
-                    </div>
-                    <div class="form-group half-width">
-                      <label>Day:</label>
-                      <input type="number" name="yearDay" value="${date.day}" min="1" max="31" style="width: 60px;" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label>
-                <input type="checkbox" name="playerVisible" ${game.user?.isGM ? '' : 'checked'} />
-                Visible to Players
-              </label>
             </div>
           </form>
           
           <style>
             .seasons-stars-note-form .form-row {
               display: flex;
-              gap: 10px;
+              gap: 12px;
             }
             .seasons-stars-note-form .half-width {
               flex: 1;
@@ -728,41 +802,27 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               display: flex;
               flex-wrap: wrap;
               gap: 4px;
-              align-items: center;
+              align-items: flex-start;
+              padding-top: 2px;
             }
-            .seasons-stars-note-form .tag-suggestion {
-              background: var(--color-border-light-tertiary);
-              color: var(--color-text-light-heading);
-              padding: 2px 6px;
-              border-radius: 3px;
-              font-size: 0.8em;
-              cursor: pointer;
-              transition: background-color 0.2s;
+            .seasons-stars-note-form input[type="checkbox"] {
+              margin-right: 6px;
             }
-            .seasons-stars-note-form .tag-suggestion:hover {
-              background: var(--color-border-light-primary);
+            .seasons-stars-note-form .category-select {
+              appearance: none;
+              -webkit-appearance: none;
+              -moz-appearance: none;
+              background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+              background-repeat: no-repeat;
+              background-position: right 8px center;
+              background-size: 12px;
+              padding-right: 30px !important;
+              vertical-align: top;
             }
-            .seasons-stars-note-form .weekday-checkboxes {
-              display: flex;
-              gap: 8px;
-              flex-wrap: wrap;
-              margin-top: 4px;
-            }
-            .seasons-stars-note-form .weekday-checkboxes label {
-              font-size: 0.9em;
-              display: flex;
-              align-items: center;
-              gap: 3px;
-            }
-            .seasons-stars-note-form .recurring-options {
-              font-size: 0.9em;
-            }
-            .seasons-stars-note-form .recurring-options .form-group {
-              margin-bottom: 8px;
-            }
-            .seasons-stars-note-form .interval-label {
-              margin-left: 5px;
-              color: var(--color-text-secondary);
+            .seasons-stars-note-form .category-select option {
+              padding: 4px 8px;
+              line-height: 1.4;
+              min-height: 20px;
             }
           </style>
         `,
@@ -792,60 +852,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
               }
 
-              // Parse recurring pattern if enabled
-              let recurringPattern: any = undefined;
-              if (formData.has('isRecurring')) {
-                const frequency = formData.get('frequency') as string;
-                const interval = parseInt(formData.get('interval') as string) || 1;
-
-                recurringPattern = {
-                  frequency: frequency as any,
-                  interval,
-                  endDate: undefined,
-                  weekdays: undefined,
-                  monthDay: undefined,
-                  monthWeek: undefined,
-                  monthWeekday: undefined,
-                  yearMonth: undefined,
-                  yearDay: undefined,
-                };
-
-                // Add end date if specified
-                const endDateStr = formData.get('endDate') as string;
-                if (endDateStr) {
-                  const endDateParts = endDateStr.split('-');
-                  if (endDateParts.length === 3) {
-                    recurringPattern.endDate = {
-                      year: parseInt(endDateParts[0]),
-                      month: parseInt(endDateParts[1]),
-                      day: parseInt(endDateParts[2]),
-                      weekday: 0,
-                      time: { hour: 23, minute: 59, second: 59 },
-                    };
-                  }
-                }
-
-                // Add frequency-specific options
-                if (frequency === 'weekly') {
-                  const weekdays: string[] = [];
-                  formData.getAll('weekdays').forEach(day => weekdays.push(day as string));
-                  if (weekdays.length > 0) {
-                    recurringPattern.weekdays = weekdays as any;
-                  }
-                } else if (frequency === 'monthly') {
-                  const monthlyType = formData.get('monthlyType') as string;
-                  if (monthlyType === 'day') {
-                    recurringPattern.monthDay = parseInt(formData.get('monthDay') as string);
-                  } else if (monthlyType === 'weekday') {
-                    recurringPattern.monthWeek = parseInt(formData.get('monthWeek') as string);
-                    recurringPattern.monthWeekday = formData.get('monthWeekday') as any;
-                  }
-                } else if (frequency === 'yearly') {
-                  recurringPattern.yearMonth = parseInt(formData.get('yearMonth') as string);
-                  recurringPattern.yearDay = parseInt(formData.get('yearDay') as string);
-                }
-              }
-
               resolve({
                 title: title.trim(),
                 content: content || '',
@@ -854,8 +860,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 category:
                   (formData.get('category') as string) || categories.getDefaultCategory().id,
                 tags: validTags,
-                playerVisible: formData.has('playerVisible'),
-                recurring: recurringPattern,
+                playerVisible: false, // Default to private
+                recurring: undefined, // No recurring support for now
               });
             },
           },
@@ -866,6 +872,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           },
         },
         default: 'create',
+        resizable: true,
         render: (html: JQuery) => {
           // Add click handlers for tag suggestions
           html.find('.tag-suggestion').on('click', function () {
@@ -878,6 +885,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             } else {
               tagsInput.val(tag);
             }
+            tagsInput.trigger('input'); // Trigger autocompletion update
           });
 
           // Update category select styling based on selection
@@ -888,53 +896,314 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             }
           });
 
-          // Trigger initial styling
-          html.find('.category-select').trigger('change');
+          // Tag autocompletion functionality
+          const tagsInput = html.find('input[name="tags"]');
+          const autocompleteDropdown = html.find('.tag-autocomplete-dropdown');
+          let selectedIndex = -1;
 
-          // Recurring options toggle
-          html.find('.recurring-toggle').on('change', function () {
-            const isChecked = $(this).is(':checked');
-            html.find('.recurring-options').toggle(isChecked);
-          });
-
-          // Frequency selection changes
-          html.find('.frequency-select').on('change', function () {
-            const frequency = $(this).val();
-            const intervalLabel = html.find('.interval-label');
-
-            // Update interval label
-            switch (frequency) {
-              case 'daily':
-                intervalLabel.text('day(s)');
-                break;
-              case 'weekly':
-                intervalLabel.text('week(s)');
-                break;
-              case 'monthly':
-                intervalLabel.text('month(s)');
-                break;
-              case 'yearly':
-                intervalLabel.text('year(s)');
-                break;
+          // Smart tag matching function
+          function matchTag(searchTerm: string, tagToMatch: string): { matches: boolean; highlighted: string } {
+            const search = searchTerm.toLowerCase();
+            const tag = tagToMatch.toLowerCase();
+            
+            // Direct match
+            if (tag.includes(search)) {
+              const index = tag.indexOf(search);
+              const highlighted = tagToMatch.substring(0, index) + 
+                '<span class="tag-match">' + tagToMatch.substring(index, index + search.length) + '</span>' +
+                tagToMatch.substring(index + search.length);
+              return { matches: true, highlighted };
             }
 
-            // Show/hide frequency-specific options
-            html.find('.weekly-options').toggle(frequency === 'weekly');
-            html.find('.monthly-options').toggle(frequency === 'monthly');
-            html.find('.yearly-options').toggle(frequency === 'yearly');
+            // Colon-separated tag matching
+            if (tag.includes(':')) {
+              const parts = tag.split(':');
+              for (const part of parts) {
+                if (part.trim().includes(search)) {
+                  const partIndex = part.trim().indexOf(search);
+                  const highlighted = tagToMatch.replace(part, 
+                    part.substring(0, partIndex) + 
+                    '<span class="tag-match">' + part.substring(partIndex, partIndex + search.length) + '</span>' +
+                    part.substring(partIndex + search.length)
+                  );
+                  return { matches: true, highlighted };
+                }
+              }
+            }
+
+            return { matches: false, highlighted: tagToMatch };
+          }
+
+          // Function to get current typing context
+          function getCurrentTypingContext(): { beforeCursor: string; afterCursor: string; currentTag: string } {
+            const inputElement = tagsInput[0] as HTMLInputElement;
+            const cursorPos = inputElement.selectionStart || 0;
+            const fullText = tagsInput.val() as string;
+            const beforeCursor = fullText.substring(0, cursorPos);
+            const afterCursor = fullText.substring(cursorPos);
+            
+            // Find the current tag being typed
+            const lastCommaIndex = beforeCursor.lastIndexOf(',');
+            const currentTag = beforeCursor.substring(lastCommaIndex + 1).trim();
+            
+            return { beforeCursor, afterCursor, currentTag };
+          }
+
+          // Function to show autocomplete suggestions
+          function showAutocomplete(searchTerm: string) {
+            if (searchTerm.length < 1) {
+              autocompleteDropdown.hide();
+              return;
+            }
+
+            const matches: Array<{ tag: string; highlighted: string }> = [];
+            
+            allAvailableTags.forEach(tag => {
+              const result = matchTag(searchTerm, tag);
+              if (result.matches) {
+                matches.push({ tag, highlighted: result.highlighted });
+              }
+            });
+
+            if (matches.length === 0) {
+              autocompleteDropdown.hide();
+              return;
+            }
+
+            // Limit to top 8 matches
+            const topMatches = matches.slice(0, 8);
+            
+            const dropdownHtml = topMatches.map((match, index) => 
+              `<div class="tag-autocomplete-item" data-tag="${match.tag}" data-index="${index}">${match.highlighted}</div>`
+            ).join('');
+
+            autocompleteDropdown.html(dropdownHtml).show();
+            selectedIndex = -1;
+          }
+
+          // Function to insert selected tag
+          function insertTag(tagToInsert: string) {
+            const context = getCurrentTypingContext();
+            const beforeCurrentTag = context.beforeCursor.substring(0, 
+              context.beforeCursor.lastIndexOf(',') + 1);
+            const newValue = (beforeCurrentTag ? beforeCurrentTag + ' ' : '') + 
+              tagToInsert + (context.afterCursor.startsWith(',') ? '' : ', ') + context.afterCursor;
+            
+            tagsInput.val(newValue.replace(/,\\s*$/, '')); // Remove trailing comma
+            autocompleteDropdown.hide();
+            tagsInput.focus();
+          }
+
+          // Input event for autocompletion
+          tagsInput.on('input', function() {
+            const context = getCurrentTypingContext();
+            showAutocomplete(context.currentTag);
           });
 
-          // Monthly type radio changes
-          html.find('input[name="monthlyType"]').on('change', function () {
-            const isWeekday = $(this).val() === 'weekday';
-            html.find('input[name="monthDay"]').prop('disabled', isWeekday);
-            html
-              .find('select[name="monthWeek"], select[name="monthWeekday"]')
-              .prop('disabled', !isWeekday);
+          // Keyboard navigation
+          tagsInput.on('keydown', function(e) {
+            const dropdown = autocompleteDropdown;
+            const items = dropdown.find('.tag-autocomplete-item');
+            
+            if (!dropdown.is(':visible') || items.length === 0) return;
+
+            switch (e.keyCode) {
+              case 38: // Up arrow
+                e.preventDefault();
+                selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+                break;
+              case 40: // Down arrow
+                e.preventDefault();
+                selectedIndex = selectedIndex >= items.length - 1 ? 0 : selectedIndex + 1;
+                break;
+              case 13: // Enter
+                e.preventDefault();
+                if (selectedIndex >= 0) {
+                  const selectedTag = items.eq(selectedIndex).data('tag');
+                  insertTag(selectedTag);
+                }
+                return;
+              case 27: // Escape
+                dropdown.hide();
+                return;
+            }
+
+            // Update visual selection
+            items.removeClass('selected');
+            if (selectedIndex >= 0) {
+              items.eq(selectedIndex).addClass('selected');
+            }
           });
 
-          // Trigger initial frequency setup
-          html.find('.frequency-select').trigger('change');
+          // Click handlers for autocomplete items
+          autocompleteDropdown.on('click', '.tag-autocomplete-item', function() {
+            const tagToInsert = $(this).data('tag');
+            insertTag(tagToInsert);
+          });
+
+          // Hide dropdown when clicking outside
+          $(document).on('click', function(e) {
+            if (!$(e.target).closest('.tag-autocomplete').length) {
+              autocompleteDropdown.hide();
+            }
+          });
+
+          // Trigger initial styling
+          html.find('.category-select').trigger('change');
+        },
+      }).render(true);
+    });
+  }
+
+  /**
+   * View/edit notes for a specific date
+   */
+  async _onViewNotes(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const notesManager = game.seasonsStars?.notes;
+    if (!notesManager) {
+      ui.notifications?.error('Notes system not available');
+      return;
+    }
+
+    // Get the date from the clicked element
+    const dayElement = target.closest('.calendar-day');
+    if (!dayElement) return;
+
+    const day = parseInt(dayElement.getAttribute('data-day') || '0');
+    if (!day) return;
+
+    const targetDate: ICalendarDate = {
+      year: this.viewDate.year,
+      month: this.viewDate.month,
+      day: day,
+      weekday: 0, // Will be calculated by the engine
+      time: { hour: 0, minute: 0, second: 0 },
+    };
+
+    try {
+      // Get notes for this date
+      const notes = notesManager.storage?.findNotesByDateSync?.(targetDate) || [];
+      
+      if (notes.length === 0) {
+        ui.notifications?.info('No notes found for this date');
+        return;
+      }
+
+      if (notes.length === 1) {
+        // Single note - open directly
+        const note = notes[0];
+        note.sheet?.render(true);
+      } else {
+        // Multiple notes - show selection dialog
+        await this.showNotesSelectionDialog(notes, targetDate);
+      }
+    } catch (error) {
+      Logger.error('Failed to view notes', error as Error);
+      ui.notifications?.error('Failed to view notes');
+    }
+  }
+
+  /**
+   * Show selection dialog for multiple notes on the same date
+   */
+  private async showNotesSelectionDialog(notes: any[], date: ICalendarDate): Promise<void> {
+    const manager = game.seasonsStars?.manager;
+    const activeCalendar = manager?.getActiveCalendar();
+    let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+    
+    if (activeCalendar) {
+      const monthName = activeCalendar.months[date.month - 1]?.name || `Month ${date.month}`;
+      const yearPrefix = activeCalendar.year?.prefix || '';
+      const yearSuffix = activeCalendar.year?.suffix || '';
+      dateDisplayStr = `${date.day} ${monthName}, ${yearPrefix}${date.year}${yearSuffix}`;
+    }
+
+    const notesList = notes.map((note, index) => {
+      const title = note.name || 'Untitled Note';
+      const category = note.flags?.['seasons-and-stars']?.category || 'general';
+      const preview = note.pages?.contents?.[0]?.text?.content?.substring(0, 100) || 'No content';
+      const cleanPreview = preview.replace(/<[^>]*>/g, '').trim() || 'No content';
+      
+      return `
+        <div class="note-item" data-note-id="${note.id}" data-index="${index}">
+          <div class="note-header">
+            <strong>${title}</strong>
+            <span class="note-category">${category}</span>
+          </div>
+          <div class="note-preview">${cleanPreview}${cleanPreview.length >= 100 ? '...' : ''}</div>
+        </div>
+      `;
+    }).join('');
+
+    return new Promise(resolve => {
+      new Dialog({
+        title: `Notes for ${dateDisplayStr}`,
+        content: `
+          <style>
+            .notes-selection {
+              max-width: 500px;
+            }
+            .note-item {
+              border: 1px solid var(--color-border-light);
+              border-radius: 4px;
+              padding: 10px;
+              margin-bottom: 8px;
+              cursor: pointer;
+              transition: background-color 0.2s ease;
+              background: rgba(255, 255, 255, 0.02);
+            }
+            .note-item:hover {
+              background: rgba(255, 255, 255, 0.08);
+              border-color: var(--color-border-highlight);
+            }
+            .note-item:last-child {
+              margin-bottom: 0;
+            }
+            .note-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 4px;
+            }
+            .note-category {
+              font-size: 11px;
+              background: var(--color-bg-btn);
+              padding: 2px 6px;
+              border-radius: 3px;
+              color: var(--color-text-light-heading);
+            }
+            .note-preview {
+              font-size: 12px;
+              color: var(--color-text-dark-secondary);
+              font-style: italic;
+            }
+          </style>
+          <div class="notes-selection">
+            <p>Select a note to view/edit:</p>
+            ${notesList}
+          </div>
+        `,
+        buttons: {
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: 'Cancel',
+            callback: () => resolve(),
+          },
+        },
+        default: 'cancel',
+        render: (html: JQuery) => {
+          // Add click handlers for note items
+          html.find('.note-item').on('click', function() {
+            const noteIndex = parseInt($(this).data('index'));
+            const note = notes[noteIndex];
+            if (note && note.sheet) {
+              note.sheet.render(true);
+            }
+            resolve();
+          });
         },
       }).render(true);
     });

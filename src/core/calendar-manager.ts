@@ -21,7 +21,7 @@ export class CalendarManager {
    * Initialize the calendar manager
    */
   async initialize(): Promise<void> {
-    Logger.info('Initializing Calendar Manager');
+    Logger.debug('Initializing Calendar Manager');
 
     // Load built-in calendars
     await this.loadBuiltInCalendars();
@@ -34,7 +34,7 @@ export class CalendarManager {
    * Complete initialization after settings are registered
    */
   async completeInitialization(): Promise<void> {
-    Logger.info('Completing Calendar Manager initialization');
+    Logger.debug('Completing Calendar Manager initialization');
 
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
@@ -49,7 +49,7 @@ export class CalendarManager {
       }
     }
 
-    Logger.info(`Loaded ${this.calendars.size} calendars`);
+    Logger.debug(`Loaded ${this.calendars.size} calendars`);
   }
 
   /**
@@ -100,7 +100,7 @@ export class CalendarManager {
     this.engines.set(calendarData.id, engine);
 
     const label = CalendarLocalization.getCalendarLabel(calendarData);
-    Logger.info(`Loaded calendar: ${label} (${calendarData.id})`);
+    Logger.debug(`Loaded calendar: ${label} (${calendarData.id})`);
     return true;
   }
 
@@ -135,7 +135,7 @@ export class CalendarManager {
       calendar: this.calendars.get(calendarId),
     });
 
-    Logger.info(`Active calendar set to: ${calendarId}`);
+    Logger.debug(`Active calendar set to: ${calendarId}`);
     return true;
   }
 
@@ -243,7 +243,7 @@ export class CalendarManager {
     this.calendars.delete(calendarId);
     this.engines.delete(calendarId);
 
-    Logger.info(`Removed calendar: ${calendarId}`);
+    Logger.debug(`Removed calendar: ${calendarId}`);
     return true;
   }
 

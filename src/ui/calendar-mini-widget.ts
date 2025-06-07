@@ -6,19 +6,17 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
+import { SmallTimeUtils } from './base-widget-manager';
+import { WIDGET_POSITIONING } from '../core/constants';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
-  private sidebarButtons: Array<{
-    name: string;
-    icon: string;
-    tooltip: string;
-    callback: Function;
-  }> = [];
+  private sidebarButtons: SidebarButton[] = [];
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -53,8 +51,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Prepare rendering context for template
    */
-  async _prepareContext(options = {}): Promise<any> {
-    const context = await super._prepareContext(options);
+  async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
+    const context = await super._prepareContext(options) as Record<string, unknown>;
 
     const manager = game.seasonsStars?.manager;
 
@@ -62,7 +60,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return Object.assign(context, {
         error: 'Calendar not available',
         shortDate: 'N/A',
-      });
+        hasSmallTime: false,
+        showTimeControls: false,
+        calendar: null,
+        currentDate: null,
+        formattedDate: 'N/A',
+        isGM: game.user?.isGM || false,
+      }) as MiniWidgetContext;
     }
 
     const activeCalendar = manager.getActiveCalendar();
@@ -72,18 +76,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return Object.assign(context, {
         error: 'No calendar active',
         shortDate: 'N/A',
-      });
+        hasSmallTime: false,
+        showTimeControls: false,
+        calendar: null,
+        currentDate: null,
+        formattedDate: 'N/A',
+        isGM: game.user?.isGM || false,
+      }) as MiniWidgetContext;
     }
 
     // Check if SmallTime is available and active
-    const hasSmallTime = this.detectSmallTime();
+    const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
     return Object.assign(context, {
       shortDate: currentDate.toDateString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
-    });
+      calendar: {
+        id: activeCalendar.id || 'unknown',
+        label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
+        description: activeCalendar.description,
+      },
+      currentDate: currentDate.toObject(),
+      formattedDate: currentDate.toLongString(),
+    }) as MiniWidgetContext;
   }
 
   /**
@@ -147,7 +164,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     Logger.debug('Mini widget: Positioning widget');
-    const smallTimeElement = this.findSmallTimeElement();
+    const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
 
     if (smallTimeElement) {
       // Check if SmallTime is pinned/docked in DOM or floating
@@ -250,7 +267,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     setTimeout(() => {
       Logger.debug('Mini widget: Animation complete, closing');
       this.close();
-    }, 200);
+    }, WIDGET_POSITIONING.FADE_ANIMATION_DURATION);
   }
 
   /**
@@ -296,6 +313,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
   /**
    * Show the mini widget
+   * Creates a new instance if none exists, or renders existing instance if not already visible.
+   * The widget will automatically position itself relative to SmallTime or the player list.
+   * 
+   * @example
+   * ```typescript
+   * CalendarMiniWidget.show();
+   * ```
    */
   static show(): void {
     if (CalendarMiniWidget.activeInstance) {
@@ -308,7 +332,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Hide the mini widget
+   * Hide the mini widget with smooth animation
+   * Uses a fade-out animation before closing to provide visual feedback.
+   * Safe to call even if no widget is currently displayed.
+   * 
+   * @example
+   * ```typescript
+   * CalendarMiniWidget.hide();
+   * ```
    */
   static hide(): void {
     if (CalendarMiniWidget.activeInstance?.rendered) {
@@ -317,7 +348,18 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Get the current instance for API access
+   * Get the current active instance of the mini widget
+   * Returns null if no widget is currently instantiated.
+   * Useful for external modules that need to interact with the widget.
+   * 
+   * @returns The active CalendarMiniWidget instance, or null if none exists
+   * @example
+   * ```typescript
+   * const widget = CalendarMiniWidget.getInstance();
+   * if (widget) {
+   *   widget.addSidebarButton('my-button', 'fas fa-cog', 'Settings', () => {});
+   * }
+   * ```
    */
   static getInstance(): CalendarMiniWidget | null {
     return CalendarMiniWidget.activeInstance;
@@ -455,6 +497,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
   /**
    * Toggle mini widget visibility
+   * Shows the widget if hidden, hides it if currently displayed.
+   * This is the primary method used by keyboard shortcuts and scene controls.
+   * 
+   * @example
+   * ```typescript
+   * // Toggle widget from a macro or keybinding
+   * CalendarMiniWidget.toggle();
+   * 
+   * // Can also be called from the global API
+   * game.seasonsStars.widgets.toggleMini();
+   * ```
    */
   static toggle(): void {
     if (CalendarMiniWidget.activeInstance?.rendered) {
@@ -521,12 +574,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Detect if SmallTime module is available and active
    */
-  private detectSmallTime(): boolean {
-    // Check if SmallTime module is installed and enabled
-    // We don't check for DOM elements because SmallTime might not be open yet
-    const smallTimeModule = game.modules?.get('smalltime');
-    return smallTimeModule?.active || false;
-  }
 
   /**
    * Auto-position the mini widget relative to SmallTime or find optimal standalone position
@@ -538,8 +585,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const attemptPositioning = (attempts = 0) => {
       if (this.isClosing) return; // Check again in case close started during attempts
       
-      const maxAttempts = 10;
-      const smallTimeElement = this.findSmallTimeElement();
+      const maxAttempts = WIDGET_POSITIONING.MAX_POSITIONING_ATTEMPTS;
+      const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
 
       if (smallTimeElement && this.element && this.rendered) {
         // Both elements exist and we're rendered, proceed with positioning
@@ -550,7 +597,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       } else if (attempts < maxAttempts) {
         // Retry after a short delay
         Logger.debug(`Retrying positioning (attempt ${attempts + 1} of ${maxAttempts})`);
-        setTimeout(() => attemptPositioning(attempts + 1), 100);
+        setTimeout(() => attemptPositioning(attempts + 1), WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
       } else {
         // SmallTime not found - use smart standalone positioning
         Logger.debug('SmallTime not found, using standalone positioning');
@@ -583,7 +630,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Fallback: Try to find where player list would typically be
       // Usually bottom-right area of UI
       position = {
-        top: window.innerHeight - 150, // Typical player list area
+        top: window.innerHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET, // Typical player list area
         left: window.innerWidth - 240, // Typical player list left edge
       };
 
@@ -596,7 +643,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     this.element.style.position = 'fixed';
     this.element.style.top = `${position.top}px`;
     this.element.style.left = `${position.left}px`;
-    this.element.style.zIndex = '1000';
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
     this.element.style.margin = '0';
 
     // Add a class to indicate standalone mode
@@ -612,45 +659,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Find SmallTime element using multiple strategies
    */
-  private findSmallTimeElement(): HTMLElement | null {
-    // Try multiple selectors to find SmallTime
-    const selectors = [
-      '#smalltime-app', // Primary ID
-      '.smalltime-app', // Class variant
-      '#timeDisplay', // From the HTML you provided
-      '#slideContainer', // Another element from your HTML
-      '[id*="smalltime"]', // Any element with smalltime in ID
-      '.form:has(#timeDisplay)', // Form containing timeDisplay
-    ];
-
-    for (const selector of selectors) {
-      try {
-        const element = document.querySelector(selector) as HTMLElement;
-        if (element) {
-          Logger.debug(`Found SmallTime using selector: ${selector}`);
-          // If we found timeDisplay, get its parent form/container
-          if (selector === '#timeDisplay' || selector === '#slideContainer') {
-            const container =
-              element.closest('form') || element.closest('.form') || element.parentElement;
-            return (container as HTMLElement) || element;
-          }
-          return element;
-        }
-      } catch (e) {
-        // Skip invalid selectors
-        continue;
-      }
-    }
-
-    Logger.debug('SmallTime not found with any selector');
-    return null;
-  }
 
   /**
    * Position the mini widget relative to SmallTime
    */
   private positionRelativeToSmallTime(position: 'above' | 'below' | 'beside' = 'below'): void {
-    const smallTimeElement = this.findSmallTimeElement();
+    const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
     if (!smallTimeElement || !this.element) {
       Logger.debug('SmallTime not found, using standalone positioning');
       // Use smart standalone positioning instead of basic fallback
@@ -665,7 +679,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
 
       // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
-      const estimatedMiniHeight = 32; // Match the CSS height (24px) + padding (4px + 4px)
+      const estimatedMiniHeight = WIDGET_POSITIONING.ESTIMATED_MINI_HEIGHT;
 
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
@@ -709,7 +723,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         this.element.style.position = 'fixed';
         this.element.style.top = `${newPosition.top}px`;
         this.element.style.left = `${newPosition.left}px`;
-        this.element.style.zIndex = '1000';
+        this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
 
         // Try to match SmallTime's actual background color
         this.matchSmallTimeBackground(smallTimeElement);
@@ -720,7 +734,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         setTimeout(() => {
           const finalRect = this.element?.getBoundingClientRect();
           Logger.debug('Final position', finalRect);
-        }, 100);
+        }, WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
       }
     });
   }
@@ -791,7 +805,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         // Delay to ensure SmallTime positioning is complete
         setTimeout(() => {
           CalendarMiniWidget.activeInstance?.autoPositionRelativeToSmallTime();
-        }, 100);
+        }, WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
       }
     });
 
@@ -809,7 +823,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       if (CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
         setTimeout(() => {
           CalendarMiniWidget.activeInstance?.handlePlayerListChange();
-        }, 100);
+        }, WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
       }
     });
 
@@ -857,7 +871,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       this.element.classList.toggle('player-list-expanded', isExpanded);
 
       // Use SmallTime-style positioning - insert before player list when not with SmallTime
-      if (!this.findSmallTimeElement()) {
+      if (!SmallTimeUtils.getSmallTimeElement()) {
         this.positionRelativeToPlayerList();
       }
     }
@@ -884,7 +898,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         this.element.style.position = 'relative';
         this.element.style.top = 'auto';
         this.element.style.left = 'auto';
-        this.element.style.zIndex = '1000';
+        this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
         this.element.style.margin = '0 0 8px 0'; // Small gap above player list
 
         this.element.classList.add('docked-mode');
@@ -916,7 +930,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     this.element.style.position = 'fixed';
     this.element.style.top = `${smallTimeRect.top - estimatedMiniHeight - 8}px`;
     this.element.style.left = `${smallTimeRect.left}px`;
-    this.element.style.zIndex = '1000';
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
 
     this.element.classList.add('above-smalltime');
     this.element.classList.remove(
@@ -960,7 +974,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     this.element.style.position = 'relative';
     this.element.style.top = 'auto';
     this.element.style.left = 'auto';
-    this.element.style.zIndex = '1000';
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
     this.element.style.margin = '0 0 8px 0'; // Small gap below us, above SmallTime
 
     this.element.classList.add('above-smalltime', 'docked-mode');
@@ -983,7 +997,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     this.element.style.position = 'relative';
     this.element.style.top = 'auto';
     this.element.style.left = 'auto';
-    this.element.style.zIndex = '1000';
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
     this.element.style.margin = '0 0 8px 0';
 
     this.element.classList.add('docked-mode');

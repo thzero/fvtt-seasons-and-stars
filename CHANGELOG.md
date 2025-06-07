@@ -86,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Year Length Calculation**: Correct handling of variable-length intercalary periods
 - **Date Conversion**: Proper world time conversion with complex calendar structures
 
-## [0.1.0] - 2025-01-15
+## [0.1.0] - 2025-05-30
 
 ### Added
 
@@ -122,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Module Flag Support**: Secure storage for external module integration
 - **Capability Detection**: Runtime feature probing for robust integration
 - **Clean Build System**: Zero TypeScript errors, production-ready compilation
-- **Comprehensive Testing**: 100% test pass rate with widget API coverage
+- **Comprehensive Testing**: 63 automated tests with 100% pass rate covering calendar engine, widgets, and UI integration
 - **Documentation**: Complete API reference, user guide, and developer documentation
 
 ### Migration Support
@@ -170,4 +170,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**Note**: This is the initial public release of Seasons & Stars. The module has been extensively tested and optimized for production use in Foundry VTT v11+ environments with full compatibility for v13+ features.
+**Note**: This is the initial public release of Seasons & Stars. The module has been extensively tested and optimized for production use in Foundry VTT v13+ environments.

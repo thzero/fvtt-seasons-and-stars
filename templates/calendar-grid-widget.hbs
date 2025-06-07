@@ -77,16 +77,16 @@
                    title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteCount}} note(s) ({{primaryCategory}}){{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                 <span class="day-number">{{day}}</span>
                 {{#if hasNotes}}
-                  <span class="note-indicator" title="{{noteCount}} note(s) ({{primaryCategory}})" data-note-count="{{noteCount}}">
+                  <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" title="{{noteCount}} note(s) ({{primaryCategory}}) - Click to view/edit" data-note-count="{{noteCount}}">
                     {{#if noteMultiple}}
                       <span class="note-count {{categoryClass}}">{{noteCount}}</span>
                     {{else}}
                       <i class="fas fa-sticky-note {{categoryClass}}"></i>
                     {{/if}}
-                  </span>
+                  </button>
                 {{/if}}
                 {{#if canCreateNote}}
-                  <button type="button" class="quick-note-btn" data-action="createNote" data-day="{{day}}" title="Create note for this date" onclick="event.stopPropagation()">
+                  <button type="button" class="quick-note-btn" data-action="createNote" data-day="{{day}}" title="Create note for this date">
                     <i class="fas fa-plus"></i>
                   </button>
                 {{/if}}

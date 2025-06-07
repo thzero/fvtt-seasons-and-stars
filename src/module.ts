@@ -19,6 +19,8 @@ import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
+import { ValidationUtils } from './core/validation-utils';
+import { TIME_CONSTANTS } from './core/constants';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   CalendarDate as ICalendarDate,
@@ -37,13 +39,13 @@ SeasonsStarsSceneControls.registerControls();
  * Module initialization
  */
 Hooks.once('init', async () => {
-  Logger.info('Initializing module');
+  Logger.debug('Initializing module');
 
   // Register module settings
   registerSettings();
 
   // Register keyboard shortcuts (must be in init hook)
-  Logger.info('Registering keyboard shortcuts');
+  Logger.debug('Registering keyboard shortcuts');
   SeasonsStarsKeybindings.registerKeybindings();
 
   // Initialize note categories after settings are available
@@ -53,7 +55,7 @@ Hooks.once('init', async () => {
   calendarManager = new CalendarManager();
   notesManager = new NotesManager();
 
-  Logger.info('Module initialized');
+  Logger.debug('Module initialized');
 });
 
 /**
@@ -69,7 +71,7 @@ Hooks.once('setupGame', () => {
  * Setup after Foundry is ready
  */
 Hooks.once('ready', async () => {
-  Logger.info('Setting up module');
+  Logger.debug('Setting up module');
 
   // Load calendars first (without reading settings)
   await calendarManager.loadBuiltInCalendars();
@@ -99,7 +101,7 @@ Hooks.once('ready', async () => {
   CalendarMiniWidget.registerSmallTimeIntegration();
   
   // Scene controls registered at top level for timing requirements
-  Logger.info('Registering macros');
+  Logger.debug('Registering macros');
   SeasonsStarsSceneControls.registerMacros();
 
   // Show default widget if enabled in settings
@@ -271,12 +273,8 @@ function setupAPI(): void {
       try {
         Logger.api('getCurrentDate', { calendarId });
 
-        // Input validation
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
+        // Input validation using utility
+        ValidationUtils.validateCalendarId(calendarId);
 
         if (calendarId) {
           // Get date from specific calendar
@@ -351,18 +349,9 @@ function setupAPI(): void {
       try {
         Logger.api('advanceTime', { amount, unit });
 
-        // Input validation
-        if (typeof amount !== 'number' || !isFinite(amount)) {
-          const error = new Error('Amount must be a finite number');
-          Logger.error('Invalid amount parameter', error);
-          throw error;
-        }
-
-        if (typeof unit !== 'string' || unit.trim() === '') {
-          const error = new Error('Unit must be a non-empty string');
-          Logger.error('Invalid unit parameter', error);
-          throw error;
-        }
+        // Input validation using utilities
+        ValidationUtils.validateFiniteNumber(amount, 'amount');
+        ValidationUtils.validateString(unit, 'unit', false); // Don't allow empty strings
 
         // Route to appropriate method based on unit
         switch (unit.toLowerCase()) {
@@ -1025,7 +1014,7 @@ function setupAPI(): void {
 
   Logger.debug('API and bridge integration exposed');
 
-  Logger.info('Module initialization complete');
+  Logger.debug('Module initialization complete');
 }
 
 /**
@@ -1039,7 +1028,7 @@ function registerErrorsAndEchoes(): void {
   }
 
   try {
-    Logger.info('Registering with Errors and Echoes');
+    Logger.debug('Registering with Errors and Echoes');
 
     (window as any).ErrorsAndEchoesAPI.register({
       moduleId: 'seasons-and-stars',
@@ -1160,7 +1149,7 @@ function registerErrorsAndEchoes(): void {
       },
     });
 
-    Logger.info('Successfully registered with Errors and Echoes');
+    Logger.debug('Successfully registered with Errors and Echoes');
   } catch (error) {
     Logger.error(
       'Failed to register with Errors and Echoes',
@@ -1173,7 +1162,7 @@ function registerErrorsAndEchoes(): void {
  * Module cleanup
  */
 Hooks.once('destroy', () => {
-  Logger.info('Module shutting down');
+  Logger.debug('Module shutting down');
 
   // Clean up global references
   if (game.seasonsStars) {
@@ -1193,11 +1182,11 @@ function registerMemoryMageIntegration(): void {
     // Check if Memory Mage is available (standard Foundry module pattern)
     const memoryMage = (game as any).memoryMage || (game.modules?.get('memory-mage') as any)?.api;
     if (!memoryMage) {
-      Logger.info('Memory Mage not available - skipping memory monitoring integration');
+      Logger.debug('Memory Mage not available - skipping memory monitoring integration');
       return;
     }
 
-    Logger.info('Registering with Memory Mage for memory monitoring');
+    Logger.debug('Registering with Memory Mage for memory monitoring');
     // Register self-reporting memory usage
     memoryMage.registerModule('seasons-and-stars', () => {
       const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
@@ -1245,7 +1234,7 @@ function registerMemoryMageIntegration(): void {
       }
     });
 
-    Logger.info('Memory Mage integration registered successfully');
+    Logger.debug('Memory Mage integration registered successfully');
   } catch (error) {
     Logger.warn('Failed to register with Memory Mage - module will continue without memory monitoring:', error);
   }
