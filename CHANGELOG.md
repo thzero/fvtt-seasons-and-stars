@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.2.2] - 2025-06-06
+
+### Added
+
+- **Widget Switching UI Controls**: Comprehensive keyboard shortcuts and UI controls for switching between calendar widgets
+  - **Keyboard Shortcuts**: Alt+S (default widget), Alt+Shift+S (mini widget), Alt+Ctrl+S (grid widget), Alt+M (main widget)
+  - **Scene Control Button**: Toggle button in journal notes controls for default widget (GM only)
+  - **Widget Header Controls**: Switching buttons in all widget headers for easy widget-to-widget navigation
+  - **Double-Click Interaction**: Double-click mini widget to open larger view based on default widget setting
+  - **Default Widget Setting**: User preference for which widget opens with scene control and default shortcut
+
+### Enhanced
+
+- **Mini Widget Animation**: Smooth fade-out animation using SmallTime's proven approach prevents jarring "drop" effect during close
+- **Keybinding System**: Proper Foundry v13 keybinding registration in init hook for reliable keyboard shortcut functionality
+- **Widget Switching UX**: Seamless transitions between widgets with automatic closing and opening of target widgets
+- **User Interface**: Improved widget headers with switching controls for better workflow integration
+
+### Fixed
+
+- **Keybinding Registration Timing**: Fixed "You cannot register a Keybinding after the init hook" error by moving registration to proper init phase
+- **Mini Widget Close Animation**: Eliminated jarring positioning changes during widget close using fade-out animation approach
+
 ## [0.2.1] - 2025-06-05
 
 ### Added
