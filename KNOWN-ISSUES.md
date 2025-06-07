@@ -173,6 +173,34 @@ cp fix-note-highlighting.js /path/to/foundry/Data/
 
 ---
 
+### Note Tag Editing
+
+**Status**: Not Yet Available  
+**Severity**: Medium (Workflow limitation)
+
+#### Description
+
+Tags and other calendar-specific note metadata cannot be edited after note creation. The default Foundry journal editor only provides access to title and content, not the custom fields used by Seasons & Stars.
+
+#### Current Workarounds
+
+1. **Delete and recreate** the note with correct tags
+2. **Enhanced tooltips**: Note titles and tags are now visible when hovering over calendar days
+
+#### Tooltip Enhancement
+
+Calendar day tooltips now show note details:
+
+```
+2 note(s) (general):
+Town Meeting [important, politics]
+Market Day [economics, recurring]
+```
+
+This provides immediate visibility of note titles and tags without opening the notes.
+
+---
+
 ## Future Issue Categories
 
 Additional sections will be added as issues are discovered:

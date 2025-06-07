@@ -16,6 +16,7 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
+import { NoteEditingDialog } from './ui/note-editing-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
@@ -47,6 +48,9 @@ Hooks.once('init', async () => {
   // Register keyboard shortcuts (must be in init hook)
   Logger.debug('Registering keyboard shortcuts');
   SeasonsStarsKeybindings.registerKeybindings();
+
+  // Note: Note editing hooks temporarily disabled - see KNOWN-ISSUES.md
+  // registerNoteEditingHooks();
 
   // Initialize note categories after settings are available
   initializeNoteCategories();
@@ -99,7 +103,7 @@ Hooks.once('ready', async () => {
   CalendarMiniWidget.registerHooks();
   CalendarGridWidget.registerHooks();
   CalendarMiniWidget.registerSmallTimeIntegration();
-  
+
   // Scene controls registered at top level for timing requirements
   Logger.debug('Registering macros');
   SeasonsStarsSceneControls.registerMacros();
@@ -107,7 +111,7 @@ Hooks.once('ready', async () => {
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
     const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-    
+
     switch (defaultWidget) {
       case 'mini':
         CalendarMiniWidget.show();
@@ -171,10 +175,10 @@ function registerSettings(): void {
     type: String,
     default: 'main',
     choices: {
-      'main': 'SEASONS_STARS.settings.default_widget_main',
-      'mini': 'SEASONS_STARS.settings.default_widget_mini',
-      'grid': 'SEASONS_STARS.settings.default_widget_grid'
-    }
+      main: 'SEASONS_STARS.settings.default_widget_main',
+      mini: 'SEASONS_STARS.settings.default_widget_mini',
+      grid: 'SEASONS_STARS.settings.default_widget_grid',
+    },
   });
 
   game.settings.register('seasons-and-stars', 'showNotifications', {
@@ -1018,6 +1022,82 @@ function setupAPI(): void {
 }
 
 /**
+ * Register hooks for custom note editing dialog
+ */
+function registerNoteEditingHooks(): void {
+  // Hook into journal sheet rendering to intercept calendar notes
+  Hooks.on('renderJournalSheet', (sheet: any, html: JQuery, data: any) => {
+    Logger.debug('renderJournalSheet hook fired', {
+      journalName: sheet.document?.name,
+      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
+    });
+
+    try {
+      const journal = sheet.document;
+
+      // Check if this is a calendar note
+      const flags = journal.flags?.['seasons-and-stars'];
+      if (!flags?.calendarNote) {
+        Logger.debug('Not a calendar note, allowing default sheet');
+        return; // Not a calendar note, let default sheet handle it
+      }
+
+      Logger.debug('Calendar note detected, intercepting sheet');
+
+      // Close the default sheet immediately
+      sheet.close();
+
+      // Show our custom editing dialog instead
+      NoteEditingDialog.showEditDialog(journal);
+    } catch (error) {
+      Logger.error(
+        'Failed to intercept journal sheet for calendar note',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Let the default sheet continue if our custom dialog fails
+    }
+  });
+
+  // Also try intercepting at the preRender stage (before sheet opens)
+  Hooks.on('preRenderJournalSheet', (sheet: any) => {
+    Logger.debug('preRenderJournalSheet hook fired', {
+      journalName: sheet.document?.name,
+      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
+    });
+
+    try {
+      const journal = sheet.document;
+
+      // Check if this is a calendar note
+      const flags = journal.flags?.['seasons-and-stars'];
+      if (!flags?.calendarNote) {
+        return; // Not a calendar note, let default sheet handle it
+      }
+
+      Logger.debug('Calendar note detected in preRender, preventing default sheet');
+
+      // Prevent the default sheet from opening at all
+      setTimeout(() => {
+        // Show our custom editing dialog instead
+        NoteEditingDialog.showEditDialog(journal);
+      }, 10);
+
+      // Return false to prevent the default sheet from rendering
+      return false;
+    } catch (error) {
+      Logger.error(
+        'Failed to intercept journal sheet in preRender',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Let the default sheet continue if our custom dialog fails
+      return true;
+    }
+  });
+
+  Logger.debug('Note editing hooks registered');
+}
+
+/**
  * Register with Errors and Echoes if available
  */
 function registerErrorsAndEchoes(): void {
@@ -1236,7 +1316,10 @@ function registerMemoryMageIntegration(): void {
 
     Logger.debug('Memory Mage integration registered successfully');
   } catch (error) {
-    Logger.warn('Failed to register with Memory Mage - module will continue without memory monitoring:', error);
+    Logger.warn(
+      'Failed to register with Memory Mage - module will continue without memory monitoring:',
+      error
+    );
   }
 }
 

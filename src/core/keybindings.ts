@@ -26,8 +26,8 @@ export class SeasonsStarsKeybindings {
       editable: [
         {
           key: 'KeyS',
-          modifiers: ['Alt']
-        }
+          modifiers: ['Alt'],
+        },
       ],
       onDown: () => {
         Logger.debug('Default widget toggle shortcut pressed');
@@ -35,7 +35,7 @@ export class SeasonsStarsKeybindings {
         return true;
       },
       restricted: false, // Available to all users
-      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
     });
 
     // Alt+Shift+S - Toggle mini widget specifically
@@ -45,8 +45,8 @@ export class SeasonsStarsKeybindings {
       editable: [
         {
           key: 'KeyS',
-          modifiers: ['Alt', 'Shift']
-        }
+          modifiers: ['Alt', 'Shift'],
+        },
       ],
       onDown: () => {
         Logger.debug('Mini widget toggle shortcut pressed');
@@ -54,18 +54,18 @@ export class SeasonsStarsKeybindings {
         return true;
       },
       restricted: false,
-      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
     });
 
-    // Alt+Ctrl+S - Toggle grid widget specifically  
+    // Alt+Ctrl+S - Toggle grid widget specifically
     game.keybindings.register('seasons-and-stars', 'toggleGridWidget', {
       name: 'SEASONS_STARS.keybindings.toggle_grid_widget',
       hint: 'SEASONS_STARS.keybindings.toggle_grid_widget_hint',
       editable: [
         {
           key: 'KeyS',
-          modifiers: ['Alt', 'Control']
-        }
+          modifiers: ['Alt', 'Control'],
+        },
       ],
       onDown: () => {
         Logger.debug('Grid widget toggle shortcut pressed');
@@ -73,7 +73,7 @@ export class SeasonsStarsKeybindings {
         return true;
       },
       restricted: false,
-      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
     });
 
     // Alt+Shift+Ctrl+S - Toggle main widget (future calendar management interface)
@@ -83,8 +83,8 @@ export class SeasonsStarsKeybindings {
       editable: [
         {
           key: 'KeyS',
-          modifiers: ['Alt', 'Shift', 'Control']
-        }
+          modifiers: ['Alt', 'Shift', 'Control'],
+        },
       ],
       onDown: () => {
         Logger.debug('Main widget toggle shortcut pressed');
@@ -92,7 +92,7 @@ export class SeasonsStarsKeybindings {
         return true;
       },
       restricted: false,
-      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
     });
 
     Logger.info('Keyboard shortcuts registered successfully');
@@ -104,7 +104,7 @@ export class SeasonsStarsKeybindings {
   private static toggleDefaultWidget(): void {
     try {
       const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-      
+
       Logger.debug('Toggling default widget', { defaultWidget });
 
       switch (defaultWidget) {
@@ -120,7 +120,10 @@ export class SeasonsStarsKeybindings {
           break;
       }
     } catch (error) {
-      Logger.error('Failed to toggle default widget', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to toggle default widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
       // Fallback to main widget
       CalendarWidget.toggle();
     }
@@ -136,15 +139,20 @@ export class SeasonsStarsKeybindings {
     }
 
     const registeredKeybindings = game.keybindings.actions.get('seasons-and-stars');
-    const expectedKeybindings = ['toggleDefaultWidget', 'toggleMiniWidget', 'toggleGridWidget', 'toggleMainWidget'];
-    
+    const expectedKeybindings = [
+      'toggleDefaultWidget',
+      'toggleMiniWidget',
+      'toggleGridWidget',
+      'toggleMainWidget',
+    ];
+
     const registeredNames = registeredKeybindings ? Array.from(registeredKeybindings.keys()) : [];
     const allRegistered = expectedKeybindings.every(name => registeredNames.includes(name));
 
     Logger.debug('Keybinding test results', {
       expected: expectedKeybindings,
       registered: registeredNames,
-      allRegistered
+      allRegistered,
     });
 
     return allRegistered;

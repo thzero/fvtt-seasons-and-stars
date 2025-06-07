@@ -63,13 +63,13 @@ describe('SmallTime Integration', () => {
   describe('isSmallTimeAvailable', () => {
     it('should return true when SmallTime module is active', () => {
       mockGame.modules.set('smalltime', { active: true });
-      
+
       expect(SmallTimeUtils.isSmallTimeAvailable()).toBe(true);
     });
 
     it('should return false when SmallTime module is not active', () => {
       mockGame.modules.set('smalltime', { active: false });
-      
+
       expect(SmallTimeUtils.isSmallTimeAvailable()).toBe(false);
     });
 
@@ -80,7 +80,7 @@ describe('SmallTime Integration', () => {
 
     it('should return false when modules system is not available', () => {
       mockGame.modules = undefined;
-      
+
       expect(SmallTimeUtils.isSmallTimeAvailable()).toBe(false);
     });
   });
@@ -88,7 +88,7 @@ describe('SmallTime Integration', () => {
   describe('getSmallTimeElement', () => {
     it('should return null when SmallTime module is not active', () => {
       mockGame.modules.set('smalltime', { active: false });
-      
+
       expect(SmallTimeUtils.getSmallTimeElement()).toBeNull();
     });
 
@@ -96,9 +96,9 @@ describe('SmallTime Integration', () => {
       mockGame.modules.set('smalltime', { active: true });
       const mockElement = document.createElement('div');
       mockDocument.querySelector.mockReturnValueOnce(mockElement);
-      
+
       const result = SmallTimeUtils.getSmallTimeElement();
-      
+
       expect(result).toBe(mockElement);
       expect(mockDocument.querySelector).toHaveBeenCalledWith('#smalltime-app');
     });
@@ -106,15 +106,15 @@ describe('SmallTime Integration', () => {
     it('should try multiple selectors until one is found', () => {
       mockGame.modules.set('smalltime', { active: true });
       const mockElement = document.createElement('div');
-      
+
       // First two selectors return null, third returns element
       mockDocument.querySelector
         .mockReturnValueOnce(null) // #smalltime-app
         .mockReturnValueOnce(null) // .smalltime-app
         .mockReturnValueOnce(mockElement); // #timeDisplay
-      
+
       const result = SmallTimeUtils.getSmallTimeElement();
-      
+
       expect(result).toBe(mockElement);
       expect(mockDocument.querySelector).toHaveBeenCalledTimes(3);
       expect(mockDocument.querySelector).toHaveBeenNthCalledWith(1, '#smalltime-app');
@@ -125,9 +125,9 @@ describe('SmallTime Integration', () => {
     it('should return null when no SmallTime element is found', () => {
       mockGame.modules.set('smalltime', { active: true });
       mockDocument.querySelector.mockReturnValue(null);
-      
+
       const result = SmallTimeUtils.getSmallTimeElement();
-      
+
       expect(result).toBeNull();
       // Should have tried all selectors
       expect(mockDocument.querySelector).toHaveBeenCalledTimes(4);
@@ -146,12 +146,12 @@ describe('Sidebar Button Management', () => {
   describe('addSidebarButton', () => {
     it('should add a new button', () => {
       const callback = vi.fn();
-      
+
       manager.addSidebarButton('test-button', 'fas fa-test', 'Test Button', callback);
-      
+
       expect(manager.hasSidebarButton('test-button')).toBe(true);
       expect(manager.getSidebarButtons()).toHaveLength(1);
-      
+
       const buttons = manager.getSidebarButtons();
       expect(buttons[0]).toEqual({
         name: 'test-button',
@@ -163,10 +163,10 @@ describe('Sidebar Button Management', () => {
 
     it('should not add duplicate buttons', () => {
       const callback = vi.fn();
-      
+
       manager.addSidebarButton('test-button', 'fas fa-test', 'Test Button', callback);
       manager.addSidebarButton('test-button', 'fas fa-test2', 'Test Button 2', callback);
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(1);
       expect(manager.getSidebarButtons()[0].icon).toBe('fas fa-test'); // Original unchanged
     });
@@ -174,10 +174,10 @@ describe('Sidebar Button Management', () => {
     it('should allow multiple different buttons', () => {
       const callback1 = vi.fn();
       const callback2 = vi.fn();
-      
+
       manager.addSidebarButton('button1', 'fas fa-test1', 'Button 1', callback1);
       manager.addSidebarButton('button2', 'fas fa-test2', 'Button 2', callback2);
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(2);
       expect(manager.hasSidebarButton('button1')).toBe(true);
       expect(manager.hasSidebarButton('button2')).toBe(true);
@@ -188,11 +188,11 @@ describe('Sidebar Button Management', () => {
     it('should remove an existing button', () => {
       const callback = vi.fn();
       manager.addSidebarButton('test-button', 'fas fa-test', 'Test Button', callback);
-      
+
       expect(manager.hasSidebarButton('test-button')).toBe(true);
-      
+
       manager.removeSidebarButton('test-button');
-      
+
       expect(manager.hasSidebarButton('test-button')).toBe(false);
       expect(manager.getSidebarButtons()).toHaveLength(0);
     });
@@ -201,7 +201,7 @@ describe('Sidebar Button Management', () => {
       expect(() => {
         manager.removeSidebarButton('non-existent');
       }).not.toThrow();
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(0);
     });
   });
@@ -211,11 +211,11 @@ describe('Sidebar Button Management', () => {
       const callback = vi.fn();
       manager.addSidebarButton('button1', 'fas fa-test1', 'Button 1', callback);
       manager.addSidebarButton('button2', 'fas fa-test2', 'Button 2', callback);
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(2);
-      
+
       manager.clearSidebarButtons();
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(0);
       expect(manager.hasSidebarButton('button1')).toBe(false);
       expect(manager.hasSidebarButton('button2')).toBe(false);
@@ -226,13 +226,13 @@ describe('Sidebar Button Management', () => {
     it('should return a copy of buttons array', () => {
       const callback = vi.fn();
       manager.addSidebarButton('test-button', 'fas fa-test', 'Test Button', callback);
-      
+
       const buttons1 = manager.getSidebarButtons();
       const buttons2 = manager.getSidebarButtons();
-      
+
       expect(buttons1).toEqual(buttons2);
       expect(buttons1).not.toBe(buttons2); // Different object instances
-      
+
       // Modifying returned array shouldn't affect internal state
       buttons1.push({
         name: 'external',
@@ -240,7 +240,7 @@ describe('Sidebar Button Management', () => {
         tooltip: 'External',
         callback: vi.fn(),
       });
-      
+
       expect(manager.getSidebarButtons()).toHaveLength(1); // Still original length
     });
   });
@@ -252,8 +252,8 @@ describe('Scene Controls Integration', () => {
   beforeEach(() => {
     mockControls = {
       notes: {
-        tools: {}
-      }
+        tools: {},
+      },
     };
     vi.clearAllMocks();
     mockHooks.on.mockClear();
@@ -262,13 +262,13 @@ describe('Scene Controls Integration', () => {
   describe('registerControls', () => {
     it('should register getSceneControlButtons hook', () => {
       SeasonsStarsSceneControls.registerControls();
-      
+
       expect(mockHooks.on).toHaveBeenCalledWith('getSceneControlButtons', expect.any(Function));
     });
 
     it('should register renderApplication hook for button state updates', () => {
       SeasonsStarsSceneControls.registerControls();
-      
+
       const renderCall = mockHooks.on.mock.calls.find(call => call[0] === 'renderApplication');
       expect(renderCall).toBeDefined();
       expect(renderCall[1]).toBeTypeOf('function');
@@ -276,7 +276,7 @@ describe('Scene Controls Integration', () => {
 
     it('should register closeApplication hook for button state updates', () => {
       SeasonsStarsSceneControls.registerControls();
-      
+
       const closeCall = mockHooks.on.mock.calls.find(call => call[0] === 'closeApplication');
       expect(closeCall).toBeDefined();
       expect(closeCall[1]).toBeTypeOf('function');
@@ -297,9 +297,9 @@ describe('Scene Controls Integration', () => {
 
     it('should add scene control button for GM users', () => {
       mockGame.user.isGM = true;
-      
+
       sceneControlHandler(mockControls);
-      
+
       expect(mockControls.notes.tools['seasons-stars-widget']).toBeDefined();
       expect(mockControls.notes.tools['seasons-stars-widget']).toEqual({
         name: 'seasons-stars-widget',
@@ -312,16 +312,16 @@ describe('Scene Controls Integration', () => {
 
     it('should not add scene control button for non-GM users', () => {
       mockGame.user.isGM = false;
-      
+
       sceneControlHandler(mockControls);
-      
+
       expect(mockControls.notes.tools['seasons-stars-widget']).toBeUndefined();
     });
 
     it('should handle missing notes controls gracefully', () => {
       mockGame.user.isGM = true;
       const controlsWithoutNotes = {};
-      
+
       expect(() => {
         sceneControlHandler(controlsWithoutNotes);
       }).not.toThrow();
@@ -330,7 +330,7 @@ describe('Scene Controls Integration', () => {
     it('should handle missing notes.tools gracefully', () => {
       mockGame.user.isGM = true;
       const controlsWithoutTools = { notes: {} };
-      
+
       expect(() => {
         sceneControlHandler(controlsWithoutTools);
       }).not.toThrow();
@@ -345,7 +345,7 @@ describe('Scene Controls Integration', () => {
 
     it('should register macro functions on window.SeasonsStars', () => {
       SeasonsStarsSceneControls.registerMacros();
-      
+
       const seasonsStars = (globalThis as any).SeasonsStars;
       expect(seasonsStars).toBeDefined();
       expect(seasonsStars.showWidget).toBeTypeOf('function');
@@ -358,7 +358,7 @@ describe('Scene Controls Integration', () => {
 
     it('should register time advancement macro functions', () => {
       SeasonsStarsSceneControls.registerMacros();
-      
+
       const seasonsStars = (globalThis as any).SeasonsStars;
       expect(seasonsStars.advanceMinutes).toBeTypeOf('function');
       expect(seasonsStars.advanceHours).toBeTypeOf('function');
@@ -371,9 +371,9 @@ describe('Scene Controls Integration', () => {
     it('should extend existing SeasonsStars object instead of replacing', () => {
       // Set up existing object
       (globalThis as any).SeasonsStars = { existingProperty: 'test' };
-      
+
       SeasonsStarsSceneControls.registerMacros();
-      
+
       const seasonsStars = (globalThis as any).SeasonsStars;
       expect(seasonsStars.existingProperty).toBe('test');
       expect(seasonsStars.showWidget).toBeTypeOf('function');

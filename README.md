@@ -21,7 +21,11 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Backend API**: Complete CRUD operations available for module developers
 - **Simple Calendar Compatibility**: API compatibility via separate compatibility bridge module
 
-⚠️ **Current Limitations**: Notes can be created but **not viewed, edited, or managed** through the UI. Users must access underlying Journal entries directly to read note content.
+⚠️ **Current Limitations**:
+
+- **Note Editing**: While notes can be created with calendar-specific metadata (categories, tags, dates), editing only opens the basic Foundry journal interface which **cannot modify calendar-specific fields**
+- **Metadata Management**: Tags, categories, and date associations cannot be changed after creation
+- **Limited UI**: No dedicated note management interface - relies on basic Foundry journal sheets
 
 ### 🚧 **Coming Soon**
 
@@ -157,8 +161,9 @@ Love using Seasons & Stars? Consider supporting continued development:
 [![Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=for-the-badge&logo=patreon)](https://patreon.com/rayners)
 
 Your support helps fund:
+
 - 🚀 **New Features**: Advanced calendar tools and integrations
-- 🐛 **Bug Fixes**: Faster resolution of issues and compatibility updates  
+- 🐛 **Bug Fixes**: Faster resolution of issues and compatibility updates
 - 📚 **Documentation**: Comprehensive guides and tutorials
 - 🎯 **Community Requests**: Implementation of user-requested features
 

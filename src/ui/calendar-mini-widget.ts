@@ -52,7 +52,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Prepare rendering context for template
    */
   async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
-    const context = await super._prepareContext(options) as Record<string, unknown>;
+    const context = (await super._prepareContext(options)) as Record<string, unknown>;
 
     const manager = game.seasonsStars?.manager;
 
@@ -117,13 +117,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (miniDateElement) {
       let clickTimeout: number | null = null;
       let clickCount = 0;
-      
-      miniDateElement.addEventListener('click', (event) => {
+
+      miniDateElement.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
-        
+
         clickCount++;
-        
+
         if (clickCount === 1) {
           // Single click - wait to see if there's a double click
           clickTimeout = setTimeout(() => {
@@ -138,7 +138,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             clickTimeout = null;
           }
           clickCount = 0;
-          
+
           Logger.debug('Mini widget: Double-click detected, opening larger view');
           this._onOpenLargerView(event, miniDateElement as HTMLElement);
         }
@@ -189,34 +189,34 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
-    
+
     // Add proper action handling for data-action elements
     htmlElement.addEventListener('click', this._onClickAction.bind(this));
   }
-  
+
   /**
    * Handle click actions on elements with data-action attributes
    */
   private _onClickAction(event: Event): void {
     const target = event.target as HTMLElement;
     const actionElement = target.closest('[data-action]') as HTMLElement;
-    
+
     if (!actionElement) return;
-    
+
     const action = actionElement.dataset.action;
     if (!action) return;
-    
+
     // Skip openCalendarSelection on mini-date to let double-click handler manage it
     if (action === 'openCalendarSelection' && actionElement.classList.contains('mini-date')) {
       return; // Let the custom double-click handler manage mini-date clicks
     }
-    
+
     // Prevent default for all other actions
     event.preventDefault();
     event.stopPropagation();
-    
+
     Logger.debug(`Mini widget action triggered: ${action}`);
-    
+
     // Call the appropriate action handler
     switch (action) {
       case 'advanceTime':
@@ -241,26 +241,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element || !this.rendered || this.isClosing) return;
 
     Logger.debug('Mini widget: Starting hide animation');
-    
+
     // Mark as closing to prevent positioning changes
     this.isClosing = true;
-    
+
     // Capture current position before animation to prevent movement
     const rect = this.element.getBoundingClientRect();
-    Logger.debug('Mini widget: Captured position before hide', { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-    
+    Logger.debug('Mini widget: Captured position before hide', {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    });
+
     // Lock the position using fixed positioning
     this.element.style.position = 'fixed';
     this.element.style.top = `${rect.top}px`;
     this.element.style.left = `${rect.left}px`;
     this.element.style.width = `${rect.width}px`;
     this.element.style.height = `${rect.height}px`;
-    
+
     // Stop any existing animations and apply custom fade-out
     $(this.element).stop();
-    $(this.element).css({ 
+    $(this.element).css({
       animation: 'seasons-stars-fade-out 0.2s ease-out',
-      opacity: '0' 
+      opacity: '0',
     });
 
     // Delay the actual close until after fade completes
@@ -315,7 +320,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Show the mini widget
    * Creates a new instance if none exists, or renders existing instance if not already visible.
    * The widget will automatically position itself relative to SmallTime or the player list.
-   * 
+   *
    * @example
    * ```typescript
    * CalendarMiniWidget.show();
@@ -335,7 +340,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Hide the mini widget with smooth animation
    * Uses a fade-out animation before closing to provide visual feedback.
    * Safe to call even if no widget is currently displayed.
-   * 
+   *
    * @example
    * ```typescript
    * CalendarMiniWidget.hide();
@@ -351,7 +356,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Get the current active instance of the mini widget
    * Returns null if no widget is currently instantiated.
    * Useful for external modules that need to interact with the widget.
-   * 
+   *
    * @returns The active CalendarMiniWidget instance, or null if none exists
    * @example
    * ```typescript
@@ -499,12 +504,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Toggle mini widget visibility
    * Shows the widget if hidden, hides it if currently displayed.
    * This is the primary method used by keyboard shortcuts and scene controls.
-   * 
+   *
    * @example
    * ```typescript
    * // Toggle widget from a macro or keybinding
    * CalendarMiniWidget.toggle();
-   * 
+   *
    * // Can also be called from the global API
    * game.seasonsStars.widgets.toggleMini();
    * ```
@@ -580,11 +585,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
-    
+
     // Wait for both our element and SmallTime to be ready
     const attemptPositioning = (attempts = 0) => {
       if (this.isClosing) return; // Check again in case close started during attempts
-      
+
       const maxAttempts = WIDGET_POSITIONING.MAX_POSITIONING_ATTEMPTS;
       const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
 
@@ -597,7 +602,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       } else if (attempts < maxAttempts) {
         // Retry after a short delay
         Logger.debug(`Retrying positioning (attempt ${attempts + 1} of ${maxAttempts})`);
-        setTimeout(() => attemptPositioning(attempts + 1), WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
+        setTimeout(
+          () => attemptPositioning(attempts + 1),
+          WIDGET_POSITIONING.POSITIONING_RETRY_DELAY
+        );
       } else {
         // SmallTime not found - use smart standalone positioning
         Logger.debug('SmallTime not found, using standalone positioning');
@@ -801,7 +809,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   static registerSmallTimeIntegration(): void {
     // Listen for SmallTime app rendering/movement
     Hooks.on('renderApplication', (app: any) => {
-      if (app.id === 'smalltime-app' && CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
+      if (
+        app.id === 'smalltime-app' &&
+        CalendarMiniWidget.activeInstance?.rendered &&
+        !CalendarMiniWidget.activeInstance.isClosing
+      ) {
         // Delay to ensure SmallTime positioning is complete
         setTimeout(() => {
           CalendarMiniWidget.activeInstance?.autoPositionRelativeToSmallTime();
@@ -811,7 +823,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Listen for player list changes that might affect positioning
     Hooks.on('renderPlayerList', () => {
-      if (CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
+      if (
+        CalendarMiniWidget.activeInstance?.rendered &&
+        !CalendarMiniWidget.activeInstance.isClosing
+      ) {
         setTimeout(() => {
           CalendarMiniWidget.activeInstance?.handlePlayerListChange();
         }, 50);
@@ -820,7 +835,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Also listen for general UI updates that might affect player list
     Hooks.on('renderSidebar', () => {
-      if (CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
+      if (
+        CalendarMiniWidget.activeInstance?.rendered &&
+        !CalendarMiniWidget.activeInstance.isClosing
+      ) {
         setTimeout(() => {
           CalendarMiniWidget.activeInstance?.handlePlayerListChange();
         }, WIDGET_POSITIONING.POSITIONING_RETRY_DELAY);
@@ -831,7 +849,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const playerList = document.getElementById('players');
     if (playerList && CalendarMiniWidget.activeInstance) {
       const observer = new MutationObserver(() => {
-        if (CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
+        if (
+          CalendarMiniWidget.activeInstance?.rendered &&
+          !CalendarMiniWidget.activeInstance.isClosing
+        ) {
           CalendarMiniWidget.activeInstance.handlePlayerListChange();
         }
       });
@@ -849,7 +870,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Listen for window resize to maintain positioning
     window.addEventListener('resize', () => {
-      if (CalendarMiniWidget.activeInstance?.rendered && !CalendarMiniWidget.activeInstance.isClosing) {
+      if (
+        CalendarMiniWidget.activeInstance?.rendered &&
+        !CalendarMiniWidget.activeInstance.isClosing
+      ) {
         // Re-evaluate positioning on resize
         CalendarMiniWidget.activeInstance.autoPositionRelativeToSmallTime();
       }
@@ -861,7 +885,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private handlePlayerListChange(): void {
     if (this.isClosing) return;
-    
+
     const playerList = document.getElementById('players');
 
     // Check if player list is expanded using the same approach as SmallTime
@@ -1019,7 +1043,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     try {
       const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
       Logger.info(`Default widget setting: ${defaultWidget}`);
-      
+
       // Open either the default widget or grid widget (both are larger than mini)
       if (defaultWidget === 'grid') {
         Logger.info('Opening grid widget');
@@ -1030,7 +1054,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         CalendarWidget.show();
       }
     } catch (error) {
-      Logger.error('Failed to open larger view', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to open larger view',
+        error instanceof Error ? error : new Error(String(error))
+      );
       // Fallback to main widget
       Logger.info('Fallback: Opening main calendar widget');
       CalendarWidget.show();

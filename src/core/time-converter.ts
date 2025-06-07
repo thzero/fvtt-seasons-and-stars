@@ -222,7 +222,10 @@ export class TimeConverter {
   /**
    * Check if it's currently daytime (between dawn and dusk by default)
    */
-  isDaytime(dawnHour: number = TIME_CONSTANTS.DEFAULT_DAWN_HOUR, duskHour: number = TIME_CONSTANTS.DEFAULT_DUSK_HOUR): boolean {
+  isDaytime(
+    dawnHour: number = TIME_CONSTANTS.DEFAULT_DAWN_HOUR,
+    duskHour: number = TIME_CONSTANTS.DEFAULT_DUSK_HOUR
+  ): boolean {
     const currentDate = this.getCurrentDate();
 
     if (!currentDate.time) {

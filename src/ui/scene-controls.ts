@@ -13,8 +13,10 @@ export class SeasonsStarsSceneControls {
    * Register scene controls
    */
   static registerControls(): void {
-    Logger.debug('SeasonsStarsSceneControls.registerControls() called - registering getSceneControlButtons hook');
-    
+    Logger.debug(
+      'SeasonsStarsSceneControls.registerControls() called - registering getSceneControlButtons hook'
+    );
+
     Hooks.on('getSceneControlButtons', (controls: Record<string, SceneControl>) => {
       Logger.debug('getSceneControlButtons hook fired', {
         userExists: !!game.user,
@@ -24,7 +26,7 @@ export class SeasonsStarsSceneControls {
         notesExists: !!controls.notes,
         notesToolsExists: !!controls.notes?.tools,
         notesToolsType: typeof controls.notes?.tools,
-        notesToolsKeys: controls.notes?.tools ? Object.keys(controls.notes.tools) : null
+        notesToolsKeys: controls.notes?.tools ? Object.keys(controls.notes.tools) : null,
       });
 
       if (!game.user?.isGM) {
@@ -35,7 +37,7 @@ export class SeasonsStarsSceneControls {
       // Access notes controls directly (controls is an object, not array)
       if (controls.notes?.tools) {
         Logger.debug('Adding S&S scene control to notes.tools');
-        
+
         // Use SmallTime's pattern of direct property assignment
         controls.notes.tools['seasons-stars-widget'] = {
           name: 'seasons-stars-widget',
@@ -44,26 +46,37 @@ export class SeasonsStarsSceneControls {
           onChange: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
           button: true,
         };
-        
-        Logger.debug('Added S&S scene control button, updated tools:', Object.keys(controls.notes.tools));
+
+        Logger.debug(
+          'Added S&S scene control button, updated tools:',
+          Object.keys(controls.notes.tools)
+        );
       } else {
         Logger.warn('Notes controls not available for scene button', {
           notesExists: !!controls.notes,
           notesToolsExists: !!controls.notes?.tools,
-          fullControlsStructure: controls
+          fullControlsStructure: controls,
         });
       }
     });
 
     // Update button state when any widget is shown/hidden
     Hooks.on('renderApplication', (app: any) => {
-      if (app instanceof CalendarWidget || app instanceof CalendarMiniWidget || app instanceof CalendarGridWidget) {
+      if (
+        app instanceof CalendarWidget ||
+        app instanceof CalendarMiniWidget ||
+        app instanceof CalendarGridWidget
+      ) {
         SeasonsStarsSceneControls.updateControlState(true);
       }
     });
 
     Hooks.on('closeApplication', (app: any) => {
-      if (app instanceof CalendarWidget || app instanceof CalendarMiniWidget || app instanceof CalendarGridWidget) {
+      if (
+        app instanceof CalendarWidget ||
+        app instanceof CalendarMiniWidget ||
+        app instanceof CalendarGridWidget
+      ) {
         SeasonsStarsSceneControls.updateControlState(false);
       }
     });
@@ -75,7 +88,7 @@ export class SeasonsStarsSceneControls {
   private static toggleDefaultWidget(): void {
     try {
       const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-      
+
       Logger.debug('Scene control toggling default widget', { defaultWidget });
 
       switch (defaultWidget) {
@@ -91,7 +104,10 @@ export class SeasonsStarsSceneControls {
           break;
       }
     } catch (error) {
-      Logger.error('Failed to toggle default widget from scene control', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to toggle default widget from scene control',
+        error instanceof Error ? error : new Error(String(error))
+      );
       // Fallback to main widget
       CalendarWidget.toggle();
     }

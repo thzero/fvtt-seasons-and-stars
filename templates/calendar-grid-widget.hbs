@@ -74,10 +74,10 @@
                    data-day="{{day}}"
                    data-date="{{fullDate}}"
                    data-category="{{primaryCategory}}"
-                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteCount}} note(s) ({{primaryCategory}}){{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                   title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                 <span class="day-number">{{day}}</span>
                 {{#if hasNotes}}
-                  <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" title="{{noteCount}} note(s) ({{primaryCategory}}) - Click to view/edit" data-note-count="{{noteCount}}">
+                  <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" title="{{noteTooltip}} - Click to view/edit" data-note-count="{{noteCount}}">
                     {{#if noteMultiple}}
                       <span class="note-count {{categoryClass}}">{{noteCount}}</span>
                     {{else}}

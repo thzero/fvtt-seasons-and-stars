@@ -152,12 +152,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       time: { hour: 0, minute: 0, second: 0 },
     };
 
-    // Get notes for this month for note indicators with category information
+    // Get notes for this month for note indicators with category and tooltip information
     const notesManager = game.seasonsStars?.notes;
     const categories = game.seasonsStars?.categories;
     const monthNotes = new Map<
       string,
-      { count: number; primaryCategory: string; categories: Set<string> }
+      {
+        count: number;
+        primaryCategory: string;
+        categories: Set<string>;
+        notes: Array<{ title: string; tags: string[] }>;
+      }
     >(); // dateKey -> note data
 
     if (notesManager) {
@@ -193,11 +198,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           if (notes.length > 0) {
             const dateKey = this.formatDateKey(dayDate);
             const dayCategories = new Set<string>();
+            const noteDetails: Array<{ title: string; tags: string[] }> = [];
 
-            // Gather categories from all notes for this day
+            // Gather categories and details from all notes for this day
             notes.forEach(note => {
               const category = note.flags?.['seasons-and-stars']?.category || 'general';
+              const tags = note.flags?.['seasons-and-stars']?.tags || [];
               dayCategories.add(category);
+              noteDetails.push({
+                title: note.name || 'Untitled Note',
+                tags: Array.isArray(tags) ? tags : [],
+              });
             });
 
             // Determine primary category (most common, or first if tied)
@@ -214,6 +225,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               count: notes.length,
               primaryCategory,
               categories: dayCategories,
+              notes: noteDetails,
             });
           }
         }
@@ -259,6 +271,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       }
 
+      // Create enhanced tooltip with note details
+      let noteTooltip = '';
+      if (hasNotes && noteData) {
+        const notesList = noteData.notes
+          .map(note => {
+            const tagText = note.tags.length > 0 ? ` [${note.tags.join(', ')}]` : '';
+            return `${note.title}${tagText}`;
+          })
+          .join('\n');
+        noteTooltip = `${noteCount} note(s) (${noteData.primaryCategory}):\n${notesList}`;
+      }
+
       currentWeek.push({
         day: day,
         date: dayDate,
@@ -272,6 +296,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         noteMultiple: noteCount > 1,
         categoryClass: categoryClass,
         primaryCategory: noteData?.primaryCategory || 'general',
+        noteTooltip: noteTooltip,
         canCreateNote: this.canCreateNote(),
       });
 
@@ -557,15 +582,16 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         month: date.month || this.viewDate.month || 1,
         day: date.day || 1,
       };
-      
+
       // Format date using calendar system
       const manager = game.seasonsStars?.manager;
       const activeCalendar = manager?.getActiveCalendar();
       let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
       let calendarInfo = '';
-      
+
       if (activeCalendar) {
-        const monthName = activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
+        const monthName =
+          activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
         const yearPrefix = activeCalendar.year?.prefix || '';
         const yearSuffix = activeCalendar.year?.suffix || '';
         dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
@@ -609,10 +635,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           }
         } catch (error) {
           // Silent fallback - just use predefined tags if existing tags can't be loaded
-          Logger.debug('Could not load existing tags for autocompletion, using predefined tags only', error);
+          Logger.debug(
+            'Could not load existing tags for autocompletion, using predefined tags only',
+            error
+          );
         }
       }
-      
+
       // Combine predefined and existing tags for autocompletion
       const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
 
@@ -902,15 +931,21 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           let selectedIndex = -1;
 
           // Smart tag matching function
-          function matchTag(searchTerm: string, tagToMatch: string): { matches: boolean; highlighted: string } {
+          function matchTag(
+            searchTerm: string,
+            tagToMatch: string
+          ): { matches: boolean; highlighted: string } {
             const search = searchTerm.toLowerCase();
             const tag = tagToMatch.toLowerCase();
-            
+
             // Direct match
             if (tag.includes(search)) {
               const index = tag.indexOf(search);
-              const highlighted = tagToMatch.substring(0, index) + 
-                '<span class="tag-match">' + tagToMatch.substring(index, index + search.length) + '</span>' +
+              const highlighted =
+                tagToMatch.substring(0, index) +
+                '<span class="tag-match">' +
+                tagToMatch.substring(index, index + search.length) +
+                '</span>' +
                 tagToMatch.substring(index + search.length);
               return { matches: true, highlighted };
             }
@@ -921,10 +956,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               for (const part of parts) {
                 if (part.trim().includes(search)) {
                   const partIndex = part.trim().indexOf(search);
-                  const highlighted = tagToMatch.replace(part, 
-                    part.substring(0, partIndex) + 
-                    '<span class="tag-match">' + part.substring(partIndex, partIndex + search.length) + '</span>' +
-                    part.substring(partIndex + search.length)
+                  const highlighted = tagToMatch.replace(
+                    part,
+                    part.substring(0, partIndex) +
+                      '<span class="tag-match">' +
+                      part.substring(partIndex, partIndex + search.length) +
+                      '</span>' +
+                      part.substring(partIndex + search.length)
                   );
                   return { matches: true, highlighted };
                 }
@@ -935,17 +973,21 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           }
 
           // Function to get current typing context
-          function getCurrentTypingContext(): { beforeCursor: string; afterCursor: string; currentTag: string } {
+          function getCurrentTypingContext(): {
+            beforeCursor: string;
+            afterCursor: string;
+            currentTag: string;
+          } {
             const inputElement = tagsInput[0] as HTMLInputElement;
             const cursorPos = inputElement.selectionStart || 0;
             const fullText = tagsInput.val() as string;
             const beforeCursor = fullText.substring(0, cursorPos);
             const afterCursor = fullText.substring(cursorPos);
-            
+
             // Find the current tag being typed
             const lastCommaIndex = beforeCursor.lastIndexOf(',');
             const currentTag = beforeCursor.substring(lastCommaIndex + 1).trim();
-            
+
             return { beforeCursor, afterCursor, currentTag };
           }
 
@@ -957,7 +999,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             }
 
             const matches: Array<{ tag: string; highlighted: string }> = [];
-            
+
             allAvailableTags.forEach(tag => {
               const result = matchTag(searchTerm, tag);
               if (result.matches) {
@@ -972,10 +1014,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
             // Limit to top 8 matches
             const topMatches = matches.slice(0, 8);
-            
-            const dropdownHtml = topMatches.map((match, index) => 
-              `<div class="tag-autocomplete-item" data-tag="${match.tag}" data-index="${index}">${match.highlighted}</div>`
-            ).join('');
+
+            const dropdownHtml = topMatches
+              .map(
+                (match, index) =>
+                  `<div class="tag-autocomplete-item" data-tag="${match.tag}" data-index="${index}">${match.highlighted}</div>`
+              )
+              .join('');
 
             autocompleteDropdown.html(dropdownHtml).show();
             selectedIndex = -1;
@@ -984,27 +1029,32 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           // Function to insert selected tag
           function insertTag(tagToInsert: string) {
             const context = getCurrentTypingContext();
-            const beforeCurrentTag = context.beforeCursor.substring(0, 
-              context.beforeCursor.lastIndexOf(',') + 1);
-            const newValue = (beforeCurrentTag ? beforeCurrentTag + ' ' : '') + 
-              tagToInsert + (context.afterCursor.startsWith(',') ? '' : ', ') + context.afterCursor;
-            
+            const beforeCurrentTag = context.beforeCursor.substring(
+              0,
+              context.beforeCursor.lastIndexOf(',') + 1
+            );
+            const newValue =
+              (beforeCurrentTag ? beforeCurrentTag + ' ' : '') +
+              tagToInsert +
+              (context.afterCursor.startsWith(',') ? '' : ', ') +
+              context.afterCursor;
+
             tagsInput.val(newValue.replace(/,\\s*$/, '')); // Remove trailing comma
             autocompleteDropdown.hide();
             tagsInput.focus();
           }
 
           // Input event for autocompletion
-          tagsInput.on('input', function() {
+          tagsInput.on('input', function () {
             const context = getCurrentTypingContext();
             showAutocomplete(context.currentTag);
           });
 
           // Keyboard navigation
-          tagsInput.on('keydown', function(e) {
+          tagsInput.on('keydown', function (e) {
             const dropdown = autocompleteDropdown;
             const items = dropdown.find('.tag-autocomplete-item');
-            
+
             if (!dropdown.is(':visible') || items.length === 0) return;
 
             switch (e.keyCode) {
@@ -1036,13 +1086,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Click handlers for autocomplete items
-          autocompleteDropdown.on('click', '.tag-autocomplete-item', function() {
+          autocompleteDropdown.on('click', '.tag-autocomplete-item', function () {
             const tagToInsert = $(this).data('tag');
             insertTag(tagToInsert);
           });
 
           // Hide dropdown when clicking outside
-          $(document).on('click', function(e) {
+          $(document).on('click', function (e) {
             if (!$(e.target).closest('.tag-autocomplete').length) {
               autocompleteDropdown.hide();
             }
@@ -1086,7 +1136,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     try {
       // Get notes for this date
       const notes = notesManager.storage?.findNotesByDateSync?.(targetDate) || [];
-      
+
       if (notes.length === 0) {
         ui.notifications?.info('No notes found for this date');
         return;
@@ -1113,7 +1163,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const manager = game.seasonsStars?.manager;
     const activeCalendar = manager?.getActiveCalendar();
     let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
-    
+
     if (activeCalendar) {
       const monthName = activeCalendar.months[date.month - 1]?.name || `Month ${date.month}`;
       const yearPrefix = activeCalendar.year?.prefix || '';
@@ -1121,13 +1171,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       dateDisplayStr = `${date.day} ${monthName}, ${yearPrefix}${date.year}${yearSuffix}`;
     }
 
-    const notesList = notes.map((note, index) => {
-      const title = note.name || 'Untitled Note';
-      const category = note.flags?.['seasons-and-stars']?.category || 'general';
-      const preview = note.pages?.contents?.[0]?.text?.content?.substring(0, 100) || 'No content';
-      const cleanPreview = preview.replace(/<[^>]*>/g, '').trim() || 'No content';
-      
-      return `
+    const notesList = notes
+      .map((note, index) => {
+        const title = note.name || 'Untitled Note';
+        const category = note.flags?.['seasons-and-stars']?.category || 'general';
+        const preview = note.pages?.contents?.[0]?.text?.content?.substring(0, 100) || 'No content';
+        const cleanPreview = preview.replace(/<[^>]*>/g, '').trim() || 'No content';
+
+        return `
         <div class="note-item" data-note-id="${note.id}" data-index="${index}">
           <div class="note-header">
             <strong>${title}</strong>
@@ -1136,7 +1187,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           <div class="note-preview">${cleanPreview}${cleanPreview.length >= 100 ? '...' : ''}</div>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
 
     return new Promise(resolve => {
       new Dialog({
@@ -1196,7 +1248,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         default: 'cancel',
         render: (html: JQuery) => {
           // Add click handlers for note items
-          html.find('.note-item').on('click', function() {
+          html.find('.note-item').on('click', function () {
             const noteIndex = parseInt($(this).data('index'));
             const note = notes[noteIndex];
             if (note && note.sheet) {
@@ -1420,7 +1472,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Open main widget
       CalendarWidget.show();
     } catch (error) {
-      Logger.error('Failed to switch to main widget', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to switch to main widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 
@@ -1437,7 +1492,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Open mini widget
       CalendarMiniWidget.show();
     } catch (error) {
-      Logger.error('Failed to switch to mini widget', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to switch to mini widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 }

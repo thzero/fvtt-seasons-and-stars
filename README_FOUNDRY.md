@@ -32,7 +32,7 @@ Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT 
 - **Foundry Integration**: Uses Foundry's native `game.time.worldTime`
 - **Time Controls**: Buttons for advancing time by various increments
 - **Season Display**: Shows current season based on calendar configuration
-- **Notes System**: Add events and reminders to calendar dates
+- **Notes System**: Create calendar notes with categories and tags (editing limited to basic journal interface)
 
 ### **Migration Support**
 

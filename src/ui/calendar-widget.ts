@@ -242,7 +242,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Open mini widget
       CalendarMiniWidget.show();
     } catch (error) {
-      Logger.error('Failed to switch to mini widget', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to switch to mini widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 
@@ -259,7 +262,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Open grid widget
       CalendarGridWidget.show();
     } catch (error) {
-      Logger.error('Failed to switch to grid widget', error instanceof Error ? error : new Error(String(error)));
+      Logger.error(
+        'Failed to switch to grid widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 

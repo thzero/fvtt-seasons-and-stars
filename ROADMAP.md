@@ -22,15 +22,16 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 - ✅ **12 Built-in Calendars**: Gregorian, D&D settings, PF2e Golarion, Critical Role, and more
 - ✅ **Simple Calendar Compatibility**: API compatibility via separate bridge module
 - ✅ **SmallTime Integration**: Auto-positioning and visual consistency
-- ✅ **Notes System**: Backend API complete, basic creation UI functional (GMs can create notes, no viewing/editing UI)
+- ✅ **Notes System**: Backend API complete with full creation UI (categories, tags, recurring events)
+- ⚠️ **Notes Editing**: Limited to basic Foundry journal interface - calendar metadata cannot be modified after creation
 - 🧪 **Error Reporting**: Optional Errors and Echoes integration (when module available)
 - 🧪 **Memory Integration**: Optional Memory Mage integration (pre-release development module)
 
 **Testing Status:**
 
 - 🧪 **Alpha Quality**: Core calendar features tested and functional
-- 🚧 **Notes System**: Backend complete but **UI completely non-functional** (creation button doesn't appear, no user interface)
-- 📊 **Test Coverage**: 63/63 automated tests passing (calendar engine, widgets, and UI integration)
+- ⚠️ **Notes System**: Creation UI functional, but editing requires calendar-aware interface for metadata management
+- 📊 **Test Coverage**: 63/63 automated tests passing (~11% overall coverage - primarily calendar engine and basic widget functionality)
 - 🔍 **Seeking Feedback**: User testing and bug reports welcome, especially for notes system
 - ⚠️ **Known Limitations**: See [Known Issues](KNOWN-ISSUES.md) for current limitations
 
@@ -38,12 +39,12 @@ Seasons & Stars aims to provide a **modern, reliable, and extensible** calendar 
 
 ### **v0.2.3 - Notes UI Completion** (Next Release - High Priority)
 
-**Focus**: Complete the notes system user interface
+**Focus**: Complete the calendar-aware notes editing system
 
-- **Note Viewing Interface**: Click note indicators to view note content  
-- **Note Management UI**: Edit and delete notes through calendar interface
-- **Note List/Browser**: Dedicated interface for browsing and searching notes
-- **Note Details Panel**: Enhanced note viewing with full metadata display
+- **Calendar-Aware Note Editor**: Custom editing dialog that preserves calendar metadata (categories, tags, dates)
+- **Note Metadata Management**: Interface for changing categories, tags, and date associations after creation
+- **Note Management UI**: Proper calendar-integrated editing and deletion interface
+- **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering
 
 ### **v0.3.0 - Calendar Creation and Import System** (High Priority)
 
@@ -118,6 +119,7 @@ Future releases may include enhanced system-specific features and additional cal
 
 - ✅ Core functionality stable and usable
 - ✅ Basic Simple Calendar compatibility working
+- ⚠️ **Test Coverage**: Limited coverage (~11%) - notes system and advanced features need test development
 - 🔍 Community feedback and bug reports
 - 🔍 Module developer interest and adoption
 
@@ -158,6 +160,7 @@ Your Patreon support directly helps prioritize roadmap features and accelerate d
 [![Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=for-the-badge&logo=patreon)](https://patreon.com/rayners)
 
 **How Patreon support helps:**
+
 - 🚀 **Feature Prioritization**: Patron requests get priority in the roadmap
 - ⚡ **Faster Development**: More time dedicated to module development
 - 🔧 **Better Testing**: Resources for comprehensive compatibility testing

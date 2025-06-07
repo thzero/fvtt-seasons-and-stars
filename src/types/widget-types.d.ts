@@ -21,7 +21,7 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   showTimeControls: boolean;
 }
 
-// Main widget specific context  
+// Main widget specific context
 export interface MainWidgetContext extends BaseWidgetContext {
   shortDate: string;
   timeString: string;

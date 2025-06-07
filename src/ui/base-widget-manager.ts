@@ -58,17 +58,16 @@ export class WidgetInstanceManager {
    * Register hooks for automatic updates
    */
   static registerHooks(): void {
-    const widgetClass = this;
-    
+    // Use arrow function to maintain proper 'this' context
     Hooks.on('seasons-stars:dateChanged', () => {
-      if (widgetClass.activeInstance?.rendered) {
-        widgetClass.activeInstance.render();
+      if (this.activeInstance?.rendered) {
+        this.activeInstance.render();
       }
     });
 
     Hooks.on('seasons-stars:calendarChanged', () => {
-      if (widgetClass.activeInstance?.rendered) {
-        widgetClass.activeInstance.render();
+      if (this.activeInstance?.rendered) {
+        this.activeInstance.render();
       }
     });
   }
@@ -165,12 +164,7 @@ export class SmallTimeUtils {
     }
 
     // Only search for the element if the module is actually active
-    const selectors = [
-      '#smalltime-app',
-      '.smalltime-app',
-      '#timeDisplay',
-      '#slideContainer'
-    ];
+    const selectors = ['#smalltime-app', '.smalltime-app', '#timeDisplay', '#slideContainer'];
 
     for (const selector of selectors) {
       const element = document.querySelector(selector) as HTMLElement;

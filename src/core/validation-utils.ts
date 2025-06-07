@@ -28,8 +28,12 @@ export class ValidationUtils {
     if (!date || typeof date !== 'object') {
       throw new Error(`${paramName} must be a calendar date object`);
     }
-    
-    if (typeof date.year !== 'number' || typeof date.month !== 'number' || typeof date.day !== 'number') {
+
+    if (
+      typeof date.year !== 'number' ||
+      typeof date.month !== 'number' ||
+      typeof date.day !== 'number'
+    ) {
       throw new Error(`${paramName} must have numeric year, month, and day properties`);
     }
   }
@@ -41,7 +45,7 @@ export class ValidationUtils {
     if (typeof value !== 'string') {
       throw new Error(`${paramName} must be a string`);
     }
-    
+
     if (!allowEmpty && value.trim() === '') {
       throw new Error(`${paramName} cannot be empty`);
     }
