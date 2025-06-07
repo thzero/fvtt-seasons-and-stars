@@ -35,6 +35,9 @@
   .calendar-header {
     border-bottom: 1px solid var(--color-border-light-primary);
     padding-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 
     .calendar-title {
       display: flex;
@@ -88,6 +91,38 @@
       color: var(--color-text-light-secondary);
       margin-top: 2px;
       padding-left: 22px;
+    }
+
+    .widget-switching-controls {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 4px;
+
+      .widget-switch-btn {
+        background: var(--color-bg-btn);
+        border: 1px solid var(--color-border-dark);
+        border-radius: 3px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 0.8em;
+        color: var(--color-text-primary);
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: var(--color-bg-btn-hover);
+          border-color: var(--color-border-light-secondary);
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        i {
+          margin-right: 4px;
+        }
+      }
     }
   }
 

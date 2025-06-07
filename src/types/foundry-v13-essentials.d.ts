@@ -76,6 +76,7 @@ interface Game {
   users: FoundryCollection<FoundryUser>;
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
+  keybindings?: FoundryKeybindings;
 
   // Season & Stars specific integration point
   seasonsStars?: {
@@ -526,6 +527,42 @@ interface CalendarDate {
  */
 
 // =============================================================================
+// FOUNDRY KEYBINDINGS
+// =============================================================================
+
+interface FoundryKeybindings {
+  register(namespace: string, action: string, data: KeybindingData): void;
+  actions: Map<string, Map<string, KeybindingAction>>;
+}
+
+interface KeybindingData {
+  name: string;
+  hint: string;
+  editable: KeybindingKey[];
+  onDown?: () => boolean | void;
+  onUp?: () => boolean | void;
+  restricted?: boolean;
+  precedence?: number;
+}
+
+interface KeybindingKey {
+  key: string;
+  modifiers: string[];
+}
+
+interface KeybindingAction {
+  namespace: string;
+  action: string;
+  name: string;
+  hint: string;
+  editable: KeybindingKey[];
+  onDown?: () => boolean | void;
+  onUp?: () => boolean | void;
+  restricted: boolean;
+  precedence: number;
+}
+
+// =============================================================================
 // FOUNDRY CONSTANTS
 // =============================================================================
 
@@ -536,6 +573,11 @@ declare global {
       LIMITED: 1;
       OBSERVER: 2;
       OWNER: 3;
+    };
+    KEYBINDING_PRECEDENCE: {
+      DEFERRED: 0;
+      NORMAL: 1;
+      PRIORITY: 2;
     };
   };
 }

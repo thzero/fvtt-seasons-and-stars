@@ -2,7 +2,22 @@
  * Calendar Mini Widget Styles - Designed to pair with SmallTime
  */
 
+// Smooth fade-out animation for widget hide (SmallTime approach)
+@keyframes seasons-stars-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .calendar-mini-widget {
+  // Ensure widget is clickable and visible
+  pointer-events: all !important;
+  visibility: visible !important;
+  display: block !important;
+  
   // Remove all window chrome
   .window-header {
     display: none;
@@ -13,11 +28,13 @@
     margin: 0;
     background: transparent;
     border: none;
+    pointer-events: all !important;
   }
 
   .calendar-mini-content {
     // Match SmallTime's exact dimensions and styling
     width: 200px; // Same width as SmallTime
+    min-width: 200px; // Ensure minimum width
     min-height: 24px; // Similar height to SmallTime's content area, expandable for controls
     height: auto; // Allow height to grow with time controls
     background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
@@ -37,7 +54,11 @@
     
     // Position above SmallTime but dynamically adjust for player list
     position: relative;
-    z-index: 95; // Default: above collapsed player list, below expanded
+    z-index: 1000; // High enough to be above game canvas and most UI elements
+    
+    // Ensure clickability
+    pointer-events: all !important;
+    cursor: pointer;
     
     // Flexible layout for content + controls
     display: flex;
@@ -55,7 +76,13 @@
       padding: 2px 4px;
       border-radius: 3px;
       transition: all 0.2s;
-
+      pointer-events: all !important;
+      user-select: none;
+      
+      // Ensure it's visible and has content
+      min-width: 100px;
+      min-height: 16px;
+      
       &:hover {
         background: rgba(255, 255, 255, 0.1);
         transform: scale(1.02);

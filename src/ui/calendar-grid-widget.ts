@@ -3,6 +3,8 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
+import { CalendarWidget } from './calendar-widget';
+import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
@@ -58,6 +60,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       goToToday: CalendarGridWidget.prototype._onGoToToday,
       setYear: CalendarGridWidget.prototype._onSetYear,
       createNote: CalendarGridWidget.prototype._onCreateNote,
+      switchToMain: CalendarGridWidget.prototype._onSwitchToMain,
+      switchToMini: CalendarGridWidget.prototype._onSwitchToMini,
     },
   };
 
@@ -1132,5 +1136,39 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     this.sidebarButtons.forEach(button => {
       this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
     });
+  }
+
+  /**
+   * Switch to main widget
+   */
+  async _onSwitchToMain(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    Logger.debug('Switching from grid widget to main widget');
+
+    try {
+      // Close current widget
+      this.close();
+      // Open main widget
+      CalendarWidget.show();
+    } catch (error) {
+      Logger.error('Failed to switch to main widget', error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  /**
+   * Switch to mini widget
+   */
+  async _onSwitchToMini(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    Logger.debug('Switching from grid widget to mini widget');
+
+    try {
+      // Close current widget
+      this.close();
+      // Open mini widget
+      CalendarMiniWidget.show();
+    } catch (error) {
+      Logger.error('Failed to switch to mini widget', error instanceof Error ? error : new Error(String(error)));
+    }
   }
 }

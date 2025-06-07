@@ -5,6 +5,7 @@
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarGridWidget } from './calendar-grid-widget';
+import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
@@ -42,6 +43,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       advanceDate: CalendarWidget.prototype._onAdvanceDate,
       openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance,
       clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton,
+      switchToMini: CalendarWidget.prototype._onSwitchToMini,
+      switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
     },
   };
 
@@ -223,6 +226,40 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     } else {
       Logger.warn(`Sidebar button "${buttonName}" not found or has invalid callback`);
+    }
+  }
+
+  /**
+   * Switch to mini widget
+   */
+  async _onSwitchToMini(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    Logger.debug('Switching from main widget to mini widget');
+
+    try {
+      // Close current widget
+      this.close();
+      // Open mini widget
+      CalendarMiniWidget.show();
+    } catch (error) {
+      Logger.error('Failed to switch to mini widget', error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  /**
+   * Switch to grid widget
+   */
+  async _onSwitchToGrid(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+    Logger.debug('Switching from main widget to grid widget');
+
+    try {
+      // Close current widget
+      this.close();
+      // Open grid widget
+      CalendarGridWidget.show();
+    } catch (error) {
+      Logger.error('Failed to switch to grid widget', error instanceof Error ? error : new Error(String(error)));
     }
   }
 

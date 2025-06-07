@@ -17,6 +17,7 @@ import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
+import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
@@ -40,6 +41,10 @@ Hooks.once('init', async () => {
 
   // Register module settings
   registerSettings();
+
+  // Register keyboard shortcuts (must be in init hook)
+  Logger.info('Registering keyboard shortcuts');
+  SeasonsStarsKeybindings.registerKeybindings();
 
   // Initialize note categories after settings are available
   initializeNoteCategories();
@@ -97,9 +102,22 @@ Hooks.once('ready', async () => {
   Logger.info('Registering macros');
   SeasonsStarsSceneControls.registerMacros();
 
-  // Show widget if enabled in settings
+  // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
-    CalendarWidget.show();
+    const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+    
+    switch (defaultWidget) {
+      case 'mini':
+        CalendarMiniWidget.show();
+        break;
+      case 'grid':
+        CalendarGridWidget.show();
+        break;
+      case 'main':
+      default:
+        CalendarWidget.show();
+        break;
+    }
   }
 
   // Fire ready hook for compatibility modules
@@ -141,6 +159,20 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: true,
+  });
+
+  game.settings.register('seasons-and-stars', 'defaultWidget', {
+    name: 'SEASONS_STARS.settings.default_widget',
+    hint: 'SEASONS_STARS.settings.default_widget_hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    default: 'main',
+    choices: {
+      'main': 'SEASONS_STARS.settings.default_widget_main',
+      'mini': 'SEASONS_STARS.settings.default_widget_mini',
+      'grid': 'SEASONS_STARS.settings.default_widget_grid'
+    }
   });
 
   game.settings.register('seasons-and-stars', 'showNotifications', {

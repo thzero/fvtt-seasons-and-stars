@@ -13,6 +13,14 @@
         <span>{{calendar.label}}</span>
         <i class="fas fa-chevron-down dropdown-icon"></i>
       </div>
+      <div class="widget-switching-controls">
+        <button type="button" class="widget-switch-btn" data-action="switchToMini" title="Switch to Mini Widget">
+          <i class="fas fa-compress-alt"></i>
+        </button>
+        <button type="button" class="widget-switch-btn" data-action="switchToGrid" title="Switch to Grid Widget">
+          <i class="fas fa-th"></i>
+        </button>
+      </div>
       <div class="calendar-hint">Click above to change calendar</div>
       {{#if calendar.setting}}
         <div class="calendar-setting">{{calendar.setting}}</div>

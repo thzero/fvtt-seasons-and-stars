@@ -4,6 +4,7 @@
 
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
+import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
 
 export class SeasonsStarsSceneControls {
@@ -37,11 +38,9 @@ export class SeasonsStarsSceneControls {
         // Use SmallTime's pattern of direct property assignment
         controls.notes.tools['seasons-stars-widget'] = {
           name: 'seasons-stars-widget',
-          title: 'SEASONS_STARS.calendar.current_date',
+          title: 'SEASONS_STARS.calendar.toggle_calendar',
           icon: 'fas fa-calendar-alt',
-          onChange: () => CalendarWidget.toggle(),
-          //toggle: true,
-          //active: false,
+          onChange: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
           button: true,
         };
         
@@ -55,18 +54,46 @@ export class SeasonsStarsSceneControls {
       }
     });
 
-    // Update button state when widget is shown/hidden
+    // Update button state when any widget is shown/hidden
     Hooks.on('renderApplication', (app: any) => {
-      if (app instanceof CalendarWidget) {
+      if (app instanceof CalendarWidget || app instanceof CalendarMiniWidget || app instanceof CalendarGridWidget) {
         SeasonsStarsSceneControls.updateControlState(true);
       }
     });
 
     Hooks.on('closeApplication', (app: any) => {
-      if (app instanceof CalendarWidget) {
+      if (app instanceof CalendarWidget || app instanceof CalendarMiniWidget || app instanceof CalendarGridWidget) {
         SeasonsStarsSceneControls.updateControlState(false);
       }
     });
+  }
+
+  /**
+   * Toggle the default widget based on user settings
+   */
+  private static toggleDefaultWidget(): void {
+    try {
+      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      
+      Logger.debug('Scene control toggling default widget', { defaultWidget });
+
+      switch (defaultWidget) {
+        case 'mini':
+          CalendarMiniWidget.toggle();
+          break;
+        case 'grid':
+          CalendarGridWidget.toggle();
+          break;
+        case 'main':
+        default:
+          CalendarWidget.toggle();
+          break;
+      }
+    } catch (error) {
+      Logger.error('Failed to toggle default widget from scene control', error instanceof Error ? error : new Error(String(error)));
+      // Fallback to main widget
+      CalendarWidget.toggle();
+    }
   }
 
   /**
