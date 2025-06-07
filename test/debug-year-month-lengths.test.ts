@@ -1,0 +1,131 @@
+/**
+ * Debug test to check year vs month length calculations
+ */
+
+import { describe, test } from 'vitest';
+import { CalendarEngine } from '../src/core/calendar-engine';
+import type { SeasonsStarsCalendar } from '../src/types/calendar';
+
+const golarionCalendar: SeasonsStarsCalendar = {
+  id: "golarion-pf2e",
+  year: { epoch: 2700, currentYear: 4710, startDay: 6 },
+  leapYear: { rule: "custom", interval: 4, month: "Calistril", extraDays: 1 },
+  months: [
+    { name: "Abadius", days: 31 }, { name: "Calistril", days: 28 }, { name: "Pharast", days: 31 },
+    { name: "Gozran", days: 30 }, { name: "Desnus", days: 31 }, { name: "Sarenith", days: 30 },
+    { name: "Erastus", days: 31 }, { name: "Arodus", days: 31 }, { name: "Rova", days: 30 },
+    { name: "Lamashan", days: 31 }, { name: "Neth", days: 30 }, { name: "Kuthona", days: 31 }
+  ],
+  weekdays: [
+    { name: "Moonday" }, { name: "Toilday" }, { name: "Wealday" },
+    { name: "Oathday" }, { name: "Fireday" }, { name: "Starday" }, { name: "Sunday" }
+  ],
+  intercalary: [],
+  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 }
+};
+
+describe('Year vs Month Length Debug', () => {
+  test('Check year 2700 length calculations', () => {
+    const engine = new CalendarEngine(golarionCalendar);
+    
+    console.log('\n=== YEAR 2700 LENGTH ANALYSIS ===');
+    
+    // @ts-ignore - accessing private method
+    const yearLength = engine.getYearLength(2700);
+    console.log('getYearLength(2700):', yearLength);
+    
+    // @ts-ignore - accessing private method
+    const monthLengths = engine.getMonthLengths(2700);
+    console.log('getMonthLengths(2700):', monthLengths);
+    
+    const totalMonthDays = monthLengths.reduce((sum, days) => sum + days, 0);
+    console.log('Sum of month lengths:', totalMonthDays);
+    
+    // @ts-ignore - accessing private method
+    const isLeapYear = engine.isLeapYear(2700);
+    console.log('isLeapYear(2700):', isLeapYear);
+    
+    // @ts-ignore - accessing private method
+    const intercalaryDays = engine.getIntercalaryDays(2700);
+    console.log('getIntercalaryDays(2700):', intercalaryDays);
+    
+    // Manual calculation
+    const baseMonthDays = golarionCalendar.months.reduce((sum, m) => sum + m.days, 0);
+    console.log('Base month days (from calendar def):', baseMonthDays);
+    
+    // Check leap year calculation
+    const leapYearExtra = isLeapYear ? (golarionCalendar.leapYear.extraDays || 1) : 0;
+    console.log('Leap year extra days:', leapYearExtra);
+    
+    const expectedYearLength = baseMonthDays + leapYearExtra;
+    console.log('Expected year length:', expectedYearLength);
+    
+    if (yearLength !== expectedYearLength) {
+      console.log('❌ MISMATCH: getYearLength vs manual calculation');
+    } else {
+      console.log('✅ getYearLength matches manual calculation');
+    }
+    
+    if (yearLength !== totalMonthDays) {
+      console.log('❌ MISMATCH: getYearLength vs sum of getMonthLengths');
+      console.log('This could cause the bug!');
+    } else {
+      console.log('✅ getYearLength matches sum of month lengths');
+    }
+  });
+  
+  test('Simulate the exact 365-day scenario', () => {
+    const engine = new CalendarEngine(golarionCalendar);
+    
+    console.log('\n=== SIMULATING 365-DAY SCENARIO ===');
+    
+    // Simulate what happens with 365 days in daysToDate
+    let year = 2700;
+    let remainingDays = 365;
+    
+    // @ts-ignore
+    const yearLength = engine.getYearLength(year);
+    console.log('Starting year:', year);
+    console.log('Starting remainingDays:', remainingDays);
+    console.log('Year length:', yearLength);
+    console.log('remainingDays >= yearLength?', remainingDays >= yearLength);
+    console.log('Should advance to next year?', remainingDays >= yearLength ? 'YES' : 'NO');
+    
+    if (remainingDays >= yearLength) {
+      remainingDays -= yearLength;
+      year++;
+      console.log('After year advancement: year =', year, ', remainingDays =', remainingDays);
+    }
+    
+    // Now check month calculation
+    // @ts-ignore
+    const monthLengths = engine.getMonthLengths(year);
+    console.log('\nMonth lengths for year', year, ':', monthLengths);
+    
+    let month = 1;
+    let tempRemainingDays = remainingDays;
+    
+    for (month = 1; month <= golarionCalendar.months.length; month++) {
+      const monthLength = monthLengths[month - 1];
+      console.log(`Month ${month} (${golarionCalendar.months[month - 1].name}): ${monthLength} days`);
+      console.log(`  RemainingDays: ${tempRemainingDays}, MonthLength: ${monthLength}`);
+      console.log(`  tempRemainingDays < monthLength? ${tempRemainingDays < monthLength}`);
+      
+      if (tempRemainingDays < monthLength) {
+        console.log(`  Breaking at month ${month}`);
+        break;
+      }
+      
+      tempRemainingDays -= monthLength;
+      console.log(`  After subtracting: tempRemainingDays = ${tempRemainingDays}`);
+    }
+    
+    const day = tempRemainingDays + 1;
+    console.log(`\nFinal result: Year ${year}, Month ${month}, Day ${day}`);
+    
+    // Test actual method
+    // @ts-ignore
+    const actualResult = engine.daysToDate(365);
+    console.log('Actual daysToDate(365):', actualResult);
+  });
+});
