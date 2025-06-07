@@ -11,19 +11,46 @@ export class SeasonsStarsSceneControls {
    * Register scene controls
    */
   static registerControls(): void {
-    Hooks.on('getSceneControlButtons', (controls: any[]) => {
-      // Find the token controls group to add our button
-      const tokenControls = controls.find(c => c.name === 'token');
+    Logger.info('SeasonsStarsSceneControls.registerControls() called - registering getSceneControlButtons hook');
+    
+    Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+      Logger.debug('getSceneControlButtons hook fired', {
+        userExists: !!game.user,
+        isGM: game.user?.isGM,
+        controlsType: typeof controls,
+        controlsKeys: Object.keys(controls),
+        notesExists: !!controls.notes,
+        notesToolsExists: !!controls.notes?.tools,
+        notesToolsType: typeof controls.notes?.tools,
+        notesToolsKeys: controls.notes?.tools ? Object.keys(controls.notes.tools) : null
+      });
 
-      if (tokenControls) {
-        tokenControls.tools.push({
+      if (!game.user?.isGM) {
+        Logger.debug('User is not GM, skipping scene control registration');
+        return;
+      }
+
+      // Access notes controls directly (controls is an object, not array)
+      if (controls.notes?.tools) {
+        Logger.debug('Adding S&S scene control to notes.tools');
+        
+        // Use SmallTime's pattern of direct property assignment
+        controls.notes.tools['seasons-stars-widget'] = {
           name: 'seasons-stars-widget',
           title: 'SEASONS_STARS.calendar.current_date',
           icon: 'fas fa-calendar-alt',
-          onClick: () => CalendarWidget.toggle(),
-          toggle: true,
-          active: false,
+          onChange: () => CalendarWidget.toggle(),
+          //toggle: true,
+          //active: false,
           button: true,
+        };
+        
+        Logger.debug('Added S&S scene control button, updated tools:', Object.keys(controls.notes.tools));
+      } else {
+        Logger.warn('Notes controls not available for scene button', {
+          notesExists: !!controls.notes,
+          notesToolsExists: !!controls.notes?.tools,
+          fullControlsStructure: controls
         });
       }
     });
@@ -46,6 +73,7 @@ export class SeasonsStarsSceneControls {
    * Update the control button state
    */
   private static updateControlState(active: boolean): void {
+    // Look for our tool button in the scene controls
     const control = document.querySelector('[data-tool="seasons-stars-widget"]');
     if (control) {
       control.classList.toggle('active', active);

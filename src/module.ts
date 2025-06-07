@@ -29,6 +29,9 @@ import type {
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;
 
+// Register scene controls at top level (critical timing requirement)
+SeasonsStarsSceneControls.registerControls();
+
 /**
  * Module initialization
  */
@@ -41,7 +44,7 @@ Hooks.once('init', async () => {
   // Initialize note categories after settings are available
   initializeNoteCategories();
 
-  // Initialize managers
+  // Initialize managers first
   calendarManager = new CalendarManager();
   notesManager = new NotesManager();
 
@@ -89,7 +92,9 @@ Hooks.once('ready', async () => {
   CalendarMiniWidget.registerHooks();
   CalendarGridWidget.registerHooks();
   CalendarMiniWidget.registerSmallTimeIntegration();
-  SeasonsStarsSceneControls.registerControls();
+  
+  // Scene controls registered at top level for timing requirements
+  Logger.info('Registering macros');
   SeasonsStarsSceneControls.registerMacros();
 
   // Show widget if enabled in settings
