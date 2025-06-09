@@ -201,7 +201,7 @@ export class SeasonsStarsSceneControls {
       showWidget: () => SeasonsStarsSceneControls.showDefaultWidget(),
       hideWidget: () => SeasonsStarsSceneControls.hideDefaultWidget(),
       toggleWidget: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
-      
+
       // Specific widget controls (for advanced users who want to override default)
       showMainWidget: () => CalendarWidget.show(),
       hideMainWidget: () => CalendarWidget.hide(),
@@ -212,7 +212,7 @@ export class SeasonsStarsSceneControls {
       showGridWidget: () => CalendarGridWidget.show(),
       hideGridWidget: () => CalendarGridWidget.hide(),
       toggleGridWidget: () => CalendarGridWidget.toggle(),
-      
+
       // Mini widget positioning (legacy support)
       positionMiniAboveSmallTime: () => CalendarMiniWidget.positionAboveSmallTime(),
       positionMiniBelowSmallTime: () => CalendarMiniWidget.positionBelowSmallTime(),
