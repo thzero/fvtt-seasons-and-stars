@@ -23,6 +23,9 @@ jobs:
       - name: Release Please
         id: release
         uses: googleapis/release-please-action@v4
+        with:
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
 
   build-and-upload:
     if: needs.release-please.outputs.release_created
