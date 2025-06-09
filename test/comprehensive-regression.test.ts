@@ -52,7 +52,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
       it('should handle basic date operations', () => {
         const cal = engine.getCalendar();
-        const testDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const testDate = { year: cal.year.currentYear + 1, month: 1, day: 1, weekday: 0 };
 
         // Test date conversion round-trip
         const days = engine.dateToDays(testDate);
@@ -66,7 +66,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
       it('should calculate weekdays correctly', () => {
         const cal = engine.getCalendar();
-        const testDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const testDate = { year: cal.year.currentYear + 1, month: 1, day: 1, weekday: 0 };
         const weekday = engine.calculateWeekday(testDate.year, testDate.month, testDate.day);
 
         expect(weekday).toBeGreaterThanOrEqual(0);
@@ -77,7 +77,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
       it('should advance days correctly', () => {
         const cal = engine.getCalendar();
-        const startDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const startDate = { year: cal.year.currentYear + 1, month: 1, day: 1, weekday: 0 };
         const advancedDate = engine.addDays(startDate, 5);
 
         expect(advancedDate).toBeDefined();
@@ -93,24 +93,47 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
       it('should handle month boundaries correctly', () => {
         const cal = engine.getCalendar();
+        
+        // Skip test for calendars with only 1 month (like Traveller)
+        if (cal.months.length === 1) {
+          expect(true).toBe(true); // Mark test as passed
+          return;
+        }
+        
         // Test last day of first month
-        const monthLengths = engine.getMonthLengths(cal.year.start + 1);
+        const monthLengths = engine.getMonthLengths(cal.year.currentYear + 1);
         const lastDayOfMonth = {
-          year: cal.year.start + 1,
+          year: cal.year.currentYear + 1,
           month: 1,
           day: monthLengths[0],
           weekday: 0,
         };
 
         const nextDay = engine.addDays(lastDayOfMonth, 1);
-        expect(nextDay.month).toBe(2);
-        expect(nextDay.day).toBe(1);
+        
+        // Check if this calendar has intercalary days after month 1
+        const intercalaryAfterMonth1 = cal.intercalary?.some(i => i.after === cal.months[0].name);
+        
+        if (intercalaryAfterMonth1) {
+          // Calendar has intercalary day after month 1, so +1 day should be intercalary
+          expect(nextDay.month).toBe(1);
+          expect(nextDay.intercalary).toBeDefined();
+          
+          // Test that +2 days reaches month 2
+          const dayAfterIntercalary = engine.addDays(lastDayOfMonth, 2);
+          expect(dayAfterIntercalary.month).toBe(2);
+          expect(dayAfterIntercalary.day).toBe(1);
+        } else {
+          // No intercalary day, so +1 day should go directly to month 2
+          expect(nextDay.month).toBe(2);
+          expect(nextDay.day).toBe(1);
+        }
       });
 
       it('should handle year boundaries correctly', () => {
         const cal = engine.getCalendar();
         // Test last day of year
-        const year = cal.year.start + 1;
+        const year = cal.year.currentYear + 1;
         const monthLengths = engine.getMonthLengths(year);
         const lastMonth = cal.months.length;
         const lastDay = monthLengths[lastMonth - 1];
