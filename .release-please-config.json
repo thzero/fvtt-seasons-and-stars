@@ -1,8 +1,9 @@
 {
   "release-type": "node",
+  "include-v-in-tag": true,
+  "include-component-in-tag": false,
   "packages": {
     ".": {
-      "package-name": "seasons-and-stars",
       "changelog-sections": [
         { "type": "feat", "section": "Features", "hidden": false },
         { "type": "fix", "section": "Bug Fixes", "hidden": false },
