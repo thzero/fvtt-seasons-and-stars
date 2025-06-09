@@ -165,6 +165,7 @@ interface Module {
   title: string;
   active: boolean;
   version?: string;
+  api?: any; // For modules that expose APIs
 }
 
 interface UI {
