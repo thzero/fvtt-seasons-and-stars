@@ -318,9 +318,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Add intercalary days as separate full-width rows
     const intercalaryDays = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
     for (const intercalary of intercalaryDays) {
+      // Find the month that this intercalary day comes after
+      const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalary.after);
+      const intercalaryMonth = afterMonthIndex >= 0 ? afterMonthIndex + 1 : viewDate.month;
+
       const intercalaryDate: ICalendarDate = {
         year: viewDate.year,
-        month: viewDate.month,
+        month: intercalaryMonth, // Use the month it comes after (1-based)
         day: 1, // Intercalary days don't have regular day numbers
         weekday: 0, // Intercalary days don't have weekdays
         time: { hour: 0, minute: 0, second: 0 },
@@ -386,6 +390,31 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
     return date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
+  }
+
+  /**
+   * Add ordinal suffix to a number (1st, 2nd, 3rd, etc.)
+   */
+  private addOrdinalSuffix(num: number): string {
+    const lastDigit = num % 10;
+    const lastTwoDigits = num % 100;
+
+    // Handle special cases (11th, 12th, 13th)
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+      return `${num}th`;
+    }
+
+    // Handle regular cases
+    switch (lastDigit) {
+      case 1:
+        return `${num}st`;
+      case 2:
+        return `${num}nd`;
+      case 3:
+        return `${num}rd`;
+      default:
+        return `${num}th`;
+    }
   }
 
   /**
@@ -481,17 +510,27 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const intercalaryName = target.dataset.day; // For intercalary days, day contains the name
         if (!intercalaryName) return;
 
+        // Find the intercalary day definition to determine which month it comes after
+        const calendar = engine.getCalendar();
+        const intercalaryDef = calendar.intercalary?.find(i => i.name === intercalaryName);
+        if (!intercalaryDef) return;
+
+        // Find the month that this intercalary day comes after
+        const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalaryDef.after);
+        if (afterMonthIndex === -1) return;
+
         targetDate = {
           year: this.viewDate.year,
-          month: this.viewDate.month,
-          day: 1, // Intercalary days don't have regular day numbers
+          month: afterMonthIndex + 1, // Use the month it comes after (1-based)
+          day: 1, // Intercalary days typically use day 1 as a placeholder
           weekday: 0, // Intercalary days don't have weekdays
           time: currentDate.time || { hour: 0, minute: 0, second: 0 },
           intercalary: intercalaryName,
         };
 
+        const afterMonthName = calendar.months[afterMonthIndex]?.name || 'Unknown';
         ui.notifications?.info(
-          `Date set to ${intercalaryName} (intercalary day after ${this.viewDate.year}-${this.viewDate.month})`
+          `Date set to ${intercalaryName} (intercalary day after ${afterMonthName} ${this.viewDate.year})`
         );
       } else {
         // Handle regular day selection
@@ -506,8 +545,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           time: currentDate.time || { hour: 0, minute: 0, second: 0 },
         };
 
+        const calendar = engine.getCalendar();
+        const monthName = calendar.months[targetDate.month - 1]?.name || 'Unknown';
+        const dayWithSuffix = this.addOrdinalSuffix(targetDate.day);
         ui.notifications?.info(
-          `Date set to ${targetDate.year}-${targetDate.month.toString().padStart(2, '0')}-${targetDate.day.toString().padStart(2, '0')}`
+          `Date set to ${dayWithSuffix} of ${monthName}, ${targetDate.year}`
         );
       }
 
