@@ -162,30 +162,35 @@
       "name": "Midwinter",
       "month": 1,
       "day": 31,
+      "after": "Hammer",
       "description": "A festival day between Hammer and Alturiak, celebrating the heart of winter"
     },
     {
       "name": "Greengrass",
       "month": 4,
       "day": 31,
+      "after": "Tarsakh",
       "description": "A spring festival between Tarsakh and Mirtul, welcoming the growing season"
     },
     {
       "name": "Midsummer",
       "month": 7,
       "day": 31,
+      "after": "Flamerule",
       "description": "The most important festival, between Flamerule and Eleasis"
     },
     {
       "name": "Shieldmeet",
       "month": 7,
       "day": 32,
+      "after": "Flamerule",
       "description": "Occurs every four years after Midsummer, a grand festival and political gathering"
     },
     {
       "name": "Highharvestide",
       "month": 10,
       "day": 31,
+      "after": "Marpenoth",
       "description": "An autumn festival between Marpenoth and Uktar, celebrating the harvest"
     }
   ],

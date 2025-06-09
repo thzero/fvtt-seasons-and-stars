@@ -92,13 +92,25 @@ window.SeasonsStars.CalendarGridWidget.getInstance()?.render();
 - Widget refresh not re-querying storage
 - Missing widget instances or render failures
 
-##### Diagnostic Script (Recommended)
+##### Console Diagnostic (Recommended)
 
-Before trying the workaround, run the diagnostic script to identify the actual failure point:
+Before trying other workarounds, test each component in the browser console to identify the failure point:
 
 ```javascript
-// Copy and paste contents of debug-workaround.js into console
-// This will test each component and identify where the chain breaks
+// Test if notes manager is available
+console.log('Notes manager:', game.seasonsStars?.notes);
+
+// Test if storage exists
+console.log('Storage:', game.seasonsStars?.notes?.storage);
+
+// Test if reindex method exists
+console.log('Reindex method:', typeof game.seasonsStars?.notes?.storage?.rebuildIndex);
+
+// Attempt to rebuild index
+if (game.seasonsStars?.notes?.storage?.rebuildIndex) {
+  await game.seasonsStars.notes.storage.rebuildIndex();
+  console.log('Index rebuild attempted');
+}
 ```
 
 ##### Foundry Macro (Untested)
@@ -155,21 +167,9 @@ Disable and re-enable Seasons & Stars module to trigger full reinitialization. T
 
 #### Workaround Implementation
 
-**Diagnostic Script**: A diagnostic script is available at `debug-workaround.js` to test each component:
+**Console Commands**: Use the diagnostic code provided above to test each component manually in the browser console.
 
-```bash
-# Load and run the diagnostic
-cp debug-workaround.js /path/to/foundry/Data/
-# Then paste contents into browser console to identify the failure point
-```
-
-**Quickfix Script**: A theoretical fix script is available at `fix-note-highlighting.js`, but it is **untested and may not work**:
-
-```bash
-# WARNING: Untested workaround
-cp fix-note-highlighting.js /path/to/foundry/Data/
-# Then paste contents into browser console (use at your own risk)
-```
+**Module Reload**: The most reliable workaround is to disable and re-enable the Seasons & Stars module, which triggers full reinitialization of the storage system.
 
 ---
 

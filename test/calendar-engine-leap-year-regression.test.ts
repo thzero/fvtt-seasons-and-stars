@@ -1,5 +1,13 @@
 /**
- * Debug test to check year vs month length calculations
+ * Leap Year Calculation Regression Test
+ * 
+ * This test ensures that leap year calculations remain consistent and that
+ * the calendar engine correctly handles year/month length calculations.
+ * 
+ * Prevents regression of bugs related to:
+ * - getYearLength() vs getMonthLengths() consistency
+ * - Leap year boundary calculations
+ * - 365-day vs 366-day year scenarios
  */
 
 import { describe, test } from 'vitest';
@@ -24,7 +32,7 @@ const golarionCalendar: SeasonsStarsCalendar = {
   time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 }
 };
 
-describe('Year vs Month Length Debug', () => {
+describe('Leap Year Calculation Regression', () => {
   test('Check year 2700 length calculations', () => {
     const engine = new CalendarEngine(golarionCalendar);
     

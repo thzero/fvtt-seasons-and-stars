@@ -1,12 +1,14 @@
 /**
- * Phase 2 Universal WorldTime Interpretation Solution Test Suite
+ * WorldTime Interpretation Regression Test Suite
  * 
- * This test suite validates that the universal worldTime interpretation solution
- * implemented in Phase 2 works correctly for both epoch-based and real-time-based
- * calendar interpretation modes.
+ * This test suite prevents regression of the universal worldTime interpretation solution
+ * that fixes GitHub Issue #20 - PF2e Calendar Date Mismatch.
  * 
- * Related to GitHub Issue #20 - PF2e Calendar Date Mismatch
- * Solution: Universal calendar format enhancement with interpretation metadata
+ * CRITICAL: These tests ensure the calendar engine never returns to the broken state
+ * where calendars were stuck at epoch regardless of worldTime values.
+ * 
+ * Tests both epoch-based and real-time-based calendar interpretation modes and
+ * verifies PF2e compatibility remains within acceptable bounds (<10 year difference).
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
@@ -158,7 +160,7 @@ const legacyCalendar: SeasonsStarsCalendar = {
   }
 };
 
-describe('Phase 2: Universal WorldTime Interpretation Solution', () => {
+describe('WorldTime Interpretation Regression Tests', () => {
   let epochEngine: CalendarEngine;
   let realTimeEngine: CalendarEngine;
   let legacyEngine: CalendarEngine;
@@ -321,5 +323,60 @@ describe('Phase 2: Universal WorldTime Interpretation Solution', () => {
     expect(Math.abs(epochResult.year - realTimeResult.year)).toBeGreaterThan(1000);
     
     console.log('✅ Universal solution working across all interpretation modes');
+  });
+
+  test('🐛 REGRESSION TEST: Original GitHub Issue #20 Bug is Fixed', () => {
+    console.log('\n=== ORIGINAL BUG REGRESSION TEST ===');
+    console.log('GitHub Issue #20: PF2e Calendar Date Mismatch');
+    console.log('Original Problem: S&S calendar stuck at epoch regardless of worldTime value');
+    
+    // Test the exact scenario that was broken before our fix
+    // Use the actual Golarion calendar (real-time-based) as it would be used in PF2e
+    
+    // Simulate the exact conditions from the bug report
+    const worldTime = 0; // Fresh world creation
+    const pf2eExpectedYear = 2025 + 2700; // 4725 AR (PF2e calculation method)
+    
+    const ssDate = realTimeEngine.worldTimeToDate(worldTime);
+    console.log(`Original bug test - worldTime=${worldTime}:`);
+    console.log(`  PF2e expected: ${pf2eExpectedYear} AR`);
+    console.log(`  S&S result: ${ssDate.year} AR`);
+    
+    // Before the fix: S&S would return 2700 AR (epoch) regardless of worldTime
+    // After the fix: S&S should return a year close to PF2e's calculation (within 10 years)
+    
+    // CRITICAL: This test would have FAILED before our Phase 2 fix
+    // The original bug was: ssDate.year === 2700 (always epoch)
+    // Our fix ensures: ssDate.year ≈ pf2eExpectedYear (close to PF2e calculation)
+    
+    const yearDifference = Math.abs(pf2eExpectedYear - ssDate.year);
+    console.log(`  Year difference: ${yearDifference} years`);
+    
+    // Verify the original bug is fixed
+    expect(ssDate.year).not.toBe(2700); // Should NOT be stuck at epoch anymore
+    expect(yearDifference).toBeLessThan(10); // Should be close to PF2e calculation
+    expect(ssDate.year).toBeGreaterThan(4700); // Should be in reasonable modern Golarion timeframe
+    
+    console.log('✅ REGRESSION TEST PASSED: Original bug is fixed!');
+    console.log('✅ S&S calendar now advances time correctly and matches PF2e expectations');
+    
+    // Additional verification: Test that time actually advances (core issue)
+    const oneDayLater = realTimeEngine.worldTimeToDate(86400);
+    const oneWeekLater = realTimeEngine.worldTimeToDate(86400 * 7);
+    
+    console.log(`Time advancement verification:`);
+    console.log(`  worldTime=0: ${ssDate.year}/${ssDate.month}/${ssDate.day}`);
+    console.log(`  worldTime=86400: ${oneDayLater.year}/${oneDayLater.month}/${oneDayLater.day}`);
+    console.log(`  worldTime=604800: ${oneWeekLater.year}/${oneWeekLater.month}/${oneWeekLater.day}`);
+    
+    // Core bug verification: Calendar should advance time, not stay frozen
+    const startTotal = ssDate.year * 365 + ssDate.month * 30 + ssDate.day;
+    const dayTotal = oneDayLater.year * 365 + oneDayLater.month * 30 + oneDayLater.day;
+    const weekTotal = oneWeekLater.year * 365 + oneWeekLater.month * 30 + oneWeekLater.day;
+    
+    expect(dayTotal).toBeGreaterThan(startTotal); // Time must advance
+    expect(weekTotal).toBeGreaterThan(dayTotal); // Time must continue advancing
+    
+    console.log('✅ Time advancement working: Calendar no longer frozen at epoch');
   });
 });

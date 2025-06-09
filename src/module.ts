@@ -36,6 +36,204 @@ let notesManager: NotesManager;
 // Register scene controls at top level (critical timing requirement)
 SeasonsStarsSceneControls.registerControls();
 
+// Register Errors and Echoes hook at top level (RECOMMENDED - eliminates timing issues)
+Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
+  // E&E is guaranteed to be ready when this hook is called
+  try {
+    Logger.debug('Registering with Errors and Echoes via hook');
+
+    errorsAndEchoesAPI.register({
+      moduleId: 'seasons-and-stars',
+
+      // Context provider - adds useful debugging information
+      contextProvider: () => {
+        // Use defensive programming to prevent context provider errors
+        const context: Record<string, any> = {};
+
+        try {
+          // Add current calendar information
+          if (calendarManager) {
+            const currentDate = calendarManager.getCurrentDate();
+            const activeCalendar = calendarManager.getActiveCalendar();
+
+            context.currentDate = currentDate
+              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
+              : 'unknown';
+            context.activeCalendarId = activeCalendar?.id || 'unknown';
+            context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
+            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
+          }
+        } catch (error) {
+          context.calendarDataError = 'Failed to access calendar data';
+        }
+
+        try {
+          // Add widget state information
+          const activeWidgets: string[] = [];
+          if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
+          if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
+          if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
+          
+          context.activeWidgets = activeWidgets;
+          context.widgetCount = activeWidgets.length;
+        } catch (error) {
+          context.widgetDataError = 'Failed to access widget data';
+        }
+
+        try {
+          // Add system integration status
+          context.smallTimeDetected = !!document.querySelector('#smalltime-app');
+          context.simpleCalendarActive = game.modules?.get('foundryvtt-simple-calendar')?.active || false;
+        } catch (error) {
+          context.integrationDataError = 'Failed to check integrations';
+        }
+
+        try {
+          // Add notes information
+          if (notesManager) {
+            context.notesSystemInitialized = notesManager.isInitialized();
+            // Don't expose note count as it might be sensitive
+          }
+        } catch (error) {
+          context.notesError = 'Could not read notes state';
+        }
+
+        try {
+          // Add current scene information
+          if ((game as any).scenes?.active) {
+            const scene = (game as any).scenes.active;
+            context.sceneId = scene.id;
+            context.sceneName = scene.name;
+          }
+        } catch (error) {
+          context.sceneError = 'Could not read scene data';
+        }
+
+        try {
+          // Add system information
+          context.gameSystem = (game as any).system?.id || 'unknown';
+          context.systemVersion = (game as any).system?.version || 'unknown';
+          context.foundryVersion = (game as any).version || 'unknown';
+        } catch (error) {
+          context.systemInfoError = 'Could not read system information';
+        }
+
+        try {
+          // Add key module settings that might affect behavior
+          context.showTimeWidget =
+            game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
+          context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
+          context.showNotifications =
+            game.settings?.get('seasons-and-stars', 'showNotifications') || false;
+          context.defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+        } catch (error) {
+          // Settings might not be registered yet
+          context.settingsError = 'Could not read module settings';
+        }
+
+        return context;
+      },
+
+      // Error filter - focus on errors relevant to S&S functionality
+      errorFilter: (error: Error) => {
+        const stack = error.stack || '';
+        const message = error.message || '';
+
+        // Always report errors that mention our module explicitly
+        if (
+          stack.includes('seasons-and-stars') ||
+          message.includes('seasons-and-stars') ||
+          message.includes('S&S') ||
+          stack.includes('CalendarManager') ||
+          stack.includes('CalendarWidget') ||
+          stack.includes('CalendarEngine') ||
+          stack.includes('NotesManager')
+        ) {
+          return false; // Don't filter (report this error)
+        }
+
+        // Report time/calendar related errors that might affect us
+        if (
+          message.includes('worldTime') ||
+          message.includes('game.time') ||
+          message.includes('calendar') ||
+          message.includes('dateToWorldTime') ||
+          message.includes('worldTimeToDate') ||
+          (message.includes('time') && stack.includes('foundry'))
+        ) {
+          return false; // Don't filter (time system errors affect us)
+        }
+
+        // Report widget positioning and UI errors
+        if (
+          message.includes('widget') ||
+          message.includes('SmallTime') ||
+          message.includes('player list') ||
+          (message.includes('position') && stack.includes('ui')) ||
+          message.includes('ApplicationV2')
+        ) {
+          return false; // Don't filter (UI errors might affect our widgets)
+        }
+
+        // Report integration-related errors
+        if (
+          message.includes('Simple Calendar') ||
+          message.includes('simple-calendar') ||
+          message.includes('compatibility') ||
+          message.includes('bridge') ||
+          stack.includes('integration')
+        ) {
+          return false; // Don't filter (integration errors affect us)
+        }
+
+        // Report foundry core time system errors
+        if (
+          stack.includes('foundry.js') &&
+          (message.includes('time') || message.includes('world') || message.includes('scene'))
+        ) {
+          return false; // Don't filter (core time system issues)
+        }
+
+        // Filter out errors from unrelated modules (unless they mention calendar/time)
+        const unrelatedModules = [
+          'dice-so-nice',
+          'lib-wrapper',
+          'socketlib',
+          'combat-utility-belt',
+          'enhanced-terrain-layer',
+          'token-action-hud',
+          'foundryvtt-forien-quest-log',
+        ];
+
+        for (const module of unrelatedModules) {
+          if (
+            stack.includes(module) &&
+            !message.includes('calendar') &&
+            !message.includes('time') &&
+            !stack.includes('seasons-and-stars')
+          ) {
+            return true; // Filter out (unrelated module error)
+          }
+        }
+
+        // Default: filter out most other errors unless they seem time/calendar related
+        if (message.includes('calendar') || message.includes('time') || message.includes('date')) {
+          return false; // Don't filter (might be related)
+        }
+
+        return true; // Filter out everything else
+      },
+    });
+
+    Logger.debug('Successfully registered with Errors and Echoes via hook');
+  } catch (error) {
+    Logger.error(
+      'Failed to register with Errors and Echoes via hook',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+});
+
 /**
  * Module initialization
  */
@@ -95,8 +293,7 @@ Hooks.once('ready', async () => {
   // Expose API
   setupAPI();
 
-  // Register with Errors and Echoes if available
-  registerErrorsAndEchoes();
+  // Note: Errors and Echoes registration moved to top-level hook for better timing
 
   // Register UI component hooks
   CalendarWidget.registerHooks();
@@ -131,6 +328,9 @@ Hooks.once('ready', async () => {
     manager: calendarManager,
     api: game.seasonsStars?.api,
   });
+
+  // TEMPORARY: Setup test error reporting function for E&E verification
+  setupTestErrorReporting();
 
   Logger.info('Module ready');
 });
@@ -1097,146 +1297,6 @@ function registerNoteEditingHooks(): void {
   Logger.debug('Note editing hooks registered');
 }
 
-/**
- * Register with Errors and Echoes if available
- */
-function registerErrorsAndEchoes(): void {
-  // Check if Errors and Echoes is available
-  if (!(window as any).ErrorsAndEchoesAPI) {
-    Logger.debug('Errors and Echoes API not available - skipping registration');
-    return;
-  }
-
-  try {
-    Logger.debug('Registering with Errors and Echoes');
-
-    (window as any).ErrorsAndEchoesAPI.register({
-      moduleId: 'seasons-and-stars',
-
-      // Context provider - adds useful debugging information
-      contextProvider: () => {
-        const context: Record<string, any> = {};
-
-        // Add calendar information
-        if (calendarManager) {
-          try {
-            const currentDate = calendarManager.getCurrentDate();
-            const activeCalendar = calendarManager.getActiveCalendar();
-
-            context.currentDate = currentDate
-              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
-              : 'unknown';
-            context.activeCalendarId = activeCalendar?.id || 'unknown';
-            context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
-            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
-          } catch (e) {
-            context.calendarError = 'Could not read calendar state';
-          }
-        }
-
-        // Add notes information
-        if (notesManager) {
-          try {
-            context.notesSystemInitialized = notesManager.isInitialized();
-            // Don't expose note count as it might be sensitive
-          } catch (e) {
-            context.notesError = 'Could not read notes state';
-          }
-        }
-
-        // Add current scene information
-        if ((game as any).scenes?.active) {
-          const scene = (game as any).scenes.active;
-          context.sceneId = scene.id;
-          context.sceneName = scene.name;
-        }
-
-        // Add system information
-        context.gameSystem = (game as any).system?.id || 'unknown';
-        context.systemVersion = (game as any).system?.version || 'unknown';
-        context.foundryVersion = (game as any).version || 'unknown';
-
-        // Add key module settings that might affect behavior
-        try {
-          context.showTimeWidget =
-            game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
-          context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
-          context.showNotifications =
-            game.settings?.get('seasons-and-stars', 'showNotifications') || false;
-        } catch (e) {
-          context.settingsError = 'Could not read module settings';
-        }
-
-        return context;
-      },
-
-      // Error filter - only report errors that are likely S&S related
-      errorFilter: (error: Error) => {
-        const stack = error.stack || '';
-        const message = error.message || '';
-
-        // Report errors that mention our module
-        if (
-          stack.includes('seasons-and-stars') ||
-          message.includes('seasons-and-stars') ||
-          message.includes('S&S') ||
-          stack.includes('CalendarManager') ||
-          stack.includes('CalendarWidget') ||
-          stack.includes('CalendarEngine') ||
-          stack.includes('NotesManager')
-        ) {
-          return false; // Don't filter (report this error)
-        }
-
-        // Report calendar or time-related errors that might affect us
-        if (
-          message.includes('calendar') ||
-          message.includes('worldTime') ||
-          (message.includes('time') &&
-            (stack.includes('updateWorldTime') || stack.includes('game.time')))
-        ) {
-          return false; // Don't filter (might be relevant)
-        }
-
-        // Filter out errors that are clearly from other modules
-        const otherModules = [
-          'simple-calendar',
-          'foundryvtt-simple-calendar',
-          'smalltime',
-          'dice-so-nice',
-          'lib-wrapper',
-          'socketlib',
-          'journeys-and-jamborees',
-        ];
-
-        for (const module of otherModules) {
-          if (stack.includes(module) && !stack.includes('seasons-and-stars')) {
-            return true; // Filter out (don't report)
-          }
-        }
-
-        // Report core Foundry errors that might affect our module
-        if (
-          stack.includes('foundry.js') ||
-          stack.includes('ClientDatabaseBackend') ||
-          (stack.includes('Application') && message.includes('render'))
-        ) {
-          return false; // Don't filter (these might affect us)
-        }
-
-        // Filter out most other errors unless they seem related
-        return true;
-      },
-    });
-
-    Logger.debug('Successfully registered with Errors and Echoes');
-  } catch (error) {
-    Logger.error(
-      'Failed to register with Errors and Echoes',
-      error instanceof Error ? error : new Error(String(error))
-    );
-  }
-}
 
 /**
  * Module cleanup
@@ -1356,3 +1416,76 @@ function getActiveWidgetCount(): number {
 
   return count;
 }
+
+/**
+ * TEMPORARY: Test function for E&E integration verification
+ * Call from console: game.seasonsStars.testErrorReporting()
+ * Remove after E&E integration is verified working
+ */
+function setupTestErrorReporting(): void {
+  if (game.seasonsStars) {
+    (game.seasonsStars as any).testErrorReporting = () => {
+      Logger.info('Testing E&E integration - triggering test error');
+      
+      // Check if E&E is available first (try multiple patterns)
+      const errorReporterAPI = (window as any).ErrorsAndEchoesAPI || 
+                              (window as any).ErrorsAndEchoes?.API || 
+                              game.modules?.get('errors-and-echoes')?.api;
+      
+      if (!errorReporterAPI) {
+        console.error('E&E API not available - make sure Errors and Echoes module is enabled');
+        return;
+      }
+      
+      // Create a controlled test error that should be caught by E&E
+      // Use an error that will definitely be attributed to our module
+      const testError = new Error('S&S Test Error: E&E integration verification - this is intentional for testing');
+      testError.stack = `Error: S&S Test Error: E&E integration verification - this is intentional for testing
+    at CalendarManager.testMethod (/modules/seasons-and-stars/dist/module.js:1234:15)
+    at game.seasonsStars.testErrorReporting (/modules/seasons-and-stars/dist/module.js:5678:20)`;
+      
+      // Try manual reporting first
+      try {
+        errorReporterAPI.report(testError, {
+          module: 'seasons-and-stars',
+          context: {
+            testType: 'manual-integration-test',
+            timestamp: Date.now()
+          }
+        });
+        console.log('✅ Manual E&E report triggered');
+      } catch (reportError) {
+        console.error('❌ Manual E&E report failed:', reportError);
+      }
+      
+      // Also try global error handler approach
+      setTimeout(() => {
+        console.log('🔄 Triggering global error handler...');
+        throw testError;
+      }, 500);
+    };
+    
+    // Also add a function to check E&E status
+    (game.seasonsStars as any).checkErrorReporting = () => {
+      const errorReporterAPI = (window as any).ErrorsAndEchoesAPI || 
+                              (window as any).ErrorsAndEchoes?.API || 
+                              game.modules?.get('errors-and-echoes')?.api;
+      
+      const hasAPI = !!errorReporterAPI;
+      const hasConsent = hasAPI ? errorReporterAPI.hasConsent() : false;
+      const privacyLevel = hasAPI ? errorReporterAPI.getPrivacyLevel() : 'unknown';
+      const stats = hasAPI ? errorReporterAPI.getStats() : null;
+      
+      console.log('🔍 E&E Integration Status:');
+      console.log('  API Available:', hasAPI);
+      console.log('  User Consent:', hasConsent);
+      console.log('  Privacy Level:', privacyLevel);
+      console.log('  Stats:', stats);
+      
+      return { hasAPI, hasConsent, privacyLevel, stats };
+    };
+    
+    Logger.debug('Test functions exposed: game.seasonsStars.testErrorReporting() and game.seasonsStars.checkErrorReporting()');
+  }
+}
+

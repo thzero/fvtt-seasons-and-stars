@@ -145,26 +145,30 @@
   "intercalary": [
     {
       "name": "Spring Awakening",
-      "month": 3,
-      "day": 32,
+      "after": "Flower-moon",
+      "leapYearOnly": false,
+      "countsForWeekdays": false,
       "description": "A festival day celebrating the return of life to the world"
     },
     {
       "name": "Summer Solstice",
-      "month": 6,
-      "day": 31,
+      "after": "Thunder-moon",
+      "leapYearOnly": false,
+      "countsForWeekdays": false,
       "description": "The longest day of the year, when the sun's power peaks"
     },
     {
       "name": "Autumn Gathering",
-      "month": 9,
-      "day": 31,
+      "after": "Dying-moon",
+      "leapYearOnly": false,
+      "countsForWeekdays": false,
       "description": "A harvest festival when communities come together"
     },
     {
       "name": "Winter's Heart",
-      "month": 12,
-      "day": 29,
+      "after": "Dark-moon",
+      "leapYearOnly": false,
+      "countsForWeekdays": false,
       "description": "The deepest night of winter, when folk kindle fires against the dark"
     }
   ],

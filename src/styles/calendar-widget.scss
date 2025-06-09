@@ -310,6 +310,34 @@
       // Bulk advance section inherits control-group styles
     }
 
+    // TEMPORARY: Error test section styling
+    .error-test-section {
+      border-top: 1px dashed var(--color-border-light-primary);
+      padding-top: 8px;
+      margin-top: 8px;
+      
+      .control-group {
+        label {
+          color: var(--color-text-light-warning);
+          font-weight: 600;
+        }
+      }
+      
+      .error-test-btn {
+        background: var(--color-bg-danger);
+        color: var(--color-text-light-primary);
+        border: 1px solid var(--color-border-dark);
+        
+        &:hover {
+          background: var(--color-bg-danger-highlight);
+          box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+        }
+        
+        i {
+          color: var(--color-text-light-warning);
+        }
+      }
+    }
 
   }
 

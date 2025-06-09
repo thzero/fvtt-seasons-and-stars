@@ -10,8 +10,9 @@
   "authors": [
     {
       "name": "David Raynes",
-      "email": "rayners@gmail.com",
-      "discord": "rayners78"
+      "email": "rayners@gmail.com", 
+      "discord": "rayners78",
+      "github": "rayners"
     }
   ],
   "esmodules": ["module.js"],

@@ -133,19 +133,34 @@ For new worlds using the Gregorian calendar:
 
 ## 🗓️ Calendar Selection
 
-### Built-in Calendars
+### Built-in Calendars (15 Available)
 
-#### Gregorian Calendar
-- Standard Earth calendar with 12 months
-- Leap years every 4 years (with century exceptions)
-- 7-day weeks (Sunday through Saturday)
-- Suitable for modern or historical Earth settings
+#### Universal Calendars
+- **Gregorian Calendar**: Standard Earth calendar (365/366 days, 12 months, 7-day weeks)
+- **Traditional Fantasy Epoch**: Generic fantasy calendar for custom settings
 
-#### Vale Reckoning
-- Fantasy calendar inspired by Forgotten Realms
-- 12 months with 30 days each + special days
-- 6-day weeks (different weekday names)
-- Includes intercalary days and special festivals
+#### D&D Campaign Settings
+- **Forgotten Realms**: Harptos calendar with intercalary days
+- **Greyhawk**: Common Year calendar with festivals
+- **Eberron**: Eberron calendar system
+- **Dark Sun**: Athasian calendar
+- **D&D 5e Sword Coast**: Variant Harptos calendar
+
+#### Other Fantasy Settings
+- **Exandrian**: Critical Role's calendar system
+- **Golarion PF2e**: Pathfinder 2e Absalom Reckoning
+- **Vale Reckoning**: Generic fantasy calendar
+- **Symbaroum**: Symbaroum RPG calendar
+- **Forbidden Lands**: Forbidden Lands RPG calendar
+- **Warhammer**: Warhammer Fantasy calendar
+
+#### Science Fiction
+- **Traveller Imperial**: Traveller RPG Imperial Calendar
+- **Starfinder Absalom Station**: Starfinder RPG calendar
+
+### Calendar Information & Status
+
+The calendar systems in Seasons & Stars are designed for practical gameplay use with popular RPG settings. These implementations focus on functionality and may be simplified from official sources. See the [Calendar Information](#calendar-information) section for current status and how to contribute improvements.
 
 ### Switching Calendars
 1. Click **"Select Calendar"** in the full calendar widget
@@ -309,6 +324,49 @@ If you're using compatibility bridges (e.g., Simple Weather with Simple Calendar
 2. **API Usage**: Prefer Seasons & Stars API over direct time manipulation
 3. **Compatibility**: Test with both Seasons & Stars and Simple Calendar
 4. **Error Handling**: Gracefully handle calendar system changes
+
+## 📚 Calendar Information
+
+### Current Implementation Status
+
+The calendar systems in Seasons & Stars are designed to provide functional timekeeping for popular RPG settings. These implementations were created to support gameplay and may be simplified from official sources.
+
+⚠️ **Current Status**: Calendar implementations focus on gameplay functionality and may not be fully verified against official sources. We plan to add proper source verification and citations soon.
+
+### Available Calendar Systems
+
+#### D&D Campaign Settings
+- **Forgotten Realms**: Calendar of Harptos with twelve 30-day months and festival days
+- **D&D 5e Sword Coast**: Variant of Calendar of Harptos for current era
+- **Greyhawk**: Common Year calendar system
+- **Eberron**: Galifar Calendar with dragonmark-themed months
+- **Dark Sun**: Athasian Calendar system
+
+#### Other Fantasy Settings
+- **Exandrian**: Critical Role campaign calendar
+- **Golarion**: Pathfinder Absalom Reckoning calendar
+- **Symbaroum**: Free League Publishing setting calendar
+- **Forbidden Lands**: Free League Publishing setting calendar
+- **Warhammer Fantasy**: Imperial Calendar system
+- **Vale Reckoning**: Original fantasy calendar design
+
+#### Science Fiction Settings
+- **Traveller**: Imperial Calendar for the Third Imperium
+- **Starfinder**: Absalom Station Calendar system
+
+#### Universal Calendars
+- **Gregorian**: Standard Earth calendar
+- **Traditional Fantasy Epoch**: Generic fantasy calendar
+
+### Source Verification Plan
+
+📋 **Upcoming Improvements**:
+1. **Official Source Verification**: Cross-reference calendar details with official publications
+2. **Citation Addition**: Add proper source citations to calendar files
+3. **Community Validation**: Work with community to verify accuracy
+4. **Documentation Updates**: Provide links to official sources where available
+
+🤝 **Community Help Welcome**: If you have access to official RPG publications and notice calendar discrepancies, please report them via GitHub issues with source references.
 
 ---
 

@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation Updates**: Updated docs to match actual implementation
   - **Honest Limitations**: Clear documentation of note editing limitations
   - **Timeline Updates**: Updated roadmap from Q1/Q2 to Q3/Q4 2025
-  - **Test Coverage**: Fixed test coverage reporting (~11% actual coverage)
+  - **Test Coverage**: Fixed test coverage reporting (10.66% actual coverage)
 - **Build System**: Updated GitHub Actions to fix deprecation warnings
   - **Modern Actions**: Replaced deprecated version extraction action
   - **Clean Builds**: Fixed TypeScript linting issues
@@ -153,7 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Module Flag Support**: Secure storage for external module integration
 - **Capability Detection**: Runtime feature probing for robust integration
 - **Clean Build System**: Zero TypeScript errors, production-ready compilation
-- **Comprehensive Testing**: 63 automated tests with 100% pass rate covering calendar engine, widgets, and UI integration
+- **Comprehensive Testing**: 72 automated tests with 100% pass rate covering calendar engine and basic widget functionality (10.66% code coverage)
 - **Documentation**: Complete API reference, user guide, and developer documentation
 
 ### Migration Support

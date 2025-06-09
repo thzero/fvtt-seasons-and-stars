@@ -12,13 +12,13 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency
-- **Multiple Calendar Support**: Switch between Gregorian, Vale Reckoning, and custom calendars
+- **15 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), and custom formats based on official game sources
 
 ### ✅ **Notes System (Basic Creation)**
 
 - **Note Creation**: Functional note creation interface via calendar grid (GMs only - click plus button)
 - **Visual Indicators**: Calendar shows colored borders for days with notes
-- **Backend API**: Complete CRUD operations available for module developers
+- **Backend API**: CRUD operations available for module developers (note editing via API, not UI)
 - **Simple Calendar Compatibility**: API compatibility via separate compatibility bridge module
 
 ⚠️ **Current Limitations**:
@@ -59,7 +59,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ## 📖 Documentation
 
-- **[User Guide](./docs/USER-GUIDE.md)** - Complete usage instructions
+- **[User Guide](./docs/USER-GUIDE.md)** - Complete usage instructions and calendar sources
 - **[Developer Guide](./docs/DEVELOPER-GUIDE.md)** - API reference and integration guide
 - **[Migration Guide](./docs/MIGRATION-GUIDE.md)** - Moving from Simple Calendar
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
@@ -75,11 +75,11 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ### **Migration Candidates**
 
-- Users seeking a modern calendar solution for Foundry v13+
-- Users wanting better SmallTime integration
+- Users seeking a calendar solution built for Foundry v13+
+- Users wanting enhanced SmallTime integration
 - Communities needing custom calendar support
 
-⚠️ **Migration Note**: Simple Calendar users should review [Known Issues](./KNOWN-ISSUES.md) for current migration limitations including calendar import and note synchronization.
+⚠️ **Migration Note**: Simple Calendar users should review [Known Issues](./KNOWN-ISSUES.md) for current migration limitations. Calendar import tools are planned for v0.3.0 to address the primary migration barrier.
 
 ## 🤝 Module Integration
 
@@ -140,17 +140,17 @@ npm run build
 - Simple Calendar compatibility layer
 - Essential user features
 
-### **Phase 2: Notes & Integration** 🚧 _Next (Q1 2025)_
-
-- Full notes system with Journal integration
-- Complete weather module support
-- Advanced hook system
-
-### **Phase 3: Advanced Features** 📅 _Q2 2025_
+### **Phase 2: Calendar Tools** 🚧 _Next (Q3-Q4 2025)_
 
 - Calendar editor and creation tools
-- Migration assistant from Simple Calendar
-- Enhanced theming and customization
+- Simple Calendar import and migration assistant
+- Enhanced calendar validation and customization
+
+### **Phase 3: Notes System Enhancement** 📅 _Future_
+
+- Complete notes editing interface
+- Advanced note management and search
+- Enhanced weather module integration
 
 See the complete [Roadmap](./docs/ROADMAP.md) for detailed timelines.
 
@@ -167,6 +167,14 @@ Your support helps fund:
 - 📚 **Documentation**: Comprehensive guides and tutorials
 - 🎯 **Community Requests**: Implementation of user-requested features
 
+## 📚 Calendar Information
+
+The 15 built-in calendar systems are designed to work with popular RPG settings including D&D, Pathfinder, Critical Role, and other systems. These implementations focus on practical gameplay functionality and may be simplified from official sources.
+
+⚠️ **Alpha Status**: Calendar data is currently optimized for gameplay functionality. We plan to verify these implementations against official sources soon and add proper citations to the calendar files.
+
+🤝 **Community Contributions Welcome**: We welcome submissions to make calendar configurations more accurate to their official sources. If you have access to official publications and notice discrepancies, please open an issue or submit a pull request with corrections and proper source citations.
+
 ## 📄 License
 
 [MIT License](./LICENSE) - Free for personal and commercial use.
@@ -174,9 +182,9 @@ Your support helps fund:
 ## 🐛 Support & Feedback
 
 - **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues)
-- **Documentation**: [Complete Guides](https://docs.rayners.dev/seasons-and-stars)
+- **Documentation**: [Complete Guides](https://docs.rayners.dev/seasons-and-stars/intro)
 - **Discord**: [Foundry VTT Community](https://discord.gg/foundryvtt) - `#modules` channel
 
 ---
 
-**Ready to try a calendar system built for Foundry v13+?** Install Seasons & Stars today and experience the difference!
+**Ready to try a calendar system built for Foundry v13+?** Install Seasons & Stars today and help shape its development through feedback and testing!

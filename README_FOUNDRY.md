@@ -77,7 +77,7 @@ Provides API for other module developers to integrate calendar functionality.
 
 ## Documentation
 
-- **User Guide**: [docs.rayners.dev/seasons-and-stars](https://docs.rayners.dev/seasons-and-stars)
+- **User Guide**: [docs.rayners.dev/seasons-and-stars](https://docs.rayners.dev/seasons-and-stars/intro)
 - **Migration Guide**: Documentation for transitioning from Simple Calendar
 - **API Documentation**: Reference for module developers
 - **Support**: GitHub Discussions for questions and feedback
