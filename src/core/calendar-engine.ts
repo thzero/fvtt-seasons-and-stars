@@ -295,16 +295,12 @@ export class CalendarEngine {
         const intercalaryDayCount = intercalary.days || 1;
 
         if (remainingDays < intercalaryDayCount) {
-          // We're within this intercalary period
+          // We're within this intercalary period - return intercalary date with no weekday calculation
           return {
             year,
             month,
-            day: this.calendar.months[month - 1].days + remainingDays + 1,
-            weekday: this.calculateWeekday(
-              year,
-              month,
-              this.calendar.months[month - 1].days + remainingDays + 1
-            ),
+            day: remainingDays + 1, // Intercalary day index (1-based)
+            weekday: 0, // Placeholder - intercalary days don't have weekdays
             intercalary: intercalary.name,
           };
         }
@@ -374,11 +370,81 @@ export class CalendarEngine {
    * Calculate weekday for a given date
    */
   calculateWeekday(year: number, month: number, day: number): number {
-    const totalDays = this.dateToDays({ year, month, day, weekday: 0 });
+    const weekdayContributingDays = this.dateToWeekdayDays({ year, month, day, weekday: 0 });
     const weekdayCount = this.calendar.weekdays.length;
     const startDay = this.calendar.year.startDay;
 
-    return (totalDays + startDay) % weekdayCount;
+    return (weekdayContributingDays + startDay) % weekdayCount;
+  }
+
+  /**
+   * Convert calendar date to days since epoch, counting only weekday-contributing days
+   */
+  private dateToWeekdayDays(date: CalendarDate): number {
+    let totalDays = 0;
+
+    // Handle years before or after epoch
+    if (date.year >= this.calendar.year.epoch) {
+      // Add days for complete years after epoch
+      for (let year = this.calendar.year.epoch; year < date.year; year++) {
+        totalDays += this.getYearWeekdayDays(year);
+      }
+    } else {
+      // Subtract days for complete years before epoch
+      for (let year = date.year; year < this.calendar.year.epoch; year++) {
+        totalDays -= this.getYearWeekdayDays(year);
+      }
+    }
+
+    // Add days for complete months in the target year
+    const monthLengths = this.getMonthLengths(date.year);
+    const intercalaryDays = this.getIntercalaryDays(date.year);
+
+    for (let month = 1; month < date.month; month++) {
+      totalDays += monthLengths[month - 1];
+
+      // Add only weekday-contributing intercalary days after this month
+      const intercalaryAfterMonth = intercalaryDays.filter(
+        i => i.after === this.calendar.months[month - 1].name
+      );
+      
+      intercalaryAfterMonth.forEach(intercalary => {
+        const countsForWeekdays = intercalary.countsForWeekdays ?? true;
+        if (countsForWeekdays) {
+          totalDays += (intercalary.days || 1);
+        }
+      });
+    }
+
+    // Add days in the target month
+    totalDays += date.day - 1;
+
+    // Handle intercalary days - they don't contribute to weekday counts
+    if (date.intercalary) {
+      // Don't add anything for intercalary days as they don't advance weekdays
+    }
+
+    return totalDays;
+  }
+
+  /**
+   * Get the number of weekday-contributing days in a year
+   */
+  private getYearWeekdayDays(year: number): number {
+    const monthLengths = this.getMonthLengths(year);
+    const intercalaryDays = this.getIntercalaryDays(year);
+    
+    let totalDays = monthLengths.reduce((sum, days) => sum + days, 0);
+    
+    // Add only weekday-contributing intercalary days
+    intercalaryDays.forEach(intercalary => {
+      const countsForWeekdays = intercalary.countsForWeekdays ?? true;
+      if (countsForWeekdays) {
+        totalDays += (intercalary.days || 1);
+      }
+    });
+    
+    return totalDays;
   }
 
   /**
@@ -423,6 +489,18 @@ export class CalendarEngine {
   getMonthLength(month: number, year: number): number {
     const monthLengths = this.getMonthLengths(year);
     return monthLengths[month - 1] || 0;
+  }
+
+  /**
+   * Get intercalary days that come after a specific month
+   */
+  getIntercalaryDaysAfterMonth(year: number, month: number): CalendarIntercalary[] {
+    const intercalaryDays = this.getIntercalaryDays(year);
+    const monthName = this.calendar.months[month - 1]?.name;
+    
+    if (!monthName) return [];
+    
+    return intercalaryDays.filter(intercalary => intercalary.after === monthName);
   }
 
   /**

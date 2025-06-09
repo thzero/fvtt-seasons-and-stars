@@ -162,7 +162,8 @@ export class TimeConverter {
    */
   async advanceWeeks(weeks: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const days = weeks * 7; // Convert weeks to days
+    const weekLength = this.engine.getCalendar().weekdays.length;
+    const days = weeks * weekLength; // Convert weeks to days using dynamic week length
     const newDate = this.engine.addDays(currentDate.toObject(), days);
     await this.setCurrentDate(newDate);
   }

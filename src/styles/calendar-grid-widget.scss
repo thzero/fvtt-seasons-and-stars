@@ -208,6 +208,12 @@
       grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
       gap: 2px;
       margin-bottom: 2px;
+
+      /* Intercalary day rows span full width */
+      &.intercalary-week {
+        grid-template-columns: 1fr;
+        margin: 6px 0;
+      }
     }
 
     .calendar-day {
@@ -280,6 +286,96 @@
       .day-number {
         position: relative;
         z-index: 2;
+      }
+
+      /* Intercalary day styling */
+      &.intercalary {
+        background: linear-gradient(135deg, rgba(139, 69, 19, 0.3), rgba(101, 67, 33, 0.3));
+        border: 2px solid rgba(139, 69, 19, 0.6);
+        border-radius: 8px;
+        min-height: 48px;
+        padding: 8px 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+        
+        .intercalary-name {
+          font-weight: bold;
+          font-size: 14px;
+          color: rgba(255, 215, 0, 0.9);
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+          font-style: italic;
+        }
+        
+        .intercalary-description {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.8);
+          line-height: 1.2;
+          font-style: italic;
+          opacity: 0.9;
+        }
+
+        &.clickable {
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.4), rgba(101, 67, 33, 0.4));
+            border-color: rgba(139, 69, 19, 0.8);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            
+            .intercalary-name {
+              color: rgba(255, 215, 0, 1);
+            }
+          }
+
+          &:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          }
+        }
+
+        &.today {
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(184, 134, 11, 0.3));
+          border-color: rgba(255, 215, 0, 0.8);
+          box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+          
+          .intercalary-name {
+            color: rgba(255, 215, 0, 1);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+          }
+
+          &::before {
+            content: "CURRENT DATE";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            font-size: 7px;
+            font-weight: 600;
+            text-align: center;
+            color: rgba(255, 215, 0, 0.9);
+            line-height: 1;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+          }
+
+          &.clickable:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(184, 134, 11, 0.4));
+            border-color: rgba(255, 215, 0, 1);
+          }
+        }
+
+        &.selected {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(200, 200, 200, 0.2));
+          border-color: rgba(255, 255, 255, 0.6);
+          
+          .intercalary-name {
+            color: rgba(255, 255, 255, 1);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+          }
+        }
       }
 
       /* Note indicators */

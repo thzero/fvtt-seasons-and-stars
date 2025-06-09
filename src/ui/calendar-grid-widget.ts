@@ -315,11 +315,49 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weeks.push(currentWeek);
     }
 
+    // Add intercalary days as separate full-width rows
+    const intercalaryDays = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
+    for (const intercalary of intercalaryDays) {
+      const intercalaryDate: ICalendarDate = {
+        year: viewDate.year,
+        month: viewDate.month,
+        day: 1, // Intercalary days don't have regular day numbers
+        weekday: 0, // Intercalary days don't have weekdays
+        time: { hour: 0, minute: 0, second: 0 },
+        intercalary: intercalary.name,
+      };
+
+      const isToday = this.isSameIntercalaryDate(intercalaryDate, currentDate);
+      const isViewDate = this.isSameIntercalaryDate(intercalaryDate, viewDate);
+
+      // Create intercalary day row as full-width cell
+      const intercalaryRow = [{
+        day: intercalary.name,
+        date: intercalaryDate,
+        isToday: isToday,
+        isSelected: isViewDate,
+        isClickable: game.user?.isGM || false,
+        isIntercalary: true,
+        intercalaryName: intercalary.name,
+        intercalaryDescription: intercalary.description,
+        fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${intercalary.name}`,
+        hasNotes: false, // TODO: Add intercalary note support in future
+        noteCount: 0,
+        categoryClass: '',
+        primaryCategory: 'general',
+        noteTooltip: '',
+        canCreateNote: this.canCreateNote(),
+      }];
+
+      weeks.push(intercalaryRow);
+    }
+
     return {
       weeks: weeks,
       totalDays: monthLength,
       monthName: monthInfo.name,
       monthDescription: monthInfo.description,
+      intercalaryDays: intercalaryDays,
     };
   }
 
@@ -346,6 +384,16 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
     return date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
+  }
+
+  /**
+   * Check if two intercalary dates are the same
+   */
+  private isSameIntercalaryDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
+    return date1.year === date2.year && 
+           date1.month === date2.month && 
+           date1.intercalary === date2.intercalary &&
+           !!date1.intercalary && !!date2.intercalary;
   }
 
   /**
@@ -411,30 +459,53 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       return;
     }
 
-    const day = parseInt(target.dataset.day || '0');
-    if (day < 1) return;
-
     const manager = game.seasonsStars?.manager;
     const engine = manager?.getActiveEngine();
     if (!manager || !engine) return;
 
     try {
-      // Create target date maintaining current time
+      // Check if this is an intercalary day
+      const calendarDay = target.closest('.calendar-day');
+      const isIntercalary = calendarDay?.classList.contains('intercalary');
+      
+      let targetDate: ICalendarDate;
       const currentDate = manager.getCurrentDate();
-      const targetDate: ICalendarDate = {
-        year: this.viewDate.year,
-        month: this.viewDate.month,
-        day: day,
-        weekday: engine.calculateWeekday(this.viewDate.year, this.viewDate.month, day),
-        time: currentDate.time || { hour: 0, minute: 0, second: 0 },
-      };
+
+      if (isIntercalary) {
+        // Handle intercalary day selection
+        const intercalaryName = target.dataset.day; // For intercalary days, day contains the name
+        if (!intercalaryName) return;
+
+        targetDate = {
+          year: this.viewDate.year,
+          month: this.viewDate.month,
+          day: 1, // Intercalary days don't have regular day numbers
+          weekday: 0, // Intercalary days don't have weekdays
+          time: currentDate.time || { hour: 0, minute: 0, second: 0 },
+          intercalary: intercalaryName,
+        };
+
+        ui.notifications?.info(`Date set to ${intercalaryName} (intercalary day after ${this.viewDate.year}-${this.viewDate.month})`);
+      } else {
+        // Handle regular day selection
+        const day = parseInt(target.dataset.day || '0');
+        if (day < 1) return;
+
+        targetDate = {
+          year: this.viewDate.year,
+          month: this.viewDate.month,
+          day: day,
+          weekday: engine.calculateWeekday(this.viewDate.year, this.viewDate.month, day),
+          time: currentDate.time || { hour: 0, minute: 0, second: 0 },
+        };
+
+        ui.notifications?.info(
+          `Date set to ${targetDate.year}-${targetDate.month.toString().padStart(2, '0')}-${targetDate.day.toString().padStart(2, '0')}`
+        );
+      }
 
       // Set the target date
       await manager.setCurrentDate(targetDate);
-
-      ui.notifications?.info(
-        `Date set to ${targetDate.year}-${targetDate.month.toString().padStart(2, '0')}-${targetDate.day.toString().padStart(2, '0')}`
-      );
 
       // Update view date to selected date
       this.viewDate = targetDate;
