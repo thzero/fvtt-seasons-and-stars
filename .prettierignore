@@ -1,0 +1,11 @@
+# Release-please generated files
+CHANGELOG.md
+
+# Generated files
+dist/
+node_modules/
+*.min.js
+*.min.css
+
+# Package files
+package-lock.json
