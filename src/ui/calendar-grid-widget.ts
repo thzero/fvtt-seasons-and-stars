@@ -390,16 +390,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
     // Basic date comparison
-    const sameBasicDate = date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
-    
+    const sameBasicDate =
+      date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
+
     // Both must have the same intercalary status
     const bothIntercalary = !!date1.intercalary && !!date2.intercalary;
     const neitherIntercalary = !date1.intercalary && !date2.intercalary;
     const sameIntercalaryStatus = bothIntercalary || neitherIntercalary;
-    
+
     // If both are intercalary, they must have the same intercalary name
     const sameIntercalaryName = bothIntercalary ? date1.intercalary === date2.intercalary : true;
-    
+
     return sameBasicDate && sameIntercalaryStatus && sameIntercalaryName;
   }
 
@@ -559,9 +560,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const calendar = engine.getCalendar();
         const monthName = calendar.months[targetDate.month - 1]?.name || 'Unknown';
         const dayWithSuffix = this.addOrdinalSuffix(targetDate.day);
-        ui.notifications?.info(
-          `Date set to ${dayWithSuffix} of ${monthName}, ${targetDate.year}`
-        );
+        ui.notifications?.info(`Date set to ${dayWithSuffix} of ${monthName}, ${targetDate.year}`);
       }
 
       // Set the target date

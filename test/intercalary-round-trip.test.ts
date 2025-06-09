@@ -1,9 +1,9 @@
 /**
  * Intercalary Date Round-Trip Conversion Tests
- * 
+ *
  * These tests specifically verify that intercalary dates convert correctly
  * through the round-trip: CalendarDate → worldTime → CalendarDate
- * 
+ *
  * This addresses the bug where setting an intercalary date would result
  * in a regular day 2 of the month instead of the proper intercalary date.
  */
@@ -19,18 +19,18 @@ const warhammer: SeasonsStarsCalendar = {
     en: {
       label: 'Test Warhammer',
       description: 'Test calendar',
-      setting: 'Test'
-    }
+      setting: 'Test',
+    },
   },
   year: {
     epoch: 0,
     currentYear: 2522,
     prefix: '',
     suffix: '',
-    startDay: 0
+    startDay: 0,
   },
   leapYear: {
-    rule: 'none'
+    rule: 'none',
   },
   months: [
     { name: 'Nachexen', abbreviation: 'Nac', days: 32, description: 'Test month 1' },
@@ -49,14 +49,14 @@ const warhammer: SeasonsStarsCalendar = {
       after: 'Jahrdrung',
       leapYearOnly: false,
       countsForWeekdays: false,
-      description: 'Middle Spring'
-    }
+      description: 'Middle Spring',
+    },
   ],
   time: {
     hoursInDay: 24,
     minutesInHour: 60,
-    secondsInMinute: 60
-  }
+    secondsInMinute: 60,
+  },
 };
 
 describe('Intercalary Date Round-Trip Conversion', () => {
@@ -71,14 +71,14 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       const intercalaryDate = {
         year: 2523,
         month: 2, // Jahrdrung
-        day: 1,   // First day of intercalary period
+        day: 1, // First day of intercalary period
         weekday: 0,
-        intercalary: 'Mitterfruhl'
+        intercalary: 'Mitterfruhl',
       };
 
       // Convert to worldTime
       const worldTime = engine.dateToWorldTime(intercalaryDate);
-      
+
       // Convert back to date
       const convertedBack = engine.worldTimeToDate(worldTime);
 
@@ -89,7 +89,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         day: 1,
         weekday: 0,
         intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       });
     });
 
@@ -99,7 +99,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         month: 2,
         day: 1,
         weekday: 0,
-        intercalary: 'Mitterfruhl'
+        intercalary: 'Mitterfruhl',
       };
 
       const worldTime = engine.dateToWorldTime(intercalaryDate);
@@ -121,53 +121,53 @@ describe('Intercalary Date Round-Trip Conversion', () => {
             days: 3, // Multi-day intercalary period
             leapYearOnly: false,
             countsForWeekdays: false,
-            description: 'Multi-day Middle Spring'
-          }
-        ]
+            description: 'Multi-day Middle Spring',
+          },
+        ],
       };
-      
+
       const multiEngine = new CalendarEngine(multiDayCalendar);
-      
+
       // Test day 1 of intercalary period
       const day1 = {
         year: 2523,
         month: 2,
         day: 1,
         weekday: 0,
-        intercalary: 'Mitterfruhl'
+        intercalary: 'Mitterfruhl',
       };
-      
+
       const worldTime1 = multiEngine.dateToWorldTime(day1);
       const converted1 = multiEngine.worldTimeToDate(worldTime1);
-      
+
       expect(converted1).toEqual({
         year: 2523,
         month: 2,
         day: 1,
         weekday: 0,
         intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       });
-      
+
       // Test day 3 of intercalary period
       const day3 = {
         year: 2523,
         month: 2,
         day: 3,
         weekday: 0,
-        intercalary: 'Mitterfruhl'
+        intercalary: 'Mitterfruhl',
       };
-      
+
       const worldTime3 = multiEngine.dateToWorldTime(day3);
       const converted3 = multiEngine.worldTimeToDate(worldTime3);
-      
+
       expect(converted3).toEqual({
         year: 2523,
         month: 2,
         day: 3,
         weekday: 0,
         intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       });
     });
   });
@@ -178,7 +178,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         year: 2523,
         month: 2,
         day: 15,
-        weekday: 0
+        weekday: 0,
       };
 
       const worldTime = engine.dateToWorldTime(regularDate);
@@ -189,7 +189,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         month: 2,
         day: 15,
         weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 }
+        time: { hour: 0, minute: 0, second: 0 },
       });
     });
 
@@ -198,7 +198,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         year: 2523,
         month: 2,
         day: 33, // Last day of Jahrdrung
-        weekday: 0
+        weekday: 0,
       };
 
       const worldTime = engine.dateToWorldTime(lastDay);
@@ -216,7 +216,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         year: 2523,
         month: 3,
         day: 1, // First day of Pflugzeit (after Mitterfruhl)
-        weekday: 0
+        weekday: 0,
       };
 
       const worldTime = engine.dateToWorldTime(firstDay);
@@ -238,7 +238,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         day: 1,
         weekday: 0,
         intercalary: 'Mitterfruhl',
-        time: { hour: 12, minute: 30, second: 45 }
+        time: { hour: 12, minute: 30, second: 45 },
       };
 
       const worldTime = engine.dateToWorldTime(intercalaryWithTime);
@@ -250,7 +250,7 @@ describe('Intercalary Date Round-Trip Conversion', () => {
         day: 1,
         weekday: 0,
         intercalary: 'Mitterfruhl',
-        time: { hour: 12, minute: 30, second: 45 }
+        time: { hour: 12, minute: 30, second: 45 },
       });
     });
   });

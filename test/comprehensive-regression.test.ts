@@ -93,13 +93,13 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
       it('should handle month boundaries correctly', () => {
         const cal = engine.getCalendar();
-        
+
         // Skip test for calendars with only 1 month (like Traveller)
         if (cal.months.length === 1) {
           expect(true).toBe(true); // Mark test as passed
           return;
         }
-        
+
         // Test last day of first month
         const monthLengths = engine.getMonthLengths(cal.year.currentYear + 1);
         const lastDayOfMonth = {
@@ -110,15 +110,15 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
         };
 
         const nextDay = engine.addDays(lastDayOfMonth, 1);
-        
+
         // Check if this calendar has intercalary days after month 1
         const intercalaryAfterMonth1 = cal.intercalary?.some(i => i.after === cal.months[0].name);
-        
+
         if (intercalaryAfterMonth1) {
           // Calendar has intercalary day after month 1, so +1 day should be intercalary
           expect(nextDay.month).toBe(1);
           expect(nextDay.intercalary).toBeDefined();
-          
+
           // Test that +2 days reaches month 2
           const dayAfterIntercalary = engine.addDays(lastDayOfMonth, 2);
           expect(dayAfterIntercalary.month).toBe(2);
@@ -146,22 +146,23 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
         };
 
         const nextDay = engine.addDays(lastDayOfYear, 1);
-        
+
         // Check if this calendar has intercalary days after the last month
         const lastMonthName = cal.months[lastMonth - 1].name;
         const intercalaryAfterLastMonth = cal.intercalary?.some(i => i.after === lastMonthName);
-        
+
         if (intercalaryAfterLastMonth) {
           // Calendar has intercalary day(s) after last month, so +1 day should be intercalary
           expect(nextDay.year).toBe(year);
           expect(nextDay.intercalary).toBeDefined();
-          
+
           // Test that we can eventually reach the next year by adding more days
           // Count how many intercalary days there are after the last month
-          const intercalaryDaysAfterLast = cal.intercalary
-            ?.filter(i => i.after === lastMonthName)
-            ?.reduce((sum, i) => sum + (i.days || 1), 0) || 0;
-          
+          const intercalaryDaysAfterLast =
+            cal.intercalary
+              ?.filter(i => i.after === lastMonthName)
+              ?.reduce((sum, i) => sum + (i.days || 1), 0) || 0;
+
           const nextYearDay = engine.addDays(lastDayOfYear, 1 + intercalaryDaysAfterLast);
           expect(nextYearDay.year).toBe(year + 1);
           expect(nextYearDay.month).toBe(1);
