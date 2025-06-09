@@ -389,7 +389,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Check if two dates are the same (ignoring time)
    */
   private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
-    return date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
+    // Basic date comparison
+    const sameBasicDate = date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
+    
+    // Both must have the same intercalary status
+    const bothIntercalary = !!date1.intercalary && !!date2.intercalary;
+    const neitherIntercalary = !date1.intercalary && !date2.intercalary;
+    const sameIntercalaryStatus = bothIntercalary || neitherIntercalary;
+    
+    // If both are intercalary, they must have the same intercalary name
+    const sameIntercalaryName = bothIntercalary ? date1.intercalary === date2.intercalary : true;
+    
+    return sameBasicDate && sameIntercalaryStatus && sameIntercalaryName;
   }
 
   /**

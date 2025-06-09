@@ -355,12 +355,14 @@ export class CalendarEngine {
       }, 0);
     }
 
-    // Add days in the target month
-    totalDays += date.day - 1;
-
-    // Handle intercalary days
+    // Handle intercalary vs regular days
     if (date.intercalary) {
-      totalDays += 1; // Intercalary day comes after the regular month
+      // For intercalary dates, add all days of the target month, then the intercalary day position
+      totalDays += monthLengths[date.month - 1]; // All days of the month
+      totalDays += date.day - 1; // Position within the intercalary period (0-based)
+    } else {
+      // For regular dates, add days within the target month
+      totalDays += date.day - 1;
     }
 
     return totalDays;
