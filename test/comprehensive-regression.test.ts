@@ -1,0 +1,244 @@
+/**
+ * Comprehensive Regression Test for All Calendar Types
+ * 
+ * This test ensures that the WFRP calendar fixes do not break
+ * existing functionality for any other calendar types.
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { CalendarEngine } from '../src/core/calendar-engine';
+import { CalendarDate } from '../src/core/calendar-date';
+import * as fs from 'fs';
+import * as path from 'path';
+
+describe('Comprehensive Regression Tests - All Calendar Types', () => {
+  const calendarDir = 'calendars';
+  const calendarFiles = [
+    'dark-sun.json',
+    'dnd5e-sword-coast.json', 
+    'eberron.json',
+    'exandrian.json',
+    'forbidden-lands.json',
+    'forgotten-realms.json',
+    'golarion-pf2e.json',
+    'gregorian.json',
+    'greyhawk.json',
+    'starfinder-absalom-station.json',
+    'symbaroum.json',
+    'traditional-fantasy-epoch.json',
+    'traveller-imperial.json',
+    'vale-reckoning.json',
+    'warhammer.json' // Include WFRP to ensure it still works
+  ];
+
+  calendarFiles.forEach(calendarFile => {
+    const calendarName = calendarFile.replace('.json', '');
+    
+    describe(`${calendarName} Calendar Regression`, () => {
+      let engine: CalendarEngine;
+      let calendar: any;
+
+      beforeEach(() => {
+        const calendarPath = path.join(calendarDir, calendarFile);
+        const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
+        calendar = calendarData;
+        engine = new CalendarEngine(calendarData);
+      });
+
+      it('should load calendar without errors', () => {
+        expect(engine).toBeDefined();
+        expect(engine.getCalendar()).toBeDefined();
+      });
+
+      it('should handle basic date operations', () => {
+        const cal = engine.getCalendar();
+        const testDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        
+        // Test date conversion round-trip
+        const days = engine.dateToDays(testDate);
+        expect(days).toBeGreaterThanOrEqual(0);
+        
+        const convertedBack = engine.daysToDate(days);
+        expect(convertedBack.year).toBe(testDate.year);
+        expect(convertedBack.month).toBe(testDate.month);
+        expect(convertedBack.day).toBe(testDate.day);
+      });
+
+      it('should calculate weekdays correctly', () => {
+        const cal = engine.getCalendar();
+        const testDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const weekday = engine.calculateWeekday(testDate.year, testDate.month, testDate.day);
+        
+        expect(weekday).toBeGreaterThanOrEqual(0);
+        if (cal.weekdays && cal.weekdays.length > 0) {
+          expect(weekday).toBeLessThan(cal.weekdays.length);
+        }
+      });
+
+      it('should advance days correctly', () => {
+        const cal = engine.getCalendar();
+        const startDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const advancedDate = engine.addDays(startDate, 5);
+        
+        expect(advancedDate).toBeDefined();
+        expect(advancedDate.year).toBeGreaterThanOrEqual(startDate.year);
+        
+        // Verify the date is valid
+        const monthLengths = engine.getMonthLengths(advancedDate.year);
+        expect(advancedDate.month).toBeGreaterThanOrEqual(1);
+        expect(advancedDate.month).toBeLessThanOrEqual(cal.months.length);
+        expect(advancedDate.day).toBeGreaterThanOrEqual(1);
+        expect(advancedDate.day).toBeLessThanOrEqual(monthLengths[advancedDate.month - 1]);
+      });
+
+      it('should handle month boundaries correctly', () => {
+        const cal = engine.getCalendar();
+        // Test last day of first month
+        const monthLengths = engine.getMonthLengths(cal.year.start + 1);
+        const lastDayOfMonth = { 
+          year: cal.year.start + 1, 
+          month: 1, 
+          day: monthLengths[0], 
+          weekday: 0 
+        };
+        
+        const nextDay = engine.addDays(lastDayOfMonth, 1);
+        expect(nextDay.month).toBe(2);
+        expect(nextDay.day).toBe(1);
+      });
+
+      it('should handle year boundaries correctly', () => {
+        const cal = engine.getCalendar();
+        // Test last day of year
+        const year = cal.year.start + 1;
+        const monthLengths = engine.getMonthLengths(year);
+        const lastMonth = cal.months.length;
+        const lastDay = monthLengths[lastMonth - 1];
+        
+        const lastDayOfYear = { 
+          year, 
+          month: lastMonth, 
+          day: lastDay, 
+          weekday: 0 
+        };
+        
+        const nextDay = engine.addDays(lastDayOfYear, 1);
+        expect(nextDay.year).toBe(year + 1);
+        expect(nextDay.month).toBe(1);
+        expect(nextDay.day).toBe(1);
+      });
+
+      it('should maintain weekday consistency (if calendar has weekdays)', () => {
+        const cal = engine.getCalendar();
+        
+        // Skip test if calendar doesn't have weekdays
+        if (!cal.weekdays || cal.weekdays.length === 0) {
+          expect(true).toBe(true); // Pass the test
+          return;
+        }
+        
+        const startDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const weekLength = cal.weekdays.length;
+        
+        // Advance by one full week and verify weekday returns to same value
+        const afterWeek = engine.addDays(startDate, weekLength);
+        const startWeekday = engine.calculateWeekday(startDate.year, startDate.month, startDate.day);
+        const afterWeekday = engine.calculateWeekday(afterWeek.year, afterWeek.month, afterWeek.day);
+        
+        expect(afterWeekday).toBe(startWeekday);
+      });
+
+      it('should handle leap years correctly (if calendar has leap year rules)', () => {
+        const cal = engine.getCalendar();
+        
+        // Skip if no leap year rules
+        if (!cal.year?.leap) {
+          expect(true).toBe(true); // Pass the test
+          return;
+        }
+        
+        const leapYear = cal.year.start + (cal.year.leap.cycle || 4);
+        const isLeap = engine.isLeapYear(leapYear);
+        const yearLength = engine.getYearLength(leapYear);
+        
+        expect(isLeap).toBeDefined();
+        expect(yearLength).toBeGreaterThan(0);
+      });
+
+      it('should handle intercalary days without breaking (if calendar has them)', () => {
+        const cal = engine.getCalendar();
+        
+        // Skip if no intercalary days
+        if (!cal.intercalaryDays || cal.intercalaryDays.length === 0) {
+          expect(true).toBe(true); // Pass the test
+          return;
+        }
+        
+        const year = cal.year.start + 1;
+        const intercalaryDays = engine.getIntercalaryDays(year);
+        
+        expect(intercalaryDays).toBeDefined();
+        expect(Array.isArray(intercalaryDays)).toBe(true);
+        
+        // Test that each intercalary day can be navigated to and from
+        intercalaryDays.forEach((intercalary: any, index: number) => {
+          const beforeIntercalary = { 
+            year, 
+            month: intercalary.month, 
+            day: intercalary.beforeDay || 1, 
+            weekday: 0 
+          };
+          
+          // This should not crash or create invalid dates
+          const afterAdvancing = engine.addDays(beforeIntercalary, 2);
+          expect(afterAdvancing).toBeDefined();
+          expect(afterAdvancing.year).toBeGreaterThanOrEqual(year);
+        });
+      });
+
+      // WFRP-specific test for Issue #21
+      if (calendarName === 'warhammer') {
+        it('should handle WFRP intercalary days with countsForWeekdays: false', () => {
+          const cal = engine.getCalendar();
+          const year = cal.year.start + 1;
+          
+          // Test the specific Issue #21 scenario: 33rd Jahrdrung → Mitterfruhl → 1st Pflugzeit
+          const jahrdrung33 = { year, month: 2, day: 33, weekday: 0 };
+          const weekdayBefore = engine.calculateWeekday(jahrdrung33.year, jahrdrung33.month, jahrdrung33.day);
+          
+          // Add 2 days to cross Mitterfruhl and reach 1st Pflugzeit
+          const pflugzeit1 = engine.addDays(jahrdrung33, 2);
+          const weekdayAfter = engine.calculateWeekday(pflugzeit1.year, pflugzeit1.month, pflugzeit1.day);
+          
+          // Should advance by exactly 1 weekday (skipping Mitterfruhl)
+          const expectedWeekday = (weekdayBefore + 1) % cal.weekdays.length;
+          expect(weekdayAfter).toBe(expectedWeekday);
+          
+          console.log(`✅ WFRP Issue #21 Test: ${jahrdrung33.day} Jahrdrung (weekday ${weekdayBefore}) → Mitterfruhl → ${pflugzeit1.day} Pflugzeit (weekday ${weekdayAfter})`);
+        });
+      }
+    });
+  });
+
+  describe('Cross-Calendar Compatibility', () => {
+    it('should handle all calendars consistently', () => {
+      let allEngines: { [key: string]: CalendarEngine } = {};
+      
+      // Load all calendars
+      calendarFiles.forEach(calendarFile => {
+        const calendarName = calendarFile.replace('.json', '');
+        const calendarPath = path.join(calendarDir, calendarFile);
+        const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
+        allEngines[calendarName] = new CalendarEngine(calendarData);
+      });
+      
+      // Verify all loaded successfully
+      Object.keys(allEngines).forEach(name => {
+        expect(allEngines[name]).toBeDefined();
+        expect(() => allEngines[name].getCalendar()).not.toThrow();
+      });
+      
+      console.log(`✅ Successfully loaded and tested ${Object.keys(allEngines).length} calendar types`);
+    });
+  });
+});

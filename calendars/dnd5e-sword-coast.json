@@ -23,10 +23,8 @@
   },
   
   "leapYear": {
-    "rule": "custom",
-    "interval": 4,
-    "month": "Shieldmeet",
-    "extraDays": 1
+    "rule": "gregorian",
+    "interval": 4
   },
   
   "months": [
@@ -184,6 +182,7 @@
       "month": 7,
       "day": 32,
       "after": "Flamerule",
+      "leapYearOnly": true,
       "description": "Occurs every four years after Midsummer, a grand festival and political gathering"
     },
     {
