@@ -83,6 +83,68 @@ export class SeasonsStarsSceneControls {
   }
 
   /**
+   * Show the default widget based on user settings
+   */
+  private static showDefaultWidget(): void {
+    try {
+      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+
+      Logger.debug('Showing default widget', { defaultWidget });
+
+      switch (defaultWidget) {
+        case 'mini':
+          CalendarMiniWidget.show();
+          break;
+        case 'grid':
+          CalendarGridWidget.show();
+          break;
+        case 'main':
+        default:
+          CalendarWidget.show();
+          break;
+      }
+    } catch (error) {
+      Logger.error(
+        'Failed to show default widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Fallback to main widget
+      CalendarWidget.show();
+    }
+  }
+
+  /**
+   * Hide the default widget based on user settings
+   */
+  private static hideDefaultWidget(): void {
+    try {
+      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+
+      Logger.debug('Hiding default widget', { defaultWidget });
+
+      switch (defaultWidget) {
+        case 'mini':
+          CalendarMiniWidget.hide();
+          break;
+        case 'grid':
+          CalendarGridWidget.hide();
+          break;
+        case 'main':
+        default:
+          CalendarWidget.hide();
+          break;
+      }
+    } catch (error) {
+      Logger.error(
+        'Failed to hide default widget',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Fallback to main widget
+      CalendarWidget.hide();
+    }
+  }
+
+  /**
    * Toggle the default widget based on user settings
    */
   private static toggleDefaultWidget(): void {
@@ -135,13 +197,23 @@ export class SeasonsStarsSceneControls {
 
     // Add macro functions to the existing object
     Object.assign((window as any).SeasonsStars, {
-      // Widget controls
-      showWidget: () => CalendarWidget.show(),
-      hideWidget: () => CalendarWidget.hide(),
-      toggleWidget: () => CalendarWidget.toggle(),
+      // Widget controls - respect default widget setting
+      showWidget: () => SeasonsStarsSceneControls.showDefaultWidget(),
+      hideWidget: () => SeasonsStarsSceneControls.hideDefaultWidget(),
+      toggleWidget: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
+      
+      // Specific widget controls (for advanced users who want to override default)
+      showMainWidget: () => CalendarWidget.show(),
+      hideMainWidget: () => CalendarWidget.hide(),
+      toggleMainWidget: () => CalendarWidget.toggle(),
       showMiniWidget: () => CalendarMiniWidget.show(),
       hideMiniWidget: () => CalendarMiniWidget.hide(),
       toggleMiniWidget: () => CalendarMiniWidget.toggle(),
+      showGridWidget: () => CalendarGridWidget.show(),
+      hideGridWidget: () => CalendarGridWidget.hide(),
+      toggleGridWidget: () => CalendarGridWidget.toggle(),
+      
+      // Mini widget positioning (legacy support)
       positionMiniAboveSmallTime: () => CalendarMiniWidget.positionAboveSmallTime(),
       positionMiniBelowSmallTime: () => CalendarMiniWidget.positionBelowSmallTime(),
       positionMiniBesideSmallTime: () => CalendarMiniWidget.positionBesideSmallTime(),
