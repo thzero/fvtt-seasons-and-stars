@@ -146,9 +146,32 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
         };
 
         const nextDay = engine.addDays(lastDayOfYear, 1);
-        expect(nextDay.year).toBe(year + 1);
-        expect(nextDay.month).toBe(1);
-        expect(nextDay.day).toBe(1);
+        
+        // Check if this calendar has intercalary days after the last month
+        const lastMonthName = cal.months[lastMonth - 1].name;
+        const intercalaryAfterLastMonth = cal.intercalary?.some(i => i.after === lastMonthName);
+        
+        if (intercalaryAfterLastMonth) {
+          // Calendar has intercalary day(s) after last month, so +1 day should be intercalary
+          expect(nextDay.year).toBe(year);
+          expect(nextDay.intercalary).toBeDefined();
+          
+          // Test that we can eventually reach the next year by adding more days
+          // Count how many intercalary days there are after the last month
+          const intercalaryDaysAfterLast = cal.intercalary
+            ?.filter(i => i.after === lastMonthName)
+            ?.reduce((sum, i) => sum + (i.days || 1), 0) || 0;
+          
+          const nextYearDay = engine.addDays(lastDayOfYear, 1 + intercalaryDaysAfterLast);
+          expect(nextYearDay.year).toBe(year + 1);
+          expect(nextYearDay.month).toBe(1);
+          expect(nextYearDay.day).toBe(1);
+        } else {
+          // No intercalary day after last month, so +1 day should go directly to next year
+          expect(nextDay.year).toBe(year + 1);
+          expect(nextDay.month).toBe(1);
+          expect(nextDay.day).toBe(1);
+        }
       });
 
       it('should maintain weekday consistency (if calendar has weekdays)', () => {
@@ -160,7 +183,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           return;
         }
 
-        const startDate = { year: cal.year.start + 1, month: 1, day: 1, weekday: 0 };
+        const startDate = { year: cal.year.currentYear + 1, month: 1, day: 1, weekday: 0 };
         const weekLength = cal.weekdays.length;
 
         // Advance by one full week and verify weekday returns to same value
@@ -188,7 +211,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           return;
         }
 
-        const leapYear = cal.year.start + (cal.year.leap.cycle || 4);
+        const leapYear = cal.year.currentYear + (cal.year.leap.cycle || 4);
         const isLeap = engine.isLeapYear(leapYear);
         const yearLength = engine.getYearLength(leapYear);
 
@@ -205,7 +228,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           return;
         }
 
-        const year = cal.year.start + 1;
+        const year = cal.year.currentYear + 1;
         const intercalaryDays = engine.getIntercalaryDays(year);
 
         expect(intercalaryDays).toBeDefined();
@@ -231,7 +254,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
       if (calendarName === 'warhammer') {
         it('should handle WFRP intercalary days with countsForWeekdays: false', () => {
           const cal = engine.getCalendar();
-          const year = cal.year.start + 1;
+          const year = cal.year.currentYear + 1;
 
           // Test the specific Issue #21 scenario: 33rd Jahrdrung → Mitterfruhl → 1st Pflugzeit
           const jahrdrung33 = { year, month: 2, day: 33, weekday: 0 };
