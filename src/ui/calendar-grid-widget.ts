@@ -331,23 +331,25 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const isViewDate = this.isSameIntercalaryDate(intercalaryDate, viewDate);
 
       // Create intercalary day row as full-width cell
-      const intercalaryRow = [{
-        day: intercalary.name,
-        date: intercalaryDate,
-        isToday: isToday,
-        isSelected: isViewDate,
-        isClickable: game.user?.isGM || false,
-        isIntercalary: true,
-        intercalaryName: intercalary.name,
-        intercalaryDescription: intercalary.description,
-        fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${intercalary.name}`,
-        hasNotes: false, // TODO: Add intercalary note support in future
-        noteCount: 0,
-        categoryClass: '',
-        primaryCategory: 'general',
-        noteTooltip: '',
-        canCreateNote: this.canCreateNote(),
-      }];
+      const intercalaryRow = [
+        {
+          day: intercalary.name,
+          date: intercalaryDate,
+          isToday: isToday,
+          isSelected: isViewDate,
+          isClickable: game.user?.isGM || false,
+          isIntercalary: true,
+          intercalaryName: intercalary.name,
+          intercalaryDescription: intercalary.description,
+          fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${intercalary.name}`,
+          hasNotes: false, // TODO: Add intercalary note support in future
+          noteCount: 0,
+          categoryClass: '',
+          primaryCategory: 'general',
+          noteTooltip: '',
+          canCreateNote: this.canCreateNote(),
+        },
+      ];
 
       weeks.push(intercalaryRow);
     }
@@ -390,10 +392,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Check if two intercalary dates are the same
    */
   private isSameIntercalaryDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
-    return date1.year === date2.year && 
-           date1.month === date2.month && 
-           date1.intercalary === date2.intercalary &&
-           !!date1.intercalary && !!date2.intercalary;
+    return (
+      date1.year === date2.year &&
+      date1.month === date2.month &&
+      date1.intercalary === date2.intercalary &&
+      !!date1.intercalary &&
+      !!date2.intercalary
+    );
   }
 
   /**
@@ -467,7 +472,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Check if this is an intercalary day
       const calendarDay = target.closest('.calendar-day');
       const isIntercalary = calendarDay?.classList.contains('intercalary');
-      
+
       let targetDate: ICalendarDate;
       const currentDate = manager.getCurrentDate();
 
@@ -485,7 +490,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           intercalary: intercalaryName,
         };
 
-        ui.notifications?.info(`Date set to ${intercalaryName} (intercalary day after ${this.viewDate.year}-${this.viewDate.month})`);
+        ui.notifications?.info(
+          `Date set to ${intercalaryName} (intercalary day after ${this.viewDate.year}-${this.viewDate.month})`
+        );
       } else {
         // Handle regular day selection
         const day = parseInt(target.dataset.day || '0');

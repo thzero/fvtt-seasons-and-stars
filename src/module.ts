@@ -73,7 +73,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
           if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
           if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
           if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
-          
+
           context.activeWidgets = activeWidgets;
           context.widgetCount = activeWidgets.length;
         } catch (error) {
@@ -83,7 +83,8 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
         try {
           // Add system integration status
           context.smallTimeDetected = !!document.querySelector('#smalltime-app');
-          context.simpleCalendarActive = game.modules?.get('foundryvtt-simple-calendar')?.active || false;
+          context.simpleCalendarActive =
+            game.modules?.get('foundryvtt-simple-calendar')?.active || false;
         } catch (error) {
           context.integrationDataError = 'Failed to check integrations';
         }
@@ -125,7 +126,8 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
           context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
           context.showNotifications =
             game.settings?.get('seasons-and-stars', 'showNotifications') || false;
-          context.defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+          context.defaultWidget =
+            game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
         } catch (error) {
           // Settings might not be registered yet
           context.settingsError = 'Could not read module settings';
@@ -1297,7 +1299,6 @@ function registerNoteEditingHooks(): void {
   Logger.debug('Note editing hooks registered');
 }
 
-
 /**
  * Module cleanup
  */
@@ -1426,66 +1427,71 @@ function setupTestErrorReporting(): void {
   if (game.seasonsStars) {
     (game.seasonsStars as any).testErrorReporting = () => {
       Logger.info('Testing E&E integration - triggering test error');
-      
+
       // Check if E&E is available first (try multiple patterns)
-      const errorReporterAPI = (window as any).ErrorsAndEchoesAPI || 
-                              (window as any).ErrorsAndEchoes?.API || 
-                              game.modules?.get('errors-and-echoes')?.api;
-      
+      const errorReporterAPI =
+        (window as any).ErrorsAndEchoesAPI ||
+        (window as any).ErrorsAndEchoes?.API ||
+        game.modules?.get('errors-and-echoes')?.api;
+
       if (!errorReporterAPI) {
         console.error('E&E API not available - make sure Errors and Echoes module is enabled');
         return;
       }
-      
+
       // Create a controlled test error that should be caught by E&E
       // Use an error that will definitely be attributed to our module
-      const testError = new Error('S&S Test Error: E&E integration verification - this is intentional for testing');
+      const testError = new Error(
+        'S&S Test Error: E&E integration verification - this is intentional for testing'
+      );
       testError.stack = `Error: S&S Test Error: E&E integration verification - this is intentional for testing
     at CalendarManager.testMethod (/modules/seasons-and-stars/dist/module.js:1234:15)
     at game.seasonsStars.testErrorReporting (/modules/seasons-and-stars/dist/module.js:5678:20)`;
-      
+
       // Try manual reporting first
       try {
         errorReporterAPI.report(testError, {
           module: 'seasons-and-stars',
           context: {
             testType: 'manual-integration-test',
-            timestamp: Date.now()
-          }
+            timestamp: Date.now(),
+          },
         });
         console.log('✅ Manual E&E report triggered');
       } catch (reportError) {
         console.error('❌ Manual E&E report failed:', reportError);
       }
-      
+
       // Also try global error handler approach
       setTimeout(() => {
         console.log('🔄 Triggering global error handler...');
         throw testError;
       }, 500);
     };
-    
+
     // Also add a function to check E&E status
     (game.seasonsStars as any).checkErrorReporting = () => {
-      const errorReporterAPI = (window as any).ErrorsAndEchoesAPI || 
-                              (window as any).ErrorsAndEchoes?.API || 
-                              game.modules?.get('errors-and-echoes')?.api;
-      
+      const errorReporterAPI =
+        (window as any).ErrorsAndEchoesAPI ||
+        (window as any).ErrorsAndEchoes?.API ||
+        game.modules?.get('errors-and-echoes')?.api;
+
       const hasAPI = !!errorReporterAPI;
       const hasConsent = hasAPI ? errorReporterAPI.hasConsent() : false;
       const privacyLevel = hasAPI ? errorReporterAPI.getPrivacyLevel() : 'unknown';
       const stats = hasAPI ? errorReporterAPI.getStats() : null;
-      
+
       console.log('🔍 E&E Integration Status:');
       console.log('  API Available:', hasAPI);
       console.log('  User Consent:', hasConsent);
       console.log('  Privacy Level:', privacyLevel);
       console.log('  Stats:', stats);
-      
+
       return { hasAPI, hasConsent, privacyLevel, stats };
     };
-    
-    Logger.debug('Test functions exposed: game.seasonsStars.testErrorReporting() and game.seasonsStars.checkErrorReporting()');
+
+    Logger.debug(
+      'Test functions exposed: game.seasonsStars.testErrorReporting() and game.seasonsStars.checkErrorReporting()'
+    );
   }
 }
-

@@ -249,7 +249,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     }
   }
 
-
   /**
    * Switch to grid widget
    */

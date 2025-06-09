@@ -24,7 +24,7 @@ export class CalendarEngine {
    */
   worldTimeToDate(worldTime: number): CalendarDate {
     const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
-    
+
     const totalSeconds = Math.floor(adjustedWorldTime);
     const secondsPerDay =
       this.calendar.time.hoursInDay *
@@ -214,42 +214,42 @@ export class CalendarEngine {
    */
   private adjustWorldTimeForInterpretation(worldTime: number): number {
     const worldTimeConfig = this.calendar.worldTime;
-    
+
     if (!worldTimeConfig || worldTimeConfig.interpretation === 'epoch-based') {
       // Default behavior: worldTime represents seconds since calendar epoch
       return worldTime;
     }
-    
+
     if (worldTimeConfig.interpretation === 'real-time-based') {
       // Real-time mode: worldTime=0 should map to currentYear, not epochYear
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
       const secondsPerYear = 365.25 * 24 * 60 * 60; // Average seconds per year
       const epochOffset = yearDifference * secondsPerYear;
-      
+
       return worldTime + epochOffset;
     }
-    
+
     return worldTime;
   }
-  
+
   /**
    * Convert internal seconds back to worldTime based on interpretation mode
    */
   private adjustWorldTimeFromInterpretation(internalSeconds: number): number {
     const worldTimeConfig = this.calendar.worldTime;
-    
+
     if (!worldTimeConfig || worldTimeConfig.interpretation === 'epoch-based') {
       return internalSeconds;
     }
-    
+
     if (worldTimeConfig.interpretation === 'real-time-based') {
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
       const secondsPerYear = 365.25 * 24 * 60 * 60;
       const epochOffset = yearDifference * secondsPerYear;
-      
+
       return internalSeconds - epochOffset;
     }
-    
+
     return internalSeconds;
   }
 
@@ -407,11 +407,11 @@ export class CalendarEngine {
       const intercalaryAfterMonth = intercalaryDays.filter(
         i => i.after === this.calendar.months[month - 1].name
       );
-      
+
       intercalaryAfterMonth.forEach(intercalary => {
         const countsForWeekdays = intercalary.countsForWeekdays ?? true;
         if (countsForWeekdays) {
-          totalDays += (intercalary.days || 1);
+          totalDays += intercalary.days || 1;
         }
       });
     }
@@ -433,17 +433,17 @@ export class CalendarEngine {
   private getYearWeekdayDays(year: number): number {
     const monthLengths = this.getMonthLengths(year);
     const intercalaryDays = this.getIntercalaryDays(year);
-    
+
     let totalDays = monthLengths.reduce((sum, days) => sum + days, 0);
-    
+
     // Add only weekday-contributing intercalary days
     intercalaryDays.forEach(intercalary => {
       const countsForWeekdays = intercalary.countsForWeekdays ?? true;
       if (countsForWeekdays) {
-        totalDays += (intercalary.days || 1);
+        totalDays += intercalary.days || 1;
       }
     });
-    
+
     return totalDays;
   }
 
@@ -497,9 +497,9 @@ export class CalendarEngine {
   getIntercalaryDaysAfterMonth(year: number, month: number): CalendarIntercalary[] {
     const intercalaryDays = this.getIntercalaryDays(year);
     const monthName = this.calendar.months[month - 1]?.name;
-    
+
     if (!monthName) return [];
-    
+
     return intercalaryDays.filter(intercalary => intercalary.after === monthName);
   }
 
