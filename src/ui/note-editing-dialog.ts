@@ -645,7 +645,7 @@ export class NoteEditingDialog {
         },
         render: (event: Event, html: HTMLElement) => {
           const $html = $(html);
-          
+
           // Add click handlers for tag suggestions
           $html.find('.tag-suggestion').on('click', event => {
             const tag = $(event.currentTarget).data('tag');
