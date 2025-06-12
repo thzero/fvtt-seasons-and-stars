@@ -1,4 +1,4 @@
-# Seasons & Stars
+# 🌟 Seasons & Stars
 
 _Calendar and Timekeeping for Foundry VTT v13+_
 
