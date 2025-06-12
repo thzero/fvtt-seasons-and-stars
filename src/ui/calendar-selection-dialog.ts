@@ -220,25 +220,26 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       </div>
     `;
 
-    new Dialog(
-      {
+    new foundry.applications.api.DialogV2({
+      window: {
         title: game.i18n.format('SEASONS_STARS.dialog.calendar_preview.title', { calendar: label }),
-        content,
-        buttons: {
-          close: {
-            icon: '<i class="fas fa-times"></i>',
-            label: game.i18n.localize('SEASONS_STARS.dialog.close'),
-            callback: () => {},
-          },
-        },
-        default: 'close',
       },
-      {
-        classes: ['seasons-stars', 'calendar-preview-dialog'],
+      content,
+      buttons: [
+        {
+          action: 'close',
+          icon: 'fas fa-times',
+          label: game.i18n.localize('SEASONS_STARS.dialog.close'),
+          callback: () => {},
+        },
+      ],
+      default: 'close',
+      classes: ['seasons-stars', 'calendar-preview-dialog'],
+      position: {
         width: 400,
         height: 'auto',
-      }
-    ).render(true);
+      },
+    }).render(true);
   }
 
   /**

@@ -616,32 +616,40 @@ export class NoteEditingDialog {
    */
   async show(): Promise<void> {
     return new Promise(resolve => {
-      const dialog = new Dialog({
-        title: `Edit Note: ${this.journal.name}`,
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: `Edit Note: ${this.journal.name}`,
+          resizable: true,
+        },
         content: this.generateContent(),
-        buttons: {
-          save: {
-            icon: '<i class="fas fa-save"></i>',
+        buttons: [
+          {
+            action: 'save',
+            icon: 'fas fa-save',
             label: 'Save Changes',
-            callback: async (html: JQuery) => {
-              await this.handleSave(html);
+            callback: async (event: Event, button: HTMLElement, html: HTMLElement) => {
+              await this.handleSave($(html));
               resolve();
             },
           },
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
             label: 'Cancel',
             callback: () => resolve(),
           },
-        },
+        ],
         default: 'save',
-        resizable: true,
-        width: 600,
-        render: (html: JQuery) => {
+        position: {
+          width: 600,
+        },
+        render: (event: Event, html: HTMLElement) => {
+          const $html = $(html);
+          
           // Add click handlers for tag suggestions
-          html.find('.tag-suggestion').on('click', event => {
+          $html.find('.tag-suggestion').on('click', event => {
             const tag = $(event.currentTarget).data('tag');
-            const tagsInput = html.find('input[name="tags"]');
+            const tagsInput = $html.find('input[name="tags"]');
             const currentTags = tagsInput.val() as string;
 
             if (currentTags) {
@@ -653,7 +661,7 @@ export class NoteEditingDialog {
           });
 
           // Update category select styling based on selection
-          html.find('.category-select').on('change', event => {
+          $html.find('.category-select').on('change', event => {
             const categories = game.seasonsStars?.categories;
             if (!categories) return;
 
@@ -664,7 +672,7 @@ export class NoteEditingDialog {
           });
 
           // Initialize category border
-          const categorySelect = html.find('.category-select');
+          const categorySelect = $html.find('.category-select');
           const categories = game.seasonsStars?.categories;
           if (categories) {
             const selectedCat = categories.getCategory(categorySelect.val() as string);
@@ -674,7 +682,7 @@ export class NoteEditingDialog {
           }
 
           // Setup tag autocompletion
-          this.setupTagAutocompletion(html);
+          this.setupTagAutocompletion($html);
         },
       });
 

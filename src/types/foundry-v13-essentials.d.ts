@@ -599,6 +599,7 @@ interface FoundryNamespace {
   applications: {
     api: {
       ApplicationV2: typeof ApplicationV2;
+      DialogV2: typeof DialogV2;
       HandlebarsApplicationMixin: <T extends new (...args: any[]) => ApplicationV2>(
         Base: T
       ) => T & {
