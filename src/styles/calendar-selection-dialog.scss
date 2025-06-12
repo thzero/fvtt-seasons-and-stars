@@ -189,6 +189,121 @@
   }
 }
 
+// Calendar Preview Dialog Styles
+.seasons-stars.calendar-preview-dialog {
+  .calendar-preview {
+    padding: 1rem;
+    max-width: none;
+    
+    .preview-header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--color-cool-4);
+      
+      h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+        line-height: 1.2;
+      }
+      
+      .preview-setting {
+        font-size: 0.9rem;
+        color: var(--color-text-light-secondary);
+        font-style: italic;
+        margin-top: 0.25rem;
+      }
+    }
+    
+    .preview-description {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: var(--color-cool-6);
+      border: 1px solid var(--color-cool-4);
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--color-text-light-primary);
+    }
+    
+    .preview-samples {
+      margin-bottom: 1.5rem;
+      
+      h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+        display: flex;
+        align-items: center;
+        
+        &::before {
+          content: "📅";
+          margin-right: 0.5rem;
+          font-size: 1rem;
+        }
+      }
+      
+      .sample-date {
+        background: var(--color-cool-5);
+        border: 1px solid var(--color-cool-4);
+        border-radius: 3px;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--color-text-selection);
+        font-weight: 500;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    
+    .preview-structure {
+      h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+        display: flex;
+        align-items: center;
+        
+        &::before {
+          content: "📊";
+          margin-right: 0.5rem;
+          font-size: 1rem;
+        }
+      }
+      
+      .structure-info {
+        background: var(--color-cool-6);
+        border: 1px solid var(--color-cool-4);
+        border-radius: 4px;
+        padding: 1rem;
+        
+        div {
+          margin-bottom: 0.5rem;
+          font-size: 0.9rem;
+          color: var(--color-text-light-primary);
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          strong {
+            color: var(--color-text-selection);
+            font-weight: 600;
+            margin-right: 0.25rem;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Native Foundry pulse animation
 @keyframes foundry-pulse {
   0%, 100% { 
