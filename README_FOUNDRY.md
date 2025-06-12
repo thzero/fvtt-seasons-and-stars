@@ -2,6 +2,8 @@
 
 _Calendar and Timekeeping for Foundry VTT v13+_
 
+[![Support on Patreon](https://img.shields.io/badge/Patreon-Support%20Development-ff424d?style=flat-square&logo=patreon)](https://patreon.com/rayners)
+
 ## Calendar Management for Your Campaigns
 
 Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT games. Built for Foundry v13+, it offers date tracking, seasonal awareness, and time management tools for your campaigns.
