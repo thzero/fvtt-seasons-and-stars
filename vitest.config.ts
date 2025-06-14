@@ -18,7 +18,8 @@ export default defineConfig({
         'templates/',
         'styles/',
         'calendars/',
-        'languages/'
+        'languages/',
+        'scripts/'
       ],
       thresholds: {
         global: {
