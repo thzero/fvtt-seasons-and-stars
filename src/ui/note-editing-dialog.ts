@@ -1,6 +1,6 @@
 /**
  * Custom note editing dialog for calendar notes
- * Provides enhanced editing interface with S&S-specific fields and tag management
+ * Provides editing interface with S&S-specific fields and tag management
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
@@ -367,7 +367,7 @@ export class NoteEditingDialog {
 
     const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
 
-    // Smart tag matching function
+    // Tag matching function
     function matchTag(
       searchTerm: string,
       tagToMatch: string
