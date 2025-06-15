@@ -64,6 +64,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **Advanced Event Management**: Improved recurring events and reminders
 - **API Expansion**: More comprehensive developer APIs
 - **Module Templates**: Examples for module developers
+- **UI/UX Improvements**: Enhanced widget interfaces and user experience refinements ([#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35))
 
 ### **v1.0.0 - Stable Release** (Future)
 
