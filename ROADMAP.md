@@ -13,12 +13,12 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - Rich calendar format supporting diverse fantasy settings
 - Performance-optimized architecture for large campaigns
 
-## 📋 Current Status: v0.2.3 Alpha Release
+## 📋 Current Status: v0.2.7 Alpha Release
 
 **What's Working Now:**
 
 - ✅ **Core Calendar System**: Date calculations, multiple calendars, Foundry time integration
-- ✅ **Modern UI**: Calendar widget, mini widget, grid view, calendar selection
+- ✅ **Foundry v13+ UI**: Calendar widget, mini widget, grid view, calendar selection
 - ✅ **15 Built-in Calendars**: Gregorian, D&D settings, PF2e Golarion, Critical Role, Warhammer, and more
 - ✅ **Simple Calendar Compatibility**: API compatibility via separate bridge module
 - ✅ **SmallTime Integration**: Auto-positioning and visual consistency
@@ -37,7 +37,25 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 ## 🚀 Planned Development
 
-### **v0.3.0 - Calendar Creation and Import System** (Next Release - High Priority)
+### **v0.3.0 - Enhanced Widget Features** (Ready for Release)
+
+**Focus**: Widget customization and interaction improvements
+
+- **Configurable Quick Time Buttons**: Customizable time advancement with user-defined intervals and formatting
+- **Calendar Click Behavior**: Configurable calendar click actions with modifier key support for date setting vs navigation
+- **Enhanced Widget Controls**: Standardized button styling and improved visual consistency
+- **Settings Preview**: Live preview of button configurations in module settings
+
+### **v0.4.0 - Performance and Moon Tracking** (Next Release)
+
+**Focus**: Performance optimization and lunar cycle features
+
+- **Lazy Calendar Loading**: Only load required calendars to improve startup performance and reduce errors ([#25](https://github.com/rayners/fvtt-seasons-and-stars/issues/25))
+- **Moon Phase Tracking**: Basic lunar cycle tracking for lycantropy, curses, and celestial events ([#17](https://github.com/rayners/fvtt-seasons-and-stars/issues/17))
+- **Performance Optimization**: Reduced memory usage and faster module initialization
+- **Calendar System Enhancement**: Better error handling and validation for calendar definitions
+
+### **v0.5.0 - Calendar Creation and Import System** (Future)
 
 **Focus**: Calendar creation and migration tools
 
@@ -46,7 +64,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **Calendar Validation**: Built-in validation for custom calendar definitions
 - **Migration Wizard**: Step-by-step guide for Simple Calendar users
 
-### **v0.4.0 - Notes System Enhancement** (Future)
+### **v0.6.0 - Notes System Enhancement** (Future)
 
 **Focus**: Complete the calendar-aware notes editing system
 
@@ -56,7 +74,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering
 - **Advanced Notes Features**: Enhanced search, bulk operations, and note templates
 
-### **v0.5.0 - Enhanced Module Integration** (Future)
+### **v0.7.0 - Enhanced Module Integration** (Future)
 
 **Focus**: Deeper integration with the Foundry ecosystem
 
@@ -80,12 +98,12 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 ### **Current Support**
 
-All features work with any Foundry VTT game system, with built-in calendars for:
+Designed to work with any Foundry VTT game system, with built-in calendars for:
 
 - **Universal**: Gregorian calendar for modern/sci-fi campaigns
-- **D&D Settings**: Forgotten Realms (Harptos), Greyhawk, Eberron, Dark Sun
-- **Pathfinder**: Golarion (Absalom Reckoning)
-- **Other Systems**: Exandrian (Critical Role), Symbaroum, Warhammer, Forbidden Lands
+- **D&D Settings**: Intended for Forgotten Realms (Harptos), Greyhawk, Eberron, Dark Sun
+- **Pathfinder**: Intended for Golarion (Absalom Reckoning)
+- **Other Systems**: Intended for Exandrian (Critical Role), Symbaroum, Warhammer, Forbidden Lands
 - **Generic Fantasy**: Vale Reckoning calendar
 
 ### **Planned Support**
