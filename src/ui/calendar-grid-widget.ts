@@ -112,6 +112,21 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const calendarInfo = CalendarLocalization.getLocalizedCalendarInfo(activeCalendar);
     const monthData = this.generateMonthData(activeCalendar, this.viewDate, currentDate);
 
+    const clickBehavior = game.settings.get('seasons-and-stars', 'calendarClickBehavior') as string;
+    const isGM = game.user?.isGM || false;
+
+    // Generate UI hint based on current settings
+    let uiHint = '';
+    if (isGM) {
+      if (clickBehavior === 'viewDetails') {
+        uiHint = 'Click dates to view details. Ctrl+Click to set current date.';
+      } else {
+        uiHint = 'Click dates to set current date.';
+      }
+    } else {
+      uiHint = 'Click dates to view details.';
+    }
+
     return Object.assign(context, {
       calendar: calendarInfo,
       viewDate: this.viewDate,
@@ -120,7 +135,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       monthName: activeCalendar.months[this.viewDate.month - 1]?.name || 'Unknown',
       monthDescription: activeCalendar.months[this.viewDate.month - 1]?.description,
       yearDisplay: `${activeCalendar.year?.prefix || ''}${this.viewDate.year}${activeCalendar.year?.suffix || ''}`,
-      isGM: game.user?.isGM || false,
+      isGM: isGM,
+      clickBehavior: clickBehavior,
+      uiHint: uiHint,
       weekdays: activeCalendar.weekdays.map(wd => ({
         name: wd.name,
         abbreviation: wd.abbreviation,
@@ -430,6 +447,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Format a year with prefix and suffix from calendar configuration
+   */
+  private formatYear(year: number): string {
+    const manager = game.seasonsStars?.manager;
+    const calendar = manager?.getActiveCalendar();
+    if (!calendar) return year.toString();
+
+    const prefix = calendar.year?.prefix || '';
+    const suffix = calendar.year?.suffix || '';
+    return `${prefix}${year}${suffix}`;
+  }
+
+  /**
    * Check if two intercalary dates are the same
    */
   private isSameIntercalaryDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
@@ -495,16 +525,38 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Select a specific date (GM only - sets world time)
+   * Select a specific date (GM only - sets world time) or view date details based on setting
    */
   async _onSelectDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    if (!game.user?.isGM) {
+    const clickBehavior = game.settings.get('seasons-and-stars', 'calendarClickBehavior') as string;
+    const isGM = game.user?.isGM;
+    const isCtrlClick = (event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey;
+
+    // Ctrl+Click always sets date (if GM)
+    if (isCtrlClick && isGM) {
+      return this.setCurrentDate(target);
+    }
+
+    // Regular click behavior based on setting
+    if (clickBehavior === 'viewDetails') {
+      return this.showDateInfo(target);
+    }
+
+    // Default behavior: set date (GM only)
+    if (!isGM) {
       ui.notifications?.warn('Only GMs can change the current date');
       return;
     }
 
+    return this.setCurrentDate(target);
+  }
+
+  /**
+   * Set the current date (extracted from _onSelectDate for reuse)
+   */
+  private async setCurrentDate(target: HTMLElement): Promise<void> {
     const manager = game.seasonsStars?.manager;
     const engine = manager?.getActiveEngine();
     if (!manager || !engine) return;
@@ -541,8 +593,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         };
 
         const afterMonthName = calendar.months[afterMonthIndex]?.name || 'Unknown';
+        const yearDisplay = this.formatYear(this.viewDate.year);
         ui.notifications?.info(
-          `Date set to ${intercalaryName} (intercalary day after ${afterMonthName} ${this.viewDate.year})`
+          `Date set to ${intercalaryName} (intercalary day after ${afterMonthName} ${yearDisplay})`
         );
       } else {
         // Handle regular day selection
@@ -560,7 +613,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const calendar = engine.getCalendar();
         const monthName = calendar.months[targetDate.month - 1]?.name || 'Unknown';
         const dayWithSuffix = this.addOrdinalSuffix(targetDate.day);
-        ui.notifications?.info(`Date set to ${dayWithSuffix} of ${monthName}, ${targetDate.year}`);
+        const yearDisplay = this.formatYear(targetDate.year);
+        ui.notifications?.info(`Date set to ${dayWithSuffix} of ${monthName}, ${yearDisplay}`);
       }
 
       // Set the target date
@@ -572,6 +626,59 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       Logger.error('Failed to set date', error as Error);
       ui.notifications?.error('Failed to set date');
+    }
+  }
+
+  /**
+   * Show information about a specific date without setting it
+   */
+  private showDateInfo(target: HTMLElement): void {
+    const manager = game.seasonsStars?.manager;
+    const engine = manager?.getActiveEngine();
+    if (!manager || !engine) return;
+
+    try {
+      // Check if this is an intercalary day
+      const calendarDay = target.closest('.calendar-day');
+      const isIntercalary = calendarDay?.classList.contains('intercalary');
+      const calendar = engine.getCalendar();
+
+      let dateInfo = '';
+
+      if (isIntercalary) {
+        // Handle intercalary day information
+        const intercalaryName = target.dataset.day;
+        if (!intercalaryName) return;
+
+        const intercalaryDef = calendar.intercalary?.find(i => i.name === intercalaryName);
+        const afterMonthName = intercalaryDef?.after || 'Unknown';
+        const yearDisplay = this.formatYear(this.viewDate.year);
+
+        dateInfo = `${intercalaryName} (intercalary day after ${afterMonthName}, ${yearDisplay})`;
+        if (intercalaryDef?.description) {
+          dateInfo += `\n${intercalaryDef.description}`;
+        }
+      } else {
+        // Handle regular day information
+        const day = parseInt(target.dataset.day || '0');
+        if (day < 1) return;
+
+        const monthName = calendar.months[this.viewDate.month - 1]?.name || 'Unknown';
+        const monthDesc = calendar.months[this.viewDate.month - 1]?.description;
+        const dayWithSuffix = this.addOrdinalSuffix(day);
+        const yearDisplay = this.formatYear(this.viewDate.year);
+
+        dateInfo = `${dayWithSuffix} of ${monthName}, ${yearDisplay}`;
+        if (monthDesc) {
+          dateInfo += `\n${monthDesc}`;
+        }
+      }
+
+      // Show as notification
+      ui.notifications?.info(dateInfo);
+    } catch (error) {
+      Logger.error('Failed to show date info', error as Error);
+      ui.notifications?.warn('Failed to load date information');
     }
   }
 
