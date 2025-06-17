@@ -1,7 +1,7 @@
-# Seasons & Stars Release Workflow
-# Builds and packages the module for FoundryVTT distribution
+# Seasons & Stars Manual Release Workflow
+# Manual builds for specific tags - automatic releases now handled by release-please.yml
 
-name: Release Module
+name: Release Module (Manual)
 
 on:
   release:

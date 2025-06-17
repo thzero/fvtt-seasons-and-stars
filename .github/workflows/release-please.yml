@@ -9,6 +9,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  packages: read
 
 jobs:
   release-please:
@@ -26,4 +27,22 @@ jobs:
         with:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # Build and attach release assets when a release is created
+      - name: Display Release Info
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          echo "🚀 Release created: ${{ steps.release.outputs.tag_name }}"
+          echo "📦 Building and uploading module assets..."
+
+      - name: Build and Release Module
+        if: ${{ steps.release.outputs.release_created }}
+        uses: rayners/foundry-module-actions/release@v4
+        with:
+          node-version: '18'
+          build-command: 'npm run build'
+          working-directory: 'dist'
+          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
