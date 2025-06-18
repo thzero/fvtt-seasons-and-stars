@@ -8,8 +8,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  issues: write
-  packages: read
 
 jobs:
   release-please:
@@ -28,29 +26,12 @@ jobs:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # Build and attach release assets when a release is created
-      - name: Display Release Info
+      # Just log when a release is created
+      # The actual build and upload will be handled by the release.yml workflow
+      # when it detects the published release event
+      - name: Release Created
         if: ${{ steps.release.outputs.release_created }}
         run: |
           echo "🚀 Release created: ${{ steps.release.outputs.tag_name }}"
-          echo "📦 Building and uploading module assets..."
-
-      # Re-checkout with the new tag to ensure git describe works
-      - name: Checkout Release Tag
-        if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.release.outputs.tag_name }}
-          fetch-depth: 0
-
-      - name: Build and Release Module
-        if: ${{ steps.release.outputs.release_created }}
-        uses: rayners/foundry-module-actions/release@v4
-        with:
-          node-version: '18'
-          build-command: 'npm run build'
-          working-directory: 'dist'
-          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          echo "📦 The release workflow will automatically build and upload module assets."
 
