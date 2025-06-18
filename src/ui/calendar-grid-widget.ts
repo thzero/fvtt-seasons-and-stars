@@ -211,7 +211,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             time: { hour: 0, minute: 0, second: 0 },
           };
 
-          const notes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
+          const allNotes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
+          const notes = allNotes.filter(note => {
+            // Use Foundry's native permission checking
+            if (!game.user) return false; // No user logged in
+            if (game.user.isGM) return true;
+
+            const ownership = note.ownership;
+            const userLevel =
+              ownership[game.user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
+            return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+          });
           if (notes.length > 0) {
             const dateKey = this.formatDateKey(dayDate);
             const dayCategories = new Set<string>();
