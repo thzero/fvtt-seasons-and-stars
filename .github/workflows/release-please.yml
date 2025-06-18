@@ -35,6 +35,14 @@ jobs:
           echo "🚀 Release created: ${{ steps.release.outputs.tag_name }}"
           echo "📦 Building and uploading module assets..."
 
+      # Re-checkout with the new tag to ensure git describe works
+      - name: Checkout Release Tag
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.tag_name }}
+          fetch-depth: 0
+
       - name: Build and Release Module
         if: ${{ steps.release.outputs.release_created }}
         uses: rayners/foundry-module-actions/release@v4
