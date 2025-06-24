@@ -394,6 +394,19 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetClick', {
+      name: 'SEASONS_STARS.settings.mini_widget_click',
+      hint: 'SEASONS_STARS.settings.mini_widget_click_hint',
+      scope: 'world', // only because restricted didn't seem to work, and game.user is null at this time
+      config: true,
+      type: String,
+      default: 'selection',
+      choices: {
+          calendar: 'SEASONS_STARS.settings.default_mini_widget_calendar',
+          selection: 'SEASONS_STARS.settings.default_mini_widget_selection',
+      },
+  });
+
   game.settings.register('seasons-and-stars', 'showNotifications', {
     name: 'Show Notifications',
     hint: 'Display warning and error notifications in the UI',

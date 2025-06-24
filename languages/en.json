@@ -47,7 +47,11 @@
       "default_widget_hint": "Choose which calendar widget opens when using the scene control button or default keyboard shortcut (Alt+S)",
       "default_widget_main": "Main Calendar Widget",
       "default_widget_mini": "Mini Calendar Widget", 
-      "default_widget_grid": "Calendar Grid Widget"
+      "default_widget_grid": "Calendar Grid Widget",
+      "mini_widget_click": "Mini Calendar Click Behavior",
+      "mini_widget_click_hint": "Choose which widget opens when clicking on the mini widget",
+      "default_mini_widget_calendar": "Single click - calendar view, Double click - calendar selection",
+      "default_mini_widget_selection": "Single click - calendar selection, Double click - calendar view"
     },
     "notifications": {
       "calendar_changed": "Calendar changed to {calendar}"

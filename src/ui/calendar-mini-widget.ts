@@ -119,29 +119,50 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       let clickCount = 0;
 
       miniDateElement.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        clickCount++;
-
-        if (clickCount === 1) {
-          // Single click - wait to see if there's a double click
-          clickTimeout = setTimeout(() => {
-            Logger.debug('Mini widget: Single click - opening calendar selection');
-            this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
-            clickCount = 0;
-          }, 300);
-        } else if (clickCount === 2) {
-          // Double click - cancel single click and handle double click
-          if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
+          event.preventDefault();
+          event.stopPropagation();
+          if (game.user?.isGM) {
+              const clickType = game.settings?.get('seasons-and-stars', 'miniWidgetClick') || 'selection';
+              clickCount++;
+              if (clickCount === 1) {
+                  // Single click - wait to see if there's a double click
+                  clickTimeout = setTimeout(() => {
+                    Logger.debug('Mini widget: GM single click');
+                    clickCount = 0;
+                    if (clickType === 'selection') {
+                        Logger.debug('Mini widget: opening selection dialog');
+                        this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
+                    }
+                    else if (clickType === 'calendar') {
+                        Logger.debug('Mini widget: GM click - opening larger view');
+                        this._onOpenLargerView(event, miniDateElement as HTMLElement);
+                    }
+                  }, 300);
+              }
+              else if (clickCount === 2) {
+                  // Double click - cancel single click and handle double click
+                  if (clickTimeout) {
+                      clearTimeout(clickTimeout);
+                      clickTimeout = null;
+                  }
+                  clickCount = 0;
+                  Logger.debug('Mini widget: GM double click');
+                  clickCount = 0;
+                  // double click reverses the order of actions...
+                  if (clickType === 'calendar') {
+                      Logger.debug('Mini widget: opening selection dialog');
+                      this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
+                  }
+                  else if (clickType === 'selection') {
+                      Logger.debug('Mini widget: GM click - opening larger view');
+                      this._onOpenLargerView(event, miniDateElement as HTMLElement);
+                  }
+              }
+              return;
           }
-          clickCount = 0;
 
-          Logger.debug('Mini widget: Double-click detected, opening larger view');
+          Logger.debug('Mini widget: Player click detected, opening larger view');
           this._onOpenLargerView(event, miniDateElement as HTMLElement);
-        }
       });
     }
 
